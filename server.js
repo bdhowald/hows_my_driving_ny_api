@@ -7,7 +7,7 @@ const rp      = require('request-promise');
 const url     = require('url');
 
 const googleMapsClient = require('@google/maps').createClient({
-  key: 'AIzaSyAE1JbyV1nUanFEzkb-PxVCXdDwo0Qgyn4',
+  key: process.env.GOOGLE_PLACES_API_KEY,
   Promise: Promise
 });
 
@@ -40,6 +40,15 @@ initializeConnection = config => {
   }
 
   var connection = mysql.createConnection(config);
+
+  connection.promiseQuery = (sql, values) => {
+    return new Promise((resolve, reject) => {
+      return connection.query(sql, values, (error, results, fields) => {
+        if (error) reject(error);
+        if (results) resolve(results);
+      })
+    })
+  }
 
   // Add handlers.
   addDisconnectHandler(connection);
@@ -206,37 +215,58 @@ normalizeViolations = violations => {
 
 
       if (newViolation.location) {
-        // Get latidude & longitude from address.
-        promise = googleMapsClient.geocode({address: newViolation.location})
-          .asPromise()
-          .then(
-          response => {
-            const { lat, lng } = response.json.results[0].geometry.location;
 
-            if (response.json.results[0].address_components.length) {
-              let borough = response.json.results[0].address_components.find((elem) =>
-                elem.types[2] == "sublocality_level_1"
-              )
+        promise = connection.promiseQuery("select borough from geocodes WHERE lookup_string = ?", [newViolation.location])
+          .then((results) => {
+            if (results.length) {
+              newViolation.violation_county = results[0].borough
+              return newViolation
+            } else {
+              // Get latidude & longitude from address.
+              return googleMapsClient.geocode({address: newViolation.location})
+                .asPromise()
+                .then(
+                response => {
+                  const { lat, lng } = response.json.results[0].geometry.location;
 
-              if (borough && borough.long_name) {
-                newViolation.violation_county = borough.long_name
-              }
+                  if (response.json.results[0].address_components.length) {
+                    let borough = response.json.results[0].address_components.find((elem) =>
+                      elem.types[2] == "sublocality_level_1"
+                    )
+
+                    if (borough && borough.long_name) {
+                      newViolation.violation_county = borough.long_name
+
+                      newGeocode = {
+                        lookup_string     : newViolation.location,
+                        borough           : borough.long_name,
+                        geocoding_service : 'google'
+                      }
+
+                      connection.query('insert into geocodes set ?', newGeocode, (error, results, fields) => {
+                        if (error) throw error;
+                      });
+                    }
+
+                  }
+                  // console.log(newViolation.location)
+                  // console.log(lat, lng);
+
+                  return Promise.resolve(newViolation)
+                },
+                error => {
+                  console.log(newViolation.location)
+                  console.error(error);
+                }
+              );
             }
-            // console.log(newViolation.location)
-            // console.log(lat, lng);
+          });
 
-            return Promise.resolve(newViolation)
-          },
-          error => {
-            console.log(newViolation.location)
-            console.error(error);
-          }
-        );
       } else {
         newViolation.violation_county = 'No Borough Available'
         promise = Promise.resolve(newViolation)
       }
-
+      console.log(promise)
       returnViolations.push(promise)
     } else {
       returnViolations.push(Promise.resolve(newViolation))
@@ -251,10 +281,11 @@ normalizeViolations = violations => {
 
 
 var connection = initializeConnection({
-  host     : 'localhost',
-  user     : process.env.MYSQL_DATABASE_USER,
-  password : process.env.MYSQL_DATABASE_PASSWORD,
-  database : 'traffic_violations'
+  host              : 'localhost',
+  user              : process.env.MYSQL_DATABASE_USER,
+  password          : process.env.MYSQL_DATABASE_PASSWORD,
+  database          : 'traffic_violations',
+  multipleStatements: true
 });
 
 
@@ -326,8 +357,6 @@ http.createServer(function (req, res) {
 
               let mergedObject = {};
 
-              console.log(mergedObject)
-
               Object.keys(existingItem).forEach((key) => {
                 mergedObject[key] = existingItem[key] || object[key]
               })
@@ -335,8 +364,6 @@ http.createServer(function (req, res) {
               Object.keys(object).forEach((key) => {
                 mergedObject[key] = existingItem[key] || object[key]
               })
-
-              console.log(mergedObject)
 
               output[existingIndex] = mergedObject
             } else {
@@ -423,6 +450,12 @@ http.createServer(function (req, res) {
 
           })
 
+          const reducer  = (accumulator, currentValue) => accumulator + currentValue;
+
+          const totalFines = output.map((obj) =>
+            obj.total_fine_amount || 0
+          ).reduce(reducer, 0)
+
 
           let cameraViolations = output.filter((violation) =>
             violation.humanized_description == 'School Zone Speed Camera Violation' ||
@@ -436,12 +469,14 @@ http.createServer(function (req, res) {
             state: state
           }
 
-          let numLookups  = connection.query('select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1', [plate, state], (error, results, fields) => {
+          let numLookups  = connection.query('select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1', [plate, state, plate, state], (error, results, fields) => {
             if (error) throw error;
 
-            let frequency;
+            let frequency = 1;
+            let previous_count;
+            let previous_date;
 
-            if (results) {
+            if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
               newLookup = {
                 plate                   : plate,
                 state                   : state,
@@ -457,7 +492,9 @@ http.createServer(function (req, res) {
                 mixpanel_id             : mixpanelID
               }
 
-              frequency = results[0].frequency
+              frequency      = results[0][0].frequency
+              previous_count = results[1][0].num_tickets
+              previous_date  = results[1][0].created_at
 
               connection.query('insert into plate_lookups set ?', newLookup, (error, results, fields) => {
                 if (error) throw error;
@@ -469,9 +506,12 @@ http.createServer(function (req, res) {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.writeHead(200, {'Content-Type': 'application/javascript'});
             res.end(JSON.stringify({
-              count: output.length,
-              frequency: frequency,
-              violations: output,
+              count          : output.length,
+              frequency      : frequency,
+              violations     : output,
+              total_fines    : totalFines,
+              previous_count : previous_count,
+              previous_date  : previous_date
             }));
 
           });

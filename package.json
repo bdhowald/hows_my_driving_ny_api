@@ -6,6 +6,7 @@
     "@google/maps": "^0.5.5",
     "fingerprintjs2": "^1.8.1",
     "mysql": "^2.16.0",
+    "mysql2": "^1.6.1",
     "node-geocoder": "^3.22.0"
   }
 }
