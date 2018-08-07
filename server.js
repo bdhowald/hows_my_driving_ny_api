@@ -203,14 +203,18 @@ normalizeViolations = violations => {
         if (street1.charAt(street1.length - 1) == ' ' || street2.charAt(0) == ' ') {
           fullStreet = street1 + street2
         } else {
-          fullStreet = street1 + ' ' + street2
+          if (!['@', 'ST', 'AVE', 'RD'].includes(street2.split(' ')[0])) {
+            fullStreet = street1 + street2
+          } else {
+            fullStreet = street1 + ' ' + street2
+          }
         }
       } else if (street1) {
         fullStreet = street1
       }
 
       if (fullStreet) {
-        newViolation.location = fullStreet.replace(/[ENSW]\/?B/, '')
+        newViolation.location = fullStreet.replace(/[ENSW]\/?B/, '').trim()
       }
 
 
@@ -266,7 +270,7 @@ normalizeViolations = violations => {
         newViolation.violation_county = 'No Borough Available'
         promise = Promise.resolve(newViolation)
       }
-      console.log(promise)
+
       returnViolations.push(promise)
     } else {
       returnViolations.push(Promise.resolve(newViolation))
