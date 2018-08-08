@@ -2,11 +2,14 @@
   "name": "hows-my-driving-ny-api",
   "version": "0.1.0",
   "private": true,
+  "lockfileVersion": 1,
+  "requires": true,
   "dependencies": {
     "@google/maps": "^0.5.5",
-    "fingerprintjs2": "^1.8.1",
     "mysql": "^2.16.0",
-    "mysql2": "^1.6.1",
-    "node-geocoder": "^3.22.0"
+    "q": "^1.5.1",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2",
+    "url": "^0.11.0"
   }
 }

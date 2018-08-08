@@ -80,7 +80,7 @@ findMaxCameraViolationsStreak = violationTimes => {
       }
     })
 
-    return maxStreak;
+    return {max_streak: maxStreak, max_streak_date: maxStreakDate, min_streak_date: minStreakDate};
   } else {
     return 0;
   }
@@ -471,9 +471,13 @@ http.createServer(function (req, res) {
               violation.humanized_description == 'Failure to Stop at Red Light'
           )
 
-          let maxStreak   = findMaxCameraViolationsStreak(cameraViolations.map(function(violation){return violation.formatted_time}))
+          const streakData = findMaxCameraViolationsStreak(cameraViolations.map(function(violation){return violation.formatted_time}));
 
-          frequencyLookup = {
+          // const maxStreak     = streakData.max_streak;
+          // const maxStreakDate = streakData.max_streak_date;
+          // const minStreakDate = streakData.min_streak_date;
+
+          frequencyLookup   = {
             plate: plate,
             state: state
           }
@@ -492,7 +496,7 @@ http.createServer(function (req, res) {
               twitter_handle          : null,
               count_towards_frequency : (lookupSource == null) ? false : true,
               num_tickets             : output.length,
-              boot_eligible           : maxStreak >= 5,
+              boot_eligible           : streakData.max_streak >= 5,
               fingerprint_id          : fingerprintID,
               mixpanel_id             : mixpanelID
             }
@@ -501,7 +505,7 @@ http.createServer(function (req, res) {
 
 
             if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
-              frequency      = results[0][0].frequency
+              frequency      = results[0][0].frequency + ((lookupSource == null) ? 0 : 1)
               previous_count = results[1][0].num_tickets
               previous_date  = results[1][0].created_at
             }
@@ -519,9 +523,9 @@ http.createServer(function (req, res) {
               violations     : output,
               total_fines    : totalFines,
               previous_count : previous_count,
-              previous_date  : previous_date
-            }));
-
+              previous_date  : previous_date,
+              streak_data    : streakData
+            }))
           });
 
 
