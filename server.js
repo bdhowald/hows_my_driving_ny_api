@@ -214,7 +214,12 @@ normalizeViolations = violations => {
       }
 
       if (fullStreet) {
-        newViolation.location = fullStreet.replace(/[ENSW]\/?B/, '').trim()
+        fullStreet = fullStreet.split(' ').map((strPart) =>
+          strPart.toLowerCase()
+        ).map((strPart) =>
+          strPart.charAt(0).toUpperCase() + strPart.substr(1)
+        ).join(' ');
+        newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim()
       }
 
 
@@ -242,7 +247,7 @@ normalizeViolations = violations => {
                       newViolation.violation_county = borough.long_name
 
                       newGeocode = {
-                        lookup_string     : newViolation.location,
+                        lookup_string     : newViolation.location.trim(),
                         borough           : borough.long_name,
                         geocoding_service : 'google'
                       }
@@ -476,35 +481,34 @@ http.createServer(function (req, res) {
           let numLookups  = connection.query('select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1', [plate, state, plate, state], (error, results, fields) => {
             if (error) throw error;
 
-            let frequency = 1;
+            let frequency = (lookupSource == null) ? 0 : 1;
+            let newLookup = {
+              plate                   : plate,
+              state                   : state,
+              observed                : null,
+              message_id              : null,
+              lookup_source           : (lookupSource == null) ? 'api' : lookupSource,
+              created_at              : new Date(),
+              twitter_handle          : null,
+              count_towards_frequency : (lookupSource == null) ? false : true,
+              num_tickets             : output.length,
+              boot_eligible           : maxStreak >= 5,
+              fingerprint_id          : fingerprintID,
+              mixpanel_id             : mixpanelID
+            }
             let previous_count;
             let previous_date;
 
-            if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
-              newLookup = {
-                plate                   : plate,
-                state                   : state,
-                observed                : null,
-                message_id              : null,
-                lookup_source           : (lookupSource != null) ? lookupSource : 'api',
-                created_at              : new Date(),
-                twitter_handle          : null,
-                count_towards_frequency : (lookupSource != null) ? true : false,
-                num_tickets             : output.length,
-                boot_eligible           : maxStreak >= 5,
-                fingerprint_id          : fingerprintID,
-                mixpanel_id             : mixpanelID
-              }
 
+            if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
               frequency      = results[0][0].frequency
               previous_count = results[1][0].num_tickets
               previous_date  = results[1][0].created_at
-
-              connection.query('insert into plate_lookups set ?', newLookup, (error, results, fields) => {
-                if (error) throw error;
-              });
-
             }
+
+            connection.query('insert into plate_lookups set ?', newLookup, (error, results, fields) => {
+              if (error) throw error;
+            });
 
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Access-Control-Allow-Origin', '*');
