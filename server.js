@@ -219,7 +219,7 @@ normalizeViolations = violations => {
         ).map((strPart) =>
           strPart.charAt(0).toUpperCase() + strPart.substr(1)
         ).join(' ');
-        newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim()
+        newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim() + ' New York NY'
       }
 
 
@@ -236,27 +236,31 @@ normalizeViolations = violations => {
                 .asPromise()
                 .then(
                 response => {
-                  const { lat, lng } = response.json.results[0].geometry.location;
+                  if (response.json.results[0]) {
+                    const { lat, lng } = response.json.results[0].geometry.location;
 
-                  if (response.json.results[0].address_components.length) {
-                    let borough = response.json.results[0].address_components.find((elem) =>
-                      elem.types[2] == "sublocality_level_1"
-                    )
+                    if (response.json.results[0].address_components.length) {
+                      let borough = response.json.results[0].address_components.find((elem) =>
+                        elem.types[2] == "sublocality_level_1"
+                      )
 
-                    if (borough && borough.long_name) {
-                      newViolation.violation_county = borough.long_name
+                      if (borough && borough.long_name) {
+                        newViolation.violation_county = borough.long_name
 
-                      newGeocode = {
-                        lookup_string     : newViolation.location.trim(),
-                        borough           : borough.long_name,
-                        geocoding_service : 'google'
+                        newGeocode = {
+                          lookup_string     : newViolation.location.trim(),
+                          borough           : borough.long_name,
+                          geocoding_service : 'google'
+                        }
+
+                        connection.query('insert into geocodes set ?', newGeocode, (error, results, fields) => {
+                          if (error) throw error;
+                        });
                       }
 
-                      connection.query('insert into geocodes set ?', newGeocode, (error, results, fields) => {
-                        if (error) throw error;
-                      });
                     }
-
+                  } else {
+                    newViolation.violation_county = 'No Borough Available'
                   }
                   // console.log(newViolation.location)
                   // console.log(lat, lng);
