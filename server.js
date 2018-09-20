@@ -330,9 +330,16 @@ http.createServer(function (req, res) {
       // Fiscal Year Databases
       let promises = fy_endpoints.map((endpoint) => {
         let queryString = endpoint + '?plate_id=' + plate.toUpperCase() + '&registration_state=' + state.toUpperCase()
+
         if (plateType) {
-          queryString += '&plate_type=' + plateType.toUpperCase()
+
+          let plateTypes = plateType.split(',').map((item) =>
+            "%27" + item.toUpperCase().trim() + "%27"
+          ).join()
+
+          queryString += "&$where=license_type%20in(" + plateTypes + ")"
         }
+
         queryString += ('&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G')
         return rp(queryString)
       });
