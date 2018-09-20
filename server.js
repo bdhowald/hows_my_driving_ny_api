@@ -337,7 +337,7 @@ http.createServer(function (req, res) {
             "%27" + item.toUpperCase().trim() + "%27"
           ).join()
 
-          queryString += "&$where=license_type%20in(" + plateTypes + ")"
+          queryString += "&$where=plate_type%20in(" + plateTypes + ")"
         }
 
         queryString += ('&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G')
