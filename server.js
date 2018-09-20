@@ -150,47 +150,47 @@ normalizeViolations = violations => {
     let promise;
 
     const newViolation = {
-      amount_due                        : violation.amount_due,
-      date_first_observed               : violation.date_first_observed,
-      feet_from_curb                    : violation.feet_from_curb,
-      fine_amount                       : violation.fine_amount,
-      house_number                      : violation.house_number,
-      humanized_description             : fyHumanizedNames[violation.violation_description || violation.violation_code] || opacvHumanizedNames[violation.violation],
-      interest_amount                   : violation.interest_amount,
-      intersecting_street               : violation.intersecting_street,
-      issue_date                        : violation.issue_date,
-      issuer_code                       : violation.issuer_code,
-      issuer_command                    : violation.issuer_command,
-      issuer_precinct                   : violation.issuer_precinct,
-      issuing_agency                    : issuingAgencies[violation.issuing_agency],
-      law_section                       : violation.law_section,
-      payment_amount                    : violation.payment_amount,
-      penalty_amount                    : violation.penalty_amount,
-      plate_id                          : violation.plate_id || violation.plate,
-      plate_type                        : violation.plate_type || violation.license_type,
-      reduction_amount                  : violation.reduction_amount,
-      registration_state                : violation.registration_state,
-      street_code1                      : violation.street_code1,
-      street_code2                      : violation.street_code2,
-      street_code3                      : violation.street_code3,
-      street_name                       : violation.street_name,
-      sub_division                      : violation.sub_division,
-      summons_image                     : violation.summons_image,
-      summons_number                    : violation.summons_number,
-      to_hours_in_effect                : violation.to_hours_in_effect,
-      vehicle_body_type                 : violation.vehicle_body_type,
-      vehicle_color                     : violation.vehicle_color,
-      vehicle_expiration_date           : violation.vehicle_expiration_date,
-      vehicle_make                      : violation.vehicle_make,
-      vehicle_year                      : violation.vehicle_year,
-      violation_code                    : violation.violation_code,
-      violation_county                  : counties[violation.violation_county || violation.county],
-      violation_in_front_of_or_opposite : violation.violation_in_front_of_or_opposite,
-      violation_legal_code              : violation.violation_legal_code,
-      violation_location                : violation.violation_location,
-      violation_post_code               : violation.violation_post_code,
-      violation_precinct                : violation.violation_precinct || violation.precinct,
-      violation_time                    : violation.violation_time
+      amount_due                        : isNaN(parseInt(violation.amount_due)) ? null : parseInt(violation.amount_due),
+      date_first_observed               : violation.date_first_observed                            || null,
+      feet_from_curb                    : violation.feet_from_curb                                 || null,
+      fine_amount                       : isNaN(parseInt(violation.fine_amount)) ? null : parseInt(violation.fine_amount),
+      house_number                      : violation.house_number                                   || null,
+      humanized_description             : fyHumanizedNames[violation.violation_description || violation.violation_code] || opacvHumanizedNames[violation.violation] || null,
+      interest_amount                   : isNaN(parseInt(violation.interest_amount)) ? null : parseInt(violation.interest_amount),
+      intersecting_street               : violation.intersecting_street                            || null,
+      issue_date                        : violation.issue_date                                     || null,
+      issuer_code                       : violation.issuer_code                                    || null,
+      issuer_command                    : violation.issuer_command                                 || null,
+      issuer_precinct                   : violation.issuer_precinct                                || null,
+      issuing_agency                    : issuingAgencies[violation.issuing_agency]                || null,
+      law_section                       : violation.law_section                                    || null,
+      payment_amount                    : isNaN(parseInt(violation.payment_amount)) ? null : parseInt(violation.payment_amount),
+      penalty_amount                    : isNaN(parseInt(violation.penalty_amount)) ? null : parseInt(violation.penalty_amount),
+      plate_id                          : violation.plate_id || violation.plate                    || null,
+      plate_type                        : violation.plate_type || violation.license_type           || null,
+      reduction_amount                  : isNaN(parseInt(violation.reduction_amount)) ? null : parseInt(violation.reduction_amount),
+      registration_state                : violation.registration_state                             || null,
+      street_code1                      : violation.street_code1                                   || null,
+      street_code2                      : violation.street_code2                                   || null,
+      street_code3                      : violation.street_code3                                   || null,
+      street_name                       : violation.street_name                                    || null,
+      sub_division                      : violation.sub_division                                   || null,
+      summons_image                     : violation.summons_image                                  || null,
+      summons_number                    : violation.summons_number                                 || null,
+      to_hours_in_effect                : violation.to_hours_in_effect                             || null,
+      vehicle_body_type                 : violation.vehicle_body_type                              || null,
+      vehicle_color                     : violation.vehicle_color                                  || null,
+      vehicle_expiration_date           : violation.vehicle_expiration_date                        || null,
+      vehicle_make                      : violation.vehicle_make                                   || null,
+      vehicle_year                      : violation.vehicle_year                                   || null,
+      violation_code                    : violation.violation_code                                 || null,
+      violation_county                  : counties[violation.violation_county || violation.county] || null,
+      violation_in_front_of_or_opposite : violation.violation_in_front_of_or_opposite              || null,
+      violation_legal_code              : violation.violation_legal_code                           || null,
+      violation_location                : violation.violation_location                             || null,
+      violation_post_code               : violation.violation_post_code                            || null,
+      violation_precinct                : isNaN(parseInt(violation.violation_precinct || violation.precinct)) ? null : parseInt(violation.violation_precinct || violation.precinct),
+      violation_time                    : violation.violation_time                                 || null
     }
 
     if (newViolation.violation_county == null) {
@@ -339,10 +339,19 @@ http.createServer(function (req, res) {
 
       // Open Parking & Camera Violations Database
       let opacvQueryString = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' + '?plate=' + plate.toUpperCase() + '&state=' + state.toUpperCase();
+
       if (plateType) {
-        opacvQueryString += '&license_type=' + plateType.toUpperCase()
+
+        let plateTypes = plateType.split(',').map((item) =>
+          "'" + item.toUpperCase() + "'"
+        ).join()
+
+        opacvQueryString += '&$where=license_type%20in(' + plateTypes + ')'
       }
+
       opacvQueryString += '&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G'
+
+
       promises.push(
         rp(opacvQueryString)
       )
@@ -398,45 +407,55 @@ http.createServer(function (req, res) {
               }
             }
 
-            let isAM          = violationTime.includes('A')
-            let isPM          = violationTime.includes('P')
 
-            let timeMatch     = violationTime.match(/\d{4}/)
+            if (violationTime) {
 
-            let hour;
-            let minute;
+              let isAM          = violationTime.includes('A')
+              let isPM          = violationTime.includes('P')
 
-            if (timeMatch) {
-              hour   = timeMatch[0].substring(0,2)
-              minute = timeMatch[0].substring(2,4)
+              let timeMatch     = violationTime.match(/\d{4}/)
 
-              if (isPM && parseInt(hour) < 12) {
-                hour = (parseInt(hour) + 12).toString()
-              } else if (isAM && hour == 12) {
-                hour = (parseInt(hour) - 12).toString()
+              let hour;
+              let minute;
+
+              if (timeMatch) {
+                hour   = timeMatch[0].substring(0,2)
+                minute = timeMatch[0].substring(2,4)
+
+                if (isPM && parseInt(hour) < 12) {
+                  hour = (parseInt(hour) + 12).toString()
+                } else if (isAM && hour == 12) {
+                  hour = (parseInt(hour) - 12).toString()
+                }
+              } else if (timeMatch = violationTime.match(/\d{2}:\d{2}/)) {
+                hour   = timeMatch[0].split(':')[0]
+                minute = timeMatch[0].split(':')[1]
               }
-            } else if (timeMatch = violationTime.match(/\d{2}:\d{2}/)) {
-              hour   = timeMatch[0].split(':')[0]
-              minute = timeMatch[0].split(':')[1]
-            }
 
-            if (hour) {
-              if (isPM && parseInt(hour) < 12) {
-                hour = (parseInt(hour) + 12).toString()
-              } else if (isAM && hour == 12) {
-                hour = (parseInt(hour) - 12).toString()
+              if (hour) {
+                if (isPM && parseInt(hour) < 12) {
+                  hour = (parseInt(hour) + 12).toString()
+                } else if (isAM && hour == 12) {
+                  hour = (parseInt(hour) - 12).toString()
+                }
               }
-            }
 
-            // console.log(violation.summons_number)
-            // console.log(violation.street_name)
-            // console.log(violation.intersecting_street)
-            // console.log(' ')
-            if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
-              date = date.replace(/\//g,'-')
-              violation.formatted_time = new Date(date + ' ' + hour + ':' + minute)
+
+              // console.log(violation.summons_number)
+              // console.log(violation.street_name)
+              // console.log(violation.intersecting_street)
+              // console.log(' ')
+
+              if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
+                date = date.replace(/\//g,'-')
+                violation.formatted_time = new Date(date + ' ' + hour + ':' + minute)
+              } else {
+                violation.formatted_time = new Date(date + 'T' + hour + ':' + minute)
+              }
+
             } else {
-              violation.formatted_time = new Date(date + 'T' + hour + ':' + minute)
+              date = date.replace(/\//g,'-')
+              violation.formatted_time = new Date(date + ' 00:00')
             }
 
             if (violation.fine_amount) {
