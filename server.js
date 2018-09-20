@@ -343,10 +343,10 @@ http.createServer(function (req, res) {
       if (plateType) {
 
         let plateTypes = plateType.split(',').map((item) =>
-          "'" + item.toUpperCase() + "'"
+          "%27" + item.toUpperCase().trim() + "%27"
         ).join()
 
-        opacvQueryString += '&$where=license_type%20in(' + plateTypes + ')'
+        opacvQueryString += "&$where=license_type%20in(" + plateTypes + ")"
       }
 
       opacvQueryString += '&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G'
