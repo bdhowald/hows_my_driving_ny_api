@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-
+const crypto  = require('crypto');
+const hmac    = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
 const http    = require('http');
 const https   = require('https');
 const q       = require('q');
@@ -304,7 +305,23 @@ var connection = initializeConnection({
 
 http.createServer(function (req, res) {
 
-  if (req.url != '/favicon.ico') {
+  if (req.url.match('/webhook/twitter')) {
+
+    var query = url.parse(req.url, true).query
+
+    // creates HMAC SHA-256 hash from incomming token and your consumer secret
+    // construct response data with base64 encoded hash
+    response = {
+      'response_token': 'sha256=' + hmac.update(query.crc_token).digest('base64')
+    }
+
+    // # returns properly formatted json response
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.writeHead(200, {'Content-Type': 'application/javascript'});
+    res.end(JSON.stringify(response))
+
+  } else if (req.url != '/favicon.ico') {
 
     var query = url.parse(req.url, true).query;
 
