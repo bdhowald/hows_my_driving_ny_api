@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 const crypto  = require('crypto');
-const hmac    = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
 const http    = require('http');
 const https   = require('https');
 const q       = require('q');
@@ -311,6 +310,8 @@ http.createServer(function (req, res) {
 
     // creates HMAC SHA-256 hash from incomming token and your consumer secret
     // construct response data with base64 encoded hash
+    const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+
     response = {
       'response_token': 'sha256=' + hmac.update(query.crc_token).digest('base64')
     }
