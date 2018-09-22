@@ -325,12 +325,13 @@ http.createServer(function (req, res) {
 
       var query = url.parse(req.url, true).query
 
+      const crc_token = query.crc_token || ''
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
       const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
 
       response = {
-        'response_token': 'sha256=' + hmac.update(query.crc_token).digest('base64')
+        'response_token': 'sha256=' + hmac.update(crc_token).digest('base64')
       }
 
       // # returns properly formatted json response
