@@ -306,21 +306,40 @@ http.createServer(function (req, res) {
 
   if (req.url.match('/webhook/twitter')) {
 
-    var query = url.parse(req.url, true).query
+    if (req.method == 'POST') {
 
-    // creates HMAC SHA-256 hash from incomming token and your consumer secret
-    // construct response data with base64 encoded hash
-    const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+      let body = [];
+      req.on('data', (chunk) => {
+        body.push(chunk);
+      }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        // at this point, `body` has the entire request body stored in it as a string
 
-    response = {
-      'response_token': 'sha256=' + hmac.update(query.crc_token).digest('base64')
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.end(JSON.stringify(body))
+      });
+
+    } else if (req.method == 'GET') {
+
+      var query = url.parse(req.url, true).query
+
+      // creates HMAC SHA-256 hash from incomming token and your consumer secret
+      // construct response data with base64 encoded hash
+      const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+
+      response = {
+        'response_token': 'sha256=' + hmac.update(query.crc_token).digest('base64')
+      }
+
+      // # returns properly formatted json response
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.writeHead(200, {'Content-Type': 'application/javascript'});
+      res.end(JSON.stringify(response))
+
     }
-
-    // # returns properly formatted json response
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.writeHead(200, {'Content-Type': 'application/javascript'});
-    res.end(JSON.stringify(response))
 
   } else if (req.url != '/favicon.ico') {
 
