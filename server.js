@@ -319,6 +319,74 @@ http.createServer(function (req, res) {
 
         console.log(body);
 
+        if (body.tweet_create_events) {
+
+          body.tweet_create_events.each((event) => {
+
+            console.log(event)
+
+            if (event.user && event.user.screen_name != 'HowsMyDrivingNY') {
+              newEvent = {
+                event_type:             'status',
+                event_id:               event.id,
+                user_handle:            event.user.screen_name,
+                user_id:                event.user.id,
+                event_text:             event.text,
+                created_at:             event.timestamp_ms,
+                in_reply_to_message_id: event.in_reply_to_status_id,
+                location:               (event.place && event.place.full_name) ? event.place.full_name : null,
+                responded_to:           false
+              }
+
+              console.log('About to insert a newEvent')
+              console.log(newEvent)
+
+              connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
+                if (error) throw error;
+              });
+            }
+          })
+
+        } else if (body.direct_message_events) {
+
+          body.direct_message_events.each((event) => {
+
+            console.log(event)
+
+            if (event.type === 'message_create') {
+
+              message_create_data = event.type
+
+              recipient_id = message_create_data.target.recipient_id
+              sender_id    = message_create_data.sender_id
+
+              sender = event.users[sender_id]
+
+              if (sender && event.message_create.target.recipient_id === '976593574732222465') {
+
+                console.log('About to insert a newEvent')
+                console.log(newEvent)
+
+                newEvent = {
+                  event_type:             'direct_message',
+                  event_id:               event.id,
+                  user_handle:            sender.screen_name,
+                  user_id:                sender.id,
+                  event_text:             message_create_data.message_data.text,
+                  created_at:             event.created_timestamp,
+                  in_reply_to_message_id: null,
+                  location:               null,
+                  responded_to:           false
+                }
+
+                connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
+                  if (error) throw error;
+                });
+              }
+            }
+          })
+        }
+
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.writeHead(200, {'Content-Type': 'application/javascript'});
