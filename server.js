@@ -317,13 +317,19 @@ http.createServer(function (req, res) {
         body = Buffer.concat(body).toString();
         // at this point, `body` has the entire request body stored in it as a string
 
-        console.log(body);
 
-        if (body.tweet_create_events) {
+        const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
 
-          body.tweet_create_events.each((event) => {
+        let expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
 
-            console.log(event)
+        console.log(expectedSHA);
+        console.log(req.headers['x-twitter-webhooks-signature']);
+
+        let json = JSON.parse(body);
+
+        if (json.tweet_create_events) {
+
+          json.tweet_create_events.forEach((event) => {
 
             if (event.user && event.user.screen_name != 'HowsMyDrivingNY') {
               newEvent = {
@@ -338,8 +344,7 @@ http.createServer(function (req, res) {
                 responded_to:           false
               }
 
-              console.log('About to insert a newEvent')
-              console.log(newEvent)
+              console.log('About to insert a new event: ' + newEvent);
 
               connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                 if (error) throw error;
@@ -347,27 +352,26 @@ http.createServer(function (req, res) {
             }
           })
 
-        } else if (body.direct_message_events) {
+        } else if (json.direct_message_events) {
 
-          body.direct_message_events.each((event) => {
+          console.log('We have a direct message')
 
-            console.log(event)
+          json.direct_message_events.forEach((event) => {
 
             if (event.type === 'message_create') {
 
-              message_create_data = event.type
+              let message_create_data = event.message_create
 
               recipient_id = message_create_data.target.recipient_id
               sender_id    = message_create_data.sender_id
 
-              sender = event.users[sender_id]
+              console.log(json.users)
+
+              sender = json.users[sender_id]
 
               if (sender && event.message_create.target.recipient_id === '976593574732222465') {
 
-                console.log('About to insert a newEvent')
-                console.log(newEvent)
-
-                newEvent = {
+                let newEvent = {
                   event_type:             'direct_message',
                   event_id:               event.id,
                   user_handle:            sender.screen_name,
@@ -378,6 +382,8 @@ http.createServer(function (req, res) {
                   location:               null,
                   responded_to:           false
                 }
+
+                console.log('About to insert a new event: ' + newEvent);
 
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
@@ -390,7 +396,7 @@ http.createServer(function (req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.writeHead(200, {'Content-Type': 'application/javascript'});
-        res.end(JSON.stringify(body))
+        res.end(JSON.stringify())
       });
 
     } else if (req.method == 'GET') {
