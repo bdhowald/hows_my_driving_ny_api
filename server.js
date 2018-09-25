@@ -334,13 +334,27 @@ http.createServer(function (req, res) {
 
               if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
 
-                let text = event.extended_tweet ? event.extended_tweet.full_text : event.text
+                let text;
+                let user_mentions;
+
+                if (event.extended_tweet) {
+                  text          = event.extended_tweet.full_text
+                  user_mentions = event.extended_tweet.entities.user_mentions.map((mention) =>
+                    mention.screen_name
+                  ).join(' ')
+                } else {
+                  text          = event.text
+                  user_mentions = event.entities.user_mentions.map((mention) =>
+                    mention.screen_name
+                  ).join(' ')
+                }
 
                 newEvent = {
                   event_type:             'status',
                   event_id:               event.id,
                   user_handle:            event.user.screen_name,
                   user_id:                event.user.id,
+                  user_mentions:          user_mentions,
                   event_text:             text,
                   created_at:             event.timestamp_ms,
                   in_reply_to_message_id: event.in_reply_to_status_id,
