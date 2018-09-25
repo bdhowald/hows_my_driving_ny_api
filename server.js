@@ -317,6 +317,8 @@ http.createServer(function (req, res) {
         body = Buffer.concat(body).toString();
         // at this point, `body` has the entire request body stored in it as a string
 
+        console.log(body);
+
         const hmac          = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
         let   expectedSHA   = 'sha256=' + hmac.update(body).digest('base64')
 
@@ -330,7 +332,7 @@ http.createServer(function (req, res) {
 
             json.tweet_create_events.forEach((event) => {
 
-              if (event.user && event.user.screen_name != 'HowsMyDrivingNY') {
+              if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
                 newEvent = {
                   event_type:             'status',
                   event_id:               event.id,
@@ -342,8 +344,6 @@ http.createServer(function (req, res) {
                   location:               (event.place && event.place.full_name) ? event.place.full_name : null,
                   responded_to:           false
                 }
-
-                console.log('About to insert a new event: ' + newEvent);
 
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
@@ -379,8 +379,6 @@ http.createServer(function (req, res) {
                     location:               null,
                     responded_to:           false
                   }
-
-                  console.log('About to insert a new event: ' + newEvent);
 
                   connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                     if (error) throw error;
