@@ -338,15 +338,25 @@ http.createServer(function (req, res) {
                 let user_mentions;
 
                 if (event.extended_tweet) {
-                  text          = event.extended_tweet.full_text
-                  user_mentions = event.extended_tweet.entities.user_mentions.map((mention) =>
-                    mention.screen_name
-                  ).join(' ')
+                  text = event.extended_tweet.full_text
+
+                  if (event.extended_tweet.entities.user_mentions) {
+                    user_mentions = event.extended_tweet.entities.user_mentions.map((mention) =>
+                      mention.screen_name
+                    ).join(' ');
+                  } else {
+                    user_mentions = [];
+                  }
                 } else {
-                  text          = event.text
-                  user_mentions = event.entities.user_mentions.map((mention) =>
-                    mention.screen_name
-                  ).join(' ')
+                  text = event.text
+
+                  if (event.entities.user_mentions) {
+                    user_mentions = event.entities.user_mentions.map((mention) =>
+                      mention.screen_name
+                    ).join(' ');
+                  } else {
+                    user_mentions = [];
+                  }
                 }
 
                 newEvent = {
