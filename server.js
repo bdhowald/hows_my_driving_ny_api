@@ -333,12 +333,15 @@ http.createServer(function (req, res) {
             json.tweet_create_events.forEach((event) => {
 
               if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
+
+                let text = event.extended_tweet ? event.extended_tweet.full_text : event.text
+
                 newEvent = {
                   event_type:             'status',
                   event_id:               event.id,
                   user_handle:            event.user.screen_name,
                   user_id:                event.user.id,
-                  event_text:             event.text,
+                  event_text:             text,
                   created_at:             event.timestamp_ms,
                   in_reply_to_message_id: event.in_reply_to_status_id,
                   location:               (event.place && event.place.full_name) ? event.place.full_name : null,
