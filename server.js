@@ -351,13 +351,13 @@ http.createServer(function (req, res) {
 
                 newEvent = {
                   event_type:             'status',
-                  event_id:               event.id,
+                  event_id:               event.id_str,
                   user_handle:            event.user.screen_name,
                   user_id:                event.user.id,
                   user_mentions:          user_mentions,
                   event_text:             text,
                   created_at:             event.timestamp_ms,
-                  in_reply_to_message_id: event.in_reply_to_status_id,
+                  in_reply_to_message_id: event.in_reply_to_status_id_str,
                   location:               (event.place && event.place.full_name) ? event.place.full_name : null,
                   responded_to:           false
                 }
