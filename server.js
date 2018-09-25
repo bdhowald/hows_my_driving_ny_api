@@ -317,6 +317,8 @@ http.createServer(function (req, res) {
         body = Buffer.concat(body).toString();
         // at this point, `body` has the entire request body stored in it as a string
 
+        console.log(body);
+
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.writeHead(200, {'Content-Type': 'application/javascript'});
@@ -326,6 +328,8 @@ http.createServer(function (req, res) {
     } else if (req.method == 'GET') {
 
       var query = url.parse(req.url, true).query
+
+      console.log(query);
 
       const crc_token = query.crc_token || ''
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
