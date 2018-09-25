@@ -317,69 +317,29 @@ http.createServer(function (req, res) {
         body = Buffer.concat(body).toString();
         // at this point, `body` has the entire request body stored in it as a string
 
+        const hmac          = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+        let   expectedSHA   = 'sha256=' + hmac.update(body).digest('base64')
 
-        const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+        if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
-        let expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
+          let json = JSON.parse(body);
 
-        console.log(expectedSHA);
-        console.log(req.headers['x-twitter-webhooks-signature']);
+          if (json.tweet_create_events) {
 
-        let json = JSON.parse(body);
+            console.log('We have a new tweet');
 
-        if (json.tweet_create_events) {
+            json.tweet_create_events.forEach((event) => {
 
-          json.tweet_create_events.forEach((event) => {
-
-            if (event.user && event.user.screen_name != 'HowsMyDrivingNY') {
-              newEvent = {
-                event_type:             'status',
-                event_id:               event.id,
-                user_handle:            event.user.screen_name,
-                user_id:                event.user.id,
-                event_text:             event.text,
-                created_at:             event.timestamp_ms,
-                in_reply_to_message_id: event.in_reply_to_status_id,
-                location:               (event.place && event.place.full_name) ? event.place.full_name : null,
-                responded_to:           false
-              }
-
-              console.log('About to insert a new event: ' + newEvent);
-
-              connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-                if (error) throw error;
-              });
-            }
-          })
-
-        } else if (json.direct_message_events) {
-
-          console.log('We have a direct message')
-
-          json.direct_message_events.forEach((event) => {
-
-            if (event.type === 'message_create') {
-
-              let message_create_data = event.message_create
-
-              recipient_id = message_create_data.target.recipient_id
-              sender_id    = message_create_data.sender_id
-
-              console.log(json.users)
-
-              sender = json.users[sender_id]
-
-              if (sender && event.message_create.target.recipient_id === '976593574732222465') {
-
-                let newEvent = {
-                  event_type:             'direct_message',
+              if (event.user && event.user.screen_name != 'HowsMyDrivingNY') {
+                newEvent = {
+                  event_type:             'status',
                   event_id:               event.id,
-                  user_handle:            sender.screen_name,
-                  user_id:                sender.id,
-                  event_text:             message_create_data.message_data.text,
-                  created_at:             event.created_timestamp,
-                  in_reply_to_message_id: null,
-                  location:               null,
+                  user_handle:            event.user.screen_name,
+                  user_id:                event.user.id,
+                  event_text:             event.text,
+                  created_at:             event.timestamp_ms,
+                  in_reply_to_message_id: event.in_reply_to_status_id,
+                  location:               (event.place && event.place.full_name) ? event.place.full_name : null,
                   responded_to:           false
                 }
 
@@ -389,21 +349,54 @@ http.createServer(function (req, res) {
                   if (error) throw error;
                 });
               }
-            }
-          })
-        }
+            })
 
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.writeHead(200, {'Content-Type': 'application/javascript'});
-        res.end(JSON.stringify())
+          } else if (json.direct_message_events) {
+
+            console.log('We have a new direct message');
+
+            json.direct_message_events.forEach((event) => {
+
+              if (event.type === 'message_create') {
+
+                let message_create_data = event.message_create
+
+                recipient_id = message_create_data.target.recipient_id
+                sender_id    = message_create_data.sender_id
+
+                sender = json.users[sender_id]
+
+                if (sender && event.message_create.target.recipient_id === '976593574732222465') {
+
+                  let newEvent = {
+                    event_type:             'direct_message',
+                    event_id:               event.id,
+                    user_handle:            sender.screen_name,
+                    user_id:                sender.id,
+                    event_text:             message_create_data.message_data.text,
+                    created_at:             event.created_timestamp,
+                    in_reply_to_message_id: null,
+                    location:               null,
+                    responded_to:           false
+                  }
+
+                  console.log('About to insert a new event: ' + newEvent);
+
+                  connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
+                    if (error) throw error;
+                  });
+                }
+              }
+            })
+          }
+        }
       });
 
     } else if (req.method == 'GET') {
 
       var query = url.parse(req.url, true).query
 
-      console.log(query);
+      console.log('query: ' + query);
 
       const crc_token = query.crc_token || ''
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
