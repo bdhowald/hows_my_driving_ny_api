@@ -304,6 +304,8 @@ var connection = initializeConnection({
 
 http.createServer(function (req, res) {
 
+  console.log(req.url);
+
   if (req.url.match('/webhook/twitter')) {
 
     if (req.method == 'POST') {
