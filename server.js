@@ -655,6 +655,7 @@ http.createServer(function (req, res) {
             let newLookup = {
               plate                   : plate,
               state                   : state,
+              plate_types             : plateType,
               observed                : null,
               message_id              : null,
               lookup_source           : (lookupSource == null) ? 'api' : lookupSource,
