@@ -421,7 +421,7 @@ http.createServer(function (req, res) {
 
       var query = url.parse(req.url, true).query
 
-      console.log('query: ' + query);
+      console.log(query);
 
       const crc_token = query.crc_token || ''
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
