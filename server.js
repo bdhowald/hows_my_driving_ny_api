@@ -372,6 +372,9 @@ http.createServer(function (req, res) {
                   responded_to:           false
                 }
 
+                console.log('newEvent: ');
+                console.log(newEvent);
+
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
                 });
@@ -665,7 +668,8 @@ http.createServer(function (req, res) {
               num_tickets             : output.length,
               boot_eligible           : streakData.max_streak >= 5,
               fingerprint_id          : fingerprintID,
-              mixpanel_id             : mixpanelID
+              mixpanel_id             : mixpanelID,
+              responded_to            : true
             }
             let previous_count;
             let previous_date;
