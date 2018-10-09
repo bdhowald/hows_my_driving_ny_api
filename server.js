@@ -342,8 +342,8 @@ http.createServer(function (req, res) {
 
                   if (event.extended_tweet.entities.user_mentions) {
                     user_mentions = event.extended_tweet.entities.user_mentions.map((mention) =>
-                      mention.screen_name
-                    ).join(' ');
+                      text.includes(mention.screen_name) ? mention.screen_name : ''
+                    ).join(' ').trim();
                   } else {
                     user_mentions = [];
                   }
@@ -352,8 +352,8 @@ http.createServer(function (req, res) {
 
                   if (event.entities.user_mentions) {
                     user_mentions = event.entities.user_mentions.map((mention) =>
-                      mention.screen_name
-                    ).join(' ');
+                      text.includes(mention.screen_name) ? mention.screen_name : ''
+                    ).join(' ').trim();
                   } else {
                     user_mentions = [];
                   }
