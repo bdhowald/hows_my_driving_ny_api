@@ -664,7 +664,7 @@ http.createServer(function (req, res) {
               message_id              : null,
               lookup_source           : (lookupSource == null) ? 'api' : lookupSource,
               created_at              : new Date(),
-              twitter_handle          : null,
+              external_username       : null,
               count_towards_frequency : (lookupSource == null) ? false : true,
               num_tickets             : output.length,
               boot_eligible           : streakData.max_streak >= 5,
