@@ -270,6 +270,8 @@ normalizeViolations = violations => {
                 error => {
                   console.log(newViolation.location)
                   console.error(error);
+
+                  return Promise.resolve(newViolation)
                 }
               );
             }
@@ -445,14 +447,43 @@ http.createServer(function (req, res) {
 
   } else if (req.url != '/favicon.ico') {
 
-    var query = url.parse(req.url, true).query;
+    var parser = url.parse(req.url, true);
 
-    var plate         = (query.plate_id || '').toUpperCase();
-    var state         = (query.state || '').toUpperCase();
-    var plateType     = (query.plate_type || '').toUpperCase();
-    var lookupSource  = query.lookup_source;
-    var fingerprintID = query.fingerprint_id;
-    var mixpanelID    = query.mixpanel_id;
+    var query = parser.query;
+
+    var plate           = (query.plate_id || '').toUpperCase();
+    var state           = (query.state || '').toUpperCase();
+    var plateType       = (query.plate_type || '').toUpperCase();
+    var lookupSource    = query.lookup_source;
+    var fingerprintID   = query.fingerprint_id;
+    var mixpanelID      = query.mixpanel_id;
+
+    if (parser.pathname.match(/\/lookup/)) {
+
+      var apiKey = query.api_key;
+
+      if (apiKey == undefined) {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(401, {'Content-Type': 'application/javascript'});
+        res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
+
+      } else {
+        let _ = connection.query('select * from authorized_external_users where api_key = ?', [apiKey], (error, results, fields) => {
+          if (error) throw error;
+
+          if (results.length == 0) {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.writeHead(403, {'Content-Type': 'application/javascript'});
+            res.end(JSON.stringify({error: "You supplied an invalid api key."}));
+          } else {
+            lookupSource  = 'external'
+          }
+
+        });
+      }
+    }
 
     if (plate && state) {
 
@@ -708,7 +739,7 @@ http.createServer(function (req, res) {
     } else {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.writeHead(200, {'Content-Type': 'application/javascript'});
+      res.writeHead(422, {'Content-Type': 'application/javascript'});
       res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
     }
 
