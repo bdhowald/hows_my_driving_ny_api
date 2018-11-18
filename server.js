@@ -61,8 +61,8 @@ initializeConnection = config => {
 findMaxCameraViolationsStreak = violationTimes => {
   if (violationTimes.length) {
     let maxStreak     = 0;
-    let minStreakDate = null;
-    let maxStreakDate = null;
+    let streakEnd     = null;
+    let streakStart   = null;
 
     violationTimes.forEach((date) => {
       let yearLater = new Date(date).setYear(date.getFullYear() + 1);
@@ -75,12 +75,12 @@ findMaxCameraViolationsStreak = violationTimes => {
 
       if (thisStreak > maxStreak) {
         maxStreak     = thisStreak;
-        maxStreakDate = yearLongTickets[0]
-        minStreakDate = yearLongTickets[yearLongTickets.length - 1]
+        streakEnd     = yearLongTickets[0]
+        streakStart   = yearLongTickets[yearLongTickets.length - 1]
       }
     })
 
-    return {max_streak: maxStreak, max_streak_date: maxStreakDate, min_streak_date: minStreakDate};
+    return {max_streak: maxStreak, streak_end: streakEnd, streak_start: streakStart};
   } else {
     return 0;
   }
@@ -727,7 +727,14 @@ http.createServer(function (req, res) {
               total_fines    : totalFines,
               previous_count : previous_count,
               previous_date  : previous_date,
-              streak_data    : streakData
+              streak_data    : streakData,
+              camera_streak_data       : streakData,
+              fines                    : totalFines,
+              previous_lookup_date     : previous_date,
+              previous_violation_count : previous_count,
+              times_queried            : frequency,
+              violations               : output,
+              violations_count         : output.length
             }))
           });
 
