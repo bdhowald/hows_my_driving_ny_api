@@ -82,7 +82,7 @@ findMaxCameraViolationsStreak = violationTimes => {
 
     return {max_streak: maxStreak, streak_end: streakEnd, streak_start: streakStart};
   } else {
-    return 0;
+    return null;
   }
 }
 
@@ -150,13 +150,13 @@ normalizeViolations = violations => {
     let promise;
 
     const newViolation = {
-      amount_due                        : isNaN(parseInt(violation.amount_due)) ? null : parseInt(violation.amount_due),
+      amount_due                        : isNaN(parseFloat(violation.amount_due)) ? null : parseFloat(violation.amount_due),
       date_first_observed               : violation.date_first_observed                            || null,
       feet_from_curb                    : violation.feet_from_curb                                 || null,
-      fine_amount                       : isNaN(parseInt(violation.fine_amount)) ? null : parseInt(violation.fine_amount),
+      fine_amount                       : isNaN(parseFloat(violation.fine_amount)) ? null : parseFloat(violation.fine_amount),
       house_number                      : violation.house_number                                   || null,
       humanized_description             : fyHumanizedNames[violation.violation_description || violation.violation_code] || opacvHumanizedNames[violation.violation] || null,
-      interest_amount                   : isNaN(parseInt(violation.interest_amount)) ? null : parseInt(violation.interest_amount),
+      interest_amount                   : isNaN(parseFloat(violation.interest_amount)) ? null : parseFloat(violation.interest_amount),
       intersecting_street               : violation.intersecting_street                            || null,
       issue_date                        : violation.issue_date                                     || null,
       issuer_code                       : violation.issuer_code                                    || null,
@@ -164,11 +164,11 @@ normalizeViolations = violations => {
       issuer_precinct                   : violation.issuer_precinct                                || null,
       issuing_agency                    : issuingAgencies[violation.issuing_agency]                || null,
       law_section                       : violation.law_section                                    || null,
-      payment_amount                    : isNaN(parseInt(violation.payment_amount)) ? null : parseInt(violation.payment_amount),
-      penalty_amount                    : isNaN(parseInt(violation.penalty_amount)) ? null : parseInt(violation.penalty_amount),
+      payment_amount                    : isNaN(parseFloat(violation.payment_amount)) ? null : parseFloat(violation.payment_amount),
+      penalty_amount                    : isNaN(parseFloat(violation.penalty_amount)) ? null : parseFloat(violation.penalty_amount),
       plate_id                          : violation.plate_id || violation.plate                    || null,
       plate_type                        : violation.plate_type || violation.license_type           || null,
-      reduction_amount                  : isNaN(parseInt(violation.reduction_amount)) ? null : parseInt(violation.reduction_amount),
+      reduction_amount                  : isNaN(parseFloat(violation.reduction_amount)) ? null : parseFloat(violation.reduction_amount),
       registration_state                : violation.registration_state                             || null,
       street_code1                      : violation.street_code1                                   || null,
       street_code2                      : violation.street_code2                                   || null,
@@ -636,21 +636,34 @@ http.createServer(function (req, res) {
               violation.formatted_time = new Date(date + ' 00:00')
             }
 
+
+            let fined = null;
+
             if (violation.fine_amount) {
-              let fines = parseInt(violation.fine_amount);
-
-              if (violation.penalty_amount) {
-                fines += parseInt(violation.penalty_amount);
-              }
-              if (violation.interest_amount) {
-                fines += parseInt(violation.interest_amount);
-              }
-              if (violation.reduction_amount) {
-                fines -= parseInt(violation.reduction_amount);
-              }
-              violation.total_fine_amount = fines;
-
+              fined = parseFloat(violation.fine_amount)
             }
+            if (violation.penalty_amount) {
+              fined += parseFloat(violation.penalty_amount);
+            }
+            if (violation.interest_amount) {
+              fined += parseFloat(violation.interest_amount);
+            }
+            if (fined) {
+              violation.fined = fined;
+            }
+
+            if (violation.payment_amount) {
+              violation.paid = parseFloat(violation.payment_amount);
+            }
+
+            if (violation.reduction_amount) {
+              violation.reduced = parseFloat(violation.reduction_amount);
+            }
+
+            if (violation.outstanding_amount) {
+              violation.outstanding = parseFloat(violation.outstanding_amount);
+            }
+
 
             // if (violation.violation_description) {
             //   violation.humanized_description = that.statics.fyHumanizedNames[violation.violation_description]
@@ -662,9 +675,28 @@ http.createServer(function (req, res) {
 
           const reducer  = (accumulator, currentValue) => accumulator + currentValue;
 
-          const totalFines = output.map((obj) =>
-            obj.total_fine_amount || 0
+          const totalFined = output.map((obj) =>
+            obj.fined || 0
           ).reduce(reducer, 0)
+
+          const totalPaid = output.map((obj) =>
+            obj.paid || 0
+          ).reduce(reducer, 0)
+
+          const totalReduced = output.map((obj) =>
+            obj.reduced || 0
+          ).reduce(reducer, 0)
+
+          const totalOutstanding = output.map((obj) =>
+            obj.outstanding || 0
+          ).reduce(reducer, 0)
+
+          let fines = {
+            total_fined:       totalFined,
+            total_paid:        totalPaid,
+            total_reduced:     totalReduced,
+            total_outstanding: totalOutstanding
+          }
 
 
           let cameraViolations = output.filter((violation) =>
@@ -698,13 +730,13 @@ http.createServer(function (req, res) {
               external_username       : null,
               count_towards_frequency : (lookupSource == null) ? false : true,
               num_tickets             : output.length,
-              boot_eligible           : streakData.max_streak >= 5,
+              boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
               fingerprint_id          : fingerprintID,
               mixpanel_id             : mixpanelID,
               responded_to            : true
             }
-            let previous_count;
-            let previous_date;
+            let previous_count = null;
+            let previous_date  = null;
 
 
             if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
@@ -724,12 +756,12 @@ http.createServer(function (req, res) {
               count          : output.length,
               frequency      : frequency,
               violations     : output,
-              total_fines    : totalFines,
+              total_fines    : fines.total_fined - fines.total_reduced,
               previous_count : previous_count,
               previous_date  : previous_date,
               streak_data    : streakData,
               camera_streak_data       : streakData,
-              fines                    : totalFines,
+              fines                    : fines,
               previous_lookup_date     : previous_date,
               previous_violation_count : previous_count,
               times_queried            : frequency,
