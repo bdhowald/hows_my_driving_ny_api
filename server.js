@@ -753,13 +753,6 @@ http.createServer(function (req, res) {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.writeHead(200, {'Content-Type': 'application/javascript'});
             res.end(JSON.stringify({
-              count          : output.length,
-              frequency      : frequency,
-              violations     : output,
-              total_fines    : fines.total_fined - fines.total_reduced,
-              previous_count : previous_count,
-              previous_date  : previous_date,
-              streak_data    : streakData,
               camera_streak_data       : streakData,
               fines                    : fines,
               previous_lookup_date     : previous_date,
