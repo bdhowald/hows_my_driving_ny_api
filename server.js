@@ -193,39 +193,45 @@ normalizeViolations = violations => {
       violation_time                    : violation.violation_time                                 || null
     }
 
+    let fullStreet;
+
+    let houseNumber = newViolation.house_number
+    let street1     = newViolation.street_name
+    let street2     = newViolation.intersecting_street
+
+
+    if (street1 && street2) {
+      if (street1.length == 20 && street1.charAt(street1.length - 1) != ' '){
+        fullStreet = street1 + street2
+      } else {
+        fullStreet = street1 + ' ' + street2
+      }
+    } else if (street1 && houseNumber) {
+      if (houseNumber.length == 20 && houseNumber.charAt(houseNumber.length - 1) != ' '){
+        fullStreet = houseNumber + street1
+      } else {
+        fullStreet = houseNumber + ' ' + street1
+      }
+    } else if (street1) {
+      fullStreet = street1
+    }
+
+    if (fullStreet) {
+      fullStreet = fullStreet.split(' ').map((strPart) =>
+        strPart.toLowerCase()
+      ).map((strPart) =>
+        strPart.charAt(0).toUpperCase() + strPart.substr(1)
+      ).join(' ');
+      newViolation.location = fullStreet;
+    }
+
+
+
     if (newViolation.violation_county == null) {
-
-      let fullStreet;
-      let street1 = newViolation.street_name
-      let street2 = newViolation.intersecting_street
-
-      if (street1 && street2) {
-        if (street1.charAt(street1.length - 1) == ' ' || street2.charAt(0) == ' ') {
-          fullStreet = street1 + street2
-        } else {
-          if (!['@', 'ST', 'AVE', 'RD'].includes(street2.split(' ')[0])) {
-            fullStreet = street1 + street2
-          } else {
-            fullStreet = street1 + ' ' + street2
-          }
-        }
-      } else if (street1) {
-        fullStreet = street1
-      }
-
-      if (fullStreet) {
-        fullStreet = fullStreet.split(' ').map((strPart) =>
-          strPart.toLowerCase()
-        ).map((strPart) =>
-          strPart.charAt(0).toUpperCase() + strPart.substr(1)
-        ).join(' ');
-        newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim() + ' New York NY'
-      }
-
 
       if (newViolation.location) {
 
-        promise = connection.promiseQuery("select borough from geocodes WHERE lookup_string = ?", [newViolation.location])
+        promise = connection.promiseQuery("select borough from geocodes WHERE lookup_string = ?", [newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim() + ' New York NY'])
           .then((results) => {
             if (results.length) {
               newViolation.violation_county = results[0].borough
