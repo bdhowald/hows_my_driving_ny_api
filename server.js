@@ -449,6 +449,8 @@ http.createServer(function (req, res) {
       res.writeHead(200, {'Content-Type': 'application/javascript'});
       res.end(JSON.stringify(response))
 
+      return;
+
     }
 
   } else if (req.url != '/favicon.ico') {
@@ -474,6 +476,8 @@ http.createServer(function (req, res) {
         res.writeHead(401, {'Content-Type': 'application/javascript'});
         res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
 
+        return;
+
       } else {
         let _ = connection.query('select * from authorized_external_users where api_key = ?', [apiKey], (error, results, fields) => {
           if (error) throw error;
@@ -483,6 +487,8 @@ http.createServer(function (req, res) {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.writeHead(403, {'Content-Type': 'application/javascript'});
             res.end(JSON.stringify({error: "You supplied an invalid api key."}));
+
+            return;
           } else {
             lookupSource  = 'external'
           }
@@ -773,6 +779,8 @@ http.createServer(function (req, res) {
               violations               : output,
               violations_count         : output.length
             }))
+
+            return;
           });
 
 
@@ -785,6 +793,8 @@ http.createServer(function (req, res) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.writeHead(422, {'Content-Type': 'application/javascript'});
       res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
+
+      return;
     }
 
   }
