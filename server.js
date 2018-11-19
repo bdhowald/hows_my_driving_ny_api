@@ -459,7 +459,7 @@ http.createServer(function (req, res) {
 
     var plate           = (query.plate_id || '').toUpperCase();
     var state           = (query.state || '').toUpperCase();
-    var plateType       = (query.plate_type || '').toUpperCase();
+    var plateTypes      = query.plate_types == undefined ? null : query.plate_types.split(',').map((item) => item.toUpperCase().trim()).sort()
     var lookupSource    = query.lookup_source;
     var fingerprintID   = query.fingerprint_id;
     var mixpanelID      = query.mixpanel_id;
@@ -508,13 +508,13 @@ http.createServer(function (req, res) {
       let promises = fy_endpoints.map((endpoint) => {
         let queryString = endpoint + '?plate_id=' + plate.toUpperCase() + '&registration_state=' + state.toUpperCase()
 
-        if (plateType) {
+        if (plateTypes) {
 
-          let plateTypes = plateType.split(',').map((item) =>
+          let plateTypesQuery = plateTypes.map((item) =>
             "%27" + item.toUpperCase().trim() + "%27"
           ).join()
 
-          queryString += "&$where=plate_type%20in(" + plateTypes + ")"
+          queryString += "&$where=plate_type%20in(" + plateTypesQuery + ")"
         }
 
         queryString += ('&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G')
@@ -524,13 +524,12 @@ http.createServer(function (req, res) {
       // Open Parking & Camera Violations Database
       let opacvQueryString = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' + '?plate=' + plate.toUpperCase() + '&state=' + state.toUpperCase();
 
-      if (plateType) {
-
-        let plateTypes = plateType.split(',').map((item) =>
+      if (plateTypes) {
+        let plateTypesQuery = plateTypes.map((item) =>
           "%27" + item.toUpperCase().trim() + "%27"
         ).join()
 
-        opacvQueryString += "&$where=license_type%20in(" + plateTypes + ")"
+        opacvQueryString += "&$where=license_type%20in(" + plateTypesQuery + ")"
       }
 
       opacvQueryString += '&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G'
@@ -712,23 +711,30 @@ http.createServer(function (req, res) {
 
           const streakData = findMaxCameraViolationsStreak(cameraViolations.map(function(violation){return violation.formatted_time}));
 
-          // const maxStreak     = streakData.max_streak;
-          // const maxStreakDate = streakData.max_streak_date;
-          // const minStreakDate = streakData.min_streak_date;
-
-          frequencyLookup   = {
+          frequencyLookup  = {
             plate: plate,
             state: state
           }
 
-          let numLookups  = connection.query('select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1', [plate, state, plate, state], (error, results, fields) => {
+
+          searchQueryString = plateTypes == undefined
+            ? 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
+            : 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
+
+          searchQueryArgs   = plateTypes == undefined
+            ? [plate, state, plate, state]
+            : [plate, state, plateTypes.join(), plate, state, plateTypes.join()]
+
+
+          let numLookups  = connection.query(searchQueryString, searchQueryArgs, (error, results, fields) => {
+
             if (error) throw error;
 
             let frequency = (lookupSource == null) ? 0 : 1;
             let newLookup = {
               plate                   : plate,
               state                   : state,
-              plate_types             : plateType,
+              plate_types             : plateTypes.join(),
               observed                : null,
               message_id              : null,
               lookup_source           : (lookupSource == null) ? 'api' : lookupSource,
