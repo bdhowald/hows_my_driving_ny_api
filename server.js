@@ -201,7 +201,7 @@ getVehicleResponse = (vehicle, externalData) => {
 
     let plate      = vehicle.plate;
     let state      = vehicle.state;
-    let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',');
+    let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',').map((part) => part.trim());
 
     let lookupSource  = externalData.lookup_source;
     let fingerprintID = externalData.fingerprint_id;
@@ -927,7 +927,8 @@ http.createServer(function (req, res) {
       }
     }
 
-    Promise.all(vehicles.map(getVehicleResponse, externalData))
+
+    Promise.all(vehicles.map((vehicle)=> getVehicleResponse(vehicle, externalData)))
       .then((allResponses) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
