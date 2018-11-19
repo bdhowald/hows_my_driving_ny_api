@@ -792,7 +792,7 @@ http.createServer(function (req, res) {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.writeHead(422, {'Content-Type': 'application/javascript'});
-      res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
+      res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
 
       return;
     }
