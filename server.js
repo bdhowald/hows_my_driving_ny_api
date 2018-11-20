@@ -167,6 +167,36 @@ detectVehicles = potentialVehicles => {
 }
 
 
+findFilterFields = fieldsString => {
+  if (fieldsString == undefined || fieldsString == '') return {}
+
+  let returnFields = {};
+
+  let fields = fieldsString.replace(/(\([^)]*\))/g, '').split(',');
+
+  fields.forEach((field) => {
+
+    if (fieldsString[fieldsString.indexOf(field) + field.length] == '(') {
+
+      var re = new RegExp(field + "\\([\\w|,]*\\)", "g");
+
+      let subfields = fieldsString.match( re ) == undefined ? null : fieldsString.match( re )[0].replace(field, '')
+      subfields = subfields.substring(1, subfields.length - 1);
+
+      if (subfields) {
+        returnFields[field] = findFilterFields(subfields.replace(/[\(|\)]/g, ''));
+      } else if (subfields == ''){
+        returnFields[field] = {}
+      }
+    } else {
+      returnFields[field] = {}
+    }
+  })
+
+  return returnFields
+}
+
+
 findMaxCameraViolationsStreak = violationTimes => {
   if (violationTimes.length) {
     let maxStreak     = 0;
@@ -196,7 +226,7 @@ findMaxCameraViolationsStreak = violationTimes => {
 }
 
 
-getVehicleResponse = (vehicle, externalData) => {
+getVehicleResponse = (vehicle, selectedFields, externalData) => {
   return new Promise((resolve,reject) => {
 
     let plate      = vehicle.plate;
@@ -310,23 +340,25 @@ getVehicleResponse = (vehicle, externalData) => {
               if (error) throw error;
             });
 
-            resolve(
-              {
-                vehicle : {
-                  camera_streak_data       : streakData,
-                  fines                    : fines,
-                  plate                    : plate,
-                  plateTypes               : plateTypes,
-                  previous_lookup_date     : previous_date,
-                  previous_violation_count : previous_count,
-                  state                    : state,
-                  times_queried            : frequency,
-                  violations               : violations,
-                  violations_count         : violations.length
-                },
-                successful_lookup: true
-              }
-            );
+            let returnObject = {
+              vehicle : {
+                camera_streak_data       : streakData,
+                fines                    : fines,
+                plate                    : plate,
+                plateTypes               : plateTypes,
+                previous_lookup_date     : previous_date,
+                previous_violation_count : previous_count,
+                state                    : state,
+                times_queried            : frequency,
+                violations               : violations,
+                violations_count         : violations.length
+              },
+              successful_lookup: true
+            }
+
+            returnObject = stripReturnData(returnObject.vehicle, selectedFields)
+
+            resolve(returnObject);
 
           });
 
@@ -366,6 +398,9 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
 
   var violations = [];
 
+  // Checking for selected fields for violations
+  // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
+
   // Fiscal Year Databases
   let promises = fy_endpoints.map((endpoint) => {
     let queryString = endpoint + '?plate_id=' + plate.toUpperCase() + '&registration_state=' + state.toUpperCase()
@@ -379,7 +414,12 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
       queryString += "&$where=plate_type%20in(" + plateTypesQuery + ")"
     }
 
+    // if (fieldsForExternalRequests) {
+    //   queryString += '&$select=' + fieldsForExternalRequests.join(',')
+    // }
+
     queryString += ('&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G')
+
     return rp(queryString)
   });
 
@@ -393,6 +433,10 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
 
     opacvQueryString += "&$where=license_type%20in(" + plateTypesQuery + ")"
   }
+
+  // if (fieldsForExternalRequests) {
+  //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
+  // }
 
   opacvQueryString += '&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G'
 
@@ -437,7 +481,7 @@ mergeDuplicateViolationRecords = violations => {
 }
 
 
-modifyViolationsForResponse = violations => {
+modifyViolationsForResponse = (violations, selectedFields) => {
   return violations.map((violation) => {
     let violationDate = violation.issue_date
     let violationTime = violation.violation_time
@@ -532,10 +576,11 @@ modifyViolationsForResponse = violations => {
     }
 
   })
+
 }
 
 
-normalizeViolations = violations => {
+normalizeViolations = (violations) => {
 
   const that = this;
 
@@ -699,6 +744,26 @@ queryForLookups = (queryString, queryArgs, callback) => {
 }
 
 
+stripReturnData = (obj, selectedFields) => {
+
+  // Return only what we want.
+  const fieldNames = Object.getOwnPropertyNames(obj)
+
+  if (selectedFields && Object.keys(selectedFields).length > 0) {
+    fieldNames.forEach((field) => {
+      if (field in selectedFields){
+        if (obj[field] != undefined && Object.keys(selectedFields[field]).length > 0) {
+          stripReturnData(obj[field], selectedFields[field])
+        }
+      } else {
+        delete obj[field];
+      }
+    })
+  }
+  return obj
+}
+
+
 
 
 
@@ -713,7 +778,7 @@ var connection = initializeConnection({
 
 http.createServer(function (req, res) {
 
-  console.log(req.url);
+  // console.log(req.url);
 
   if (req.url.match('/webhook/twitter')) {
 
@@ -854,11 +919,14 @@ http.createServer(function (req, res) {
 
     }
 
-  } else if (req.url != '/favicon.ico') {
+  } else if (req.url.match('/api/v1')) {
 
     var parser = url.parse(req.url, true);
 
-    var query = parser.query;
+    var query  = parser.query;
+
+    var fields = findFilterFields(query.fields);
+
 
     if (query.plate == undefined) {
       potentialVehicles = []
@@ -928,7 +996,7 @@ http.createServer(function (req, res) {
     }
 
 
-    Promise.all(vehicles.map((vehicle)=> getVehicleResponse(vehicle, externalData)))
+    Promise.all(vehicles.map((vehicle)=> getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
