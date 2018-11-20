@@ -353,10 +353,11 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
                 violations               : violations,
                 violations_count         : violations.length
               },
-              successful_lookup: true
             }
 
-            returnObject = stripReturnData(returnObject.vehicle, selectedFields)
+            returnObject.vehicle = stripReturnData(returnObject.vehicle, selectedFields)
+
+            returnObject['successful_lookup'] = true
 
             resolve(returnObject);
 
