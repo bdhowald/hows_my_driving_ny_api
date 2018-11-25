@@ -345,7 +345,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
                 camera_streak_data       : streakData,
                 fines                    : fines,
                 plate                    : plate,
-                plateTypes               : plateTypes,
+                plate_types              : plateTypes,
                 previous_lookup_date     : previous_date,
                 previous_violation_count : previous_count,
                 state                    : state,
