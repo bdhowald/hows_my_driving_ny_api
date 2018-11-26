@@ -601,6 +601,7 @@ normalizeViolations = (violations) => {
       date_first_observed               : violation.date_first_observed                            || null,
       feet_from_curb                    : violation.feet_from_curb                                 || null,
       fine_amount                       : isNaN(parseFloat(violation.fine_amount)) ? null : parseFloat(violation.fine_amount),
+      to_hours_in_effect                : violation.from_hours_in_effect                           || null,
       house_number                      : violation.house_number                                   || null,
       humanized_description             : fyHumanizedNames[violation.violation_description || violation.violation_code] || opacvHumanizedNames[violation.violation] || null,
       interest_amount                   : isNaN(parseFloat(violation.interest_amount)) ? null : parseFloat(violation.interest_amount),
@@ -816,16 +817,32 @@ http.createServer(function (req, res) {
 
                 let text;
                 let user_mentions;
+                let photo_urls = [];
 
                 if (event.extended_tweet) {
-                  text = event.extended_tweet.full_text
+                  let et = event.extended_tweet;
+                  text = et.full_text
 
-                  if (event.extended_tweet.entities.user_mentions) {
-                    user_mentions = event.extended_tweet.entities.user_mentions.map((mention) =>
+                  if (et.entities.user_mentions) {
+                    user_mentions = et.entities.user_mentions.map((mention) =>
                       text.includes(mention.screen_name) ? mention.screen_name : ''
                     ).join(' ').trim();
                   } else {
                     user_mentions = [];
+                  }
+
+                  if (et.extended_entities) {
+                    let ee = et.extended_entities;
+
+                    if (ee.media) {
+                      let media = ee.media;
+
+                      media.map((med) => {
+                        if (med.type == 'photo') {
+                          photo_urls.push(med.media_url_https);
+                        }
+                      })
+                    }
                   }
                 } else {
                   text = event.text
@@ -857,6 +874,23 @@ http.createServer(function (req, res) {
 
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
+
+                  if (results && photo_urls.length > 0) {
+                    const insertID = results.insertId;
+
+                    mediaObjects = photo_urls.map((photoUrl) => {
+                      return({
+                        url: photoUrl,
+                        type: 'photo',
+                        twitter_event_id: insertID
+                      })
+                    })
+
+                    connection.query('insert into twitter_media_objects set ?', mediaObjects, (error, results, fields) => {
+                      if (error) throw error;
+                    });
+                  }
+
                 });
               }
             })
