@@ -816,19 +816,17 @@ http.createServer(function (req, res) {
               if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
 
                 let text;
-                let user_mentions;
-                let photo_urls = [];
+                let userMentions = null;
+                let photoURLs    = [];
 
                 if (event.extended_tweet) {
                   let et = event.extended_tweet;
                   text = et.full_text
 
                   if (et.entities.user_mentions) {
-                    user_mentions = et.entities.user_mentions.map((mention) =>
+                    userMentions = et.entities.user_mentions.map((mention) =>
                       text.includes(mention.screen_name) ? mention.screen_name : ''
                     ).join(' ').trim();
-                  } else {
-                    user_mentions = [];
                   }
 
                   if (et.extended_entities) {
@@ -845,14 +843,31 @@ http.createServer(function (req, res) {
                     }
                   }
                 } else {
-                  text = event.text
+                  text = event.text;
 
-                  if (event.entities.user_mentions) {
-                    user_mentions = event.entities.user_mentions.map((mention) =>
-                      text.includes(mention.screen_name) ? mention.screen_name : ''
-                    ).join(' ').trim();
-                  } else {
-                    user_mentions = [];
+                  if (event.entities) {
+
+                    let entities = event.entities;
+
+                    if (entities.user_mentions) {
+                      userMentions = entities.user_mentions.map((mention) =>
+                        text.includes(mention.screen_name) ? mention.screen_name : ''
+                      ).join(' ').trim();
+                    }
+                  }
+
+                  if (event.extended_entities) {
+                    let ee = et.extended_entities;
+
+                    if (ee.media) {
+                      let media = ee.media;
+
+                      media.map((med) => {
+                        if (med.type == 'photo') {
+                          photoURLs.push(med.media_url_https);
+                        }
+                      })
+                    }
                   }
                 }
 
@@ -861,7 +876,7 @@ http.createServer(function (req, res) {
                   event_id:               event.id_str,
                   user_handle:            event.user.screen_name,
                   user_id:                event.user.id,
-                  user_mentions:          user_mentions.substring(user_mentions.length - 560),
+                  user_mentions:          userMentions == null ? null : userMentions.substring(userMentions.length - 560),
                   event_text:             text.substring(text.length - 560),
                   created_at:             event.timestamp_ms,
                   in_reply_to_message_id: event.in_reply_to_status_id_str,
@@ -875,12 +890,12 @@ http.createServer(function (req, res) {
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
 
-                  if (results && photo_urls.length > 0) {
+                  if (results && photoURLs.length > 0) {
                     const insertID = results.insertId;
 
-                    mediaObjects = photo_urls.map((photoUrl) => {
+                    let mediaObjects = photoURLs.map((photoURL) => {
                       return({
-                        url: photoUrl,
+                        url: photoURL,
                         type: 'photo',
                         twitter_event_id: insertID
                       })
@@ -901,14 +916,34 @@ http.createServer(function (req, res) {
 
             json.direct_message_events.forEach((event) => {
 
+
               if (event.type === 'message_create') {
 
                 let message_create_data = event.message_create
+                let photoURL = null;
 
                 recipient_id = message_create_data.target.recipient_id
                 sender_id    = message_create_data.sender_id
 
                 sender = json.users[sender_id]
+
+                // # photo_url data
+                if (message_create_data.message_data) {
+                  let md = message_create_data.message_data;
+
+                  if (md.attachment) {
+                    let att = md.attachment;
+
+                    if (att.media) {
+
+                      let media = att.media;
+
+                      if (media.type == 'photo') {
+                        photoURL = media.media_url_https;
+                      }
+                    }
+                  }
+                }
 
                 if (sender && event.message_create.target.recipient_id === '976593574732222465') {
 
@@ -926,6 +961,20 @@ http.createServer(function (req, res) {
 
                   connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                     if (error) throw error;
+
+                    if (results && photoURL != null) {
+                      const insertID = results.insertId;
+
+                      let mediaObject = {
+                        url: photoURL,
+                        type: 'photo',
+                        twitter_event_id: insertID
+                      }
+
+                      connection.query('insert into twitter_media_objects set ?', mediaObject, (error, results, fields) => {
+                        if (error) throw error;
+                      });
+                    }
                   });
                 }
               }
