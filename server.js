@@ -837,7 +837,7 @@ http.createServer(function (req, res) {
 
                       media.map((med) => {
                         if (med.type == 'photo') {
-                          photo_urls.push(med.media_url_https);
+                          photoURLs.push(med.media_url_https);
                         }
                       })
                     }
