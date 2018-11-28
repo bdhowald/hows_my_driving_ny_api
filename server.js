@@ -857,7 +857,7 @@ http.createServer(function (req, res) {
                   }
 
                   if (event.extended_entities) {
-                    let ee = et.extended_entities;
+                    let ee = event.extended_entities;
 
                     if (ee.media) {
                       let media = ee.media;
