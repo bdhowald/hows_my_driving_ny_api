@@ -232,6 +232,7 @@ findMaxCameraViolationsStreak = violationTimes => {
 
 
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
+
   return new Promise((resolve,reject) => {
 
     let plate      = vehicle.plate;
@@ -409,7 +410,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
 
   // Fiscal Year Databases
   let promises = fy_endpoints.map((endpoint) => {
-    let queryString = endpoint + '?plate_id=' + plate.toUpperCase() + '&registration_state=' + state.toUpperCase()
+    let queryString = endpoint + '?plate_id=' + encodeURIComponent(plate.toUpperCase()) + '&registration_state=' + state.toUpperCase()
 
     if (plateTypes) {
 
@@ -430,7 +431,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
   });
 
   // Open Parking & Camera Violations Database
-  let opacvQueryString = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' + '?plate=' + plate.toUpperCase() + '&state=' + state.toUpperCase();
+  let opacvQueryString = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' + '?plate=' + encodeURIComponent(plate.toUpperCase()) + '&state=' + state.toUpperCase();
 
   if (plateTypes) {
     let plateTypesQuery = plateTypes.map((item) =>
