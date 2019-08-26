@@ -398,9 +398,10 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/j7ig-zgkq.json',
     'https://data.cityofnewyork.us/resource/aagd-wyjz.json',
     'https://data.cityofnewyork.us/resource/avxe-2nrn.json',
-    'https://data.cityofnewyork.us/resource/ati4-9cgt.json',
-    'https://data.cityofnewyork.us/resource/9wgk-ev5c.json',
-    'https://data.cityofnewyork.us/resource/qpyv-8eyi.json'
+    'https://data.cityofnewyork.us/resource/2bnn-yakx.json',
+    'https://data.cityofnewyork.us/resource/a5td-mswe.json',
+    'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
+    'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
   var violations = [];
