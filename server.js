@@ -151,7 +151,9 @@ detectVehicles = potentialVehicles => {
                               parts.length === 3 && ![plateTypesIndex, stateIndex].includes(-1)
 
       if (haveValidPlate) {
-        let plateIndex         = [...Array(parts.length).keys()].filter((part) => ![stateIndex, plateTypesIndex].includes(part))[0]
+        let plateIndex         = [...Array(parts.length).keys()].filter((part) =>
+          ![stateIndex, plateTypesIndex].includes(part)
+        )[0]
 
         vehicle['state']       = parts[stateIndex];
         vehicle['types']       = parts[plateTypesIndex];
@@ -241,7 +243,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
     let lookupSource  = externalData.lookup_source;
     let fingerprintID = externalData.fingerprint_id;
-    let mixpanelID    = externalData.mixpanel_id
+    let mixpanelID    = externalData.mixpanel_id;
 
 
     if (plate && state) {
@@ -399,7 +401,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/aagd-wyjz.json',
     'https://data.cityofnewyork.us/resource/avxe-2nrn.json',
     'https://data.cityofnewyork.us/resource/2bnn-yakx.json',
-    'https://data.cityofnewyork.us/resource/a5td-mswe.json',
+    'https://data.cityofnewyork.us/resource/9wgk-ev5c.json',
     'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
@@ -1087,7 +1089,7 @@ http.createServer(function (req, res) {
     }
 
 
-    Promise.all(vehicles.map((vehicle)=> getVehicleResponse(vehicle, fields, externalData)))
+    Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
