@@ -389,7 +389,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
   })
 }
 
-
+ 
 insertNewLookup = (newLookup, callback) => {
   connection.query('insert into plate_lookups set ?', newLookup, callback)
 }
@@ -605,7 +605,7 @@ normalizeViolations = (violations) => {
       date_first_observed               : violation.date_first_observed                            || null,
       feet_from_curb                    : violation.feet_from_curb                                 || null,
       fine_amount                       : isNaN(parseFloat(violation.fine_amount)) ? null : parseFloat(violation.fine_amount),
-      to_hours_in_effect                : violation.from_hours_in_effect                           || null,
+      from_hours_in_effect              : violation.from_hours_in_effect                           || null,
       house_number                      : violation.house_number                                   || null,
       humanized_description             : fyHumanizedNames[violation.violation_description || violation.violation_code] || opacvHumanizedNames[violation.violation] || null,
       interest_amount                   : isNaN(parseFloat(violation.interest_amount)) ? null : parseFloat(violation.interest_amount),
@@ -789,7 +789,13 @@ var connection = initializeConnection({
 
 http.createServer(function (req, res) {
 
-  // console.log(req.url);
+  console.log('request: ')
+  console.log(req);
+  console.log('\n\n')
+
+  console.log('response')
+  console.log(res)
+  console.log('\n\n')
 
   if (req.url.match('/webhook/twitter')) {
 
