@@ -793,7 +793,7 @@ http.createServer(function (req, res) {
   console.log(req);
   console.log('\n\n')
 
-  console.log('response')
+  console.log('response:')
   console.log(res)
   console.log('\n\n')
 
@@ -932,6 +932,8 @@ http.createServer(function (req, res) {
                 let message_create_data = event.message_create
                 let photoURL = null;
 
+                console.log(message_create_data)
+
                 recipient_id = message_create_data.target.recipient_id
                 sender_id    = message_create_data.sender_id
 
@@ -954,6 +956,10 @@ http.createServer(function (req, res) {
                     }
                   }
                 }
+                
+                console.log('parsed direct message event')
+                console.log(sender)
+                console.log(event.message_create.target.recipient_id)
 
                 if (sender && event.message_create.target.recipient_id === '976593574732222465') {
 
@@ -989,6 +995,9 @@ http.createServer(function (req, res) {
                 }
               }
             })
+          } else {
+            console.log('Not sure how to process the following payload: ')
+            console.log(json)
           }
         }
       });
