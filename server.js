@@ -1020,9 +1020,9 @@ http.createServer(function (req, res) {
       }
 
       // # returns properly formatted json response
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json;charset=utf-8');
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.writeHead(200, {'Content-Type': 'application/javascript'});
+      res.writeHead(200);
       res.end(JSON.stringify(response))
 
       return;
@@ -1048,9 +1048,9 @@ http.createServer(function (req, res) {
 
 
     if (query.plate_id instanceof Array || query.state instanceof Array) {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json;charset=utf-8');
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.writeHead(422, {'Content-Type': 'application/javascript'});
+      res.writeHead(422);
       res.end(JSON.stringify({error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"}));
 
       return
@@ -1079,9 +1079,9 @@ http.createServer(function (req, res) {
       var apiKey = query.api_key;
 
       if (apiKey == undefined) {
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Type', 'application/json;charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.writeHead(401, {'Content-Type': 'application/javascript'});
+        res.writeHead(401);
         res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
 
         return;
@@ -1091,9 +1091,9 @@ http.createServer(function (req, res) {
           if (error) throw error;
 
           if (results.length == 0) {
-            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Type', 'application/json;charset=utf-8');
             res.setHeader('Access-Control-Allow-Origin', '*');
-            res.writeHead(403, {'Content-Type': 'application/javascript'});
+            res.writeHead(403);
             res.end(JSON.stringify({error: "You supplied an invalid api key."}));
 
             return;
@@ -1110,7 +1110,6 @@ http.createServer(function (req, res) {
       .then((allResponses) => {
         res.setHeader('Content-Type', 'application/json;charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader(charset=utf-8)
         res.writeHead(200);
 
         res.end(JSON.stringify({data: allResponses}));
