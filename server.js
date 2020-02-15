@@ -926,7 +926,6 @@ http.createServer(function (req, res) {
 
             json.direct_message_events.forEach((event) => {
 
-
               if (event.type === 'message_create') {
 
                 let message_create_data = event.message_create
@@ -957,7 +956,7 @@ http.createServer(function (req, res) {
                   }
                 }
                 
-                console.log('parsed direct message event')
+                console.log('finished parsing direct message event')
                 console.log(sender)
                 console.log(event.message_create.target.recipient_id)
 
@@ -974,6 +973,9 @@ http.createServer(function (req, res) {
                     location:               null,
                     responded_to:           false
                   }
+
+                  console.log('new twitter event: ')
+                  console.log(newEvent)
 
                   connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                     if (error) throw error;
@@ -1106,9 +1108,10 @@ http.createServer(function (req, res) {
 
     Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Type', 'application/json;charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.setHeader(charset=utf-8)
+        res.writeHead(200);
 
         res.end(JSON.stringify({data: allResponses}));
 
