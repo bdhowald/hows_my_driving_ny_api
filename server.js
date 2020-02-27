@@ -232,6 +232,24 @@ findMaxCameraViolationsStreak = violationTimes => {
   }
 }
 
+obtainUniqueIdentifier = async () => {
+    const identifierAlreadyExists = (identifier) => {
+      return new Promise((resolve, reject) => {
+        connection.query("select count(*) as count from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
+          if (error) throw error
+          return resolve((results && results[0] && results[0] && results[0]['count'] !== 0) ? true : false)
+        })
+      })
+    }
+
+    const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
+    let uniqueIdentifier = getUniqueIdentifier()
+
+    while (await identifierAlreadyExists(uniqueIdentifier).catch(error => { throw error })) {
+      uniqueIdentifier = getUniqueIdentifier()
+    }
+    return uniqueIdentifier
+}
 
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
@@ -313,12 +331,11 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             : [plate, state, plateTypes.join(), plate, state, plateTypes.join()]
 
 
-          queryForLookups(searchQueryString, searchQueryArgs, (error, results, fields) => {
-
+          queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
             if (error) throw error;
 
-            let frequency = (lookupSource == null) ? 0 : 1;
-            let newLookup = {
+            const uniqueIdentifier = await obtainUniqueIdentifier()
+            const newLookup = {
               plate                   : plate,
               state                   : state,
               plate_types             : (plateTypes == undefined) ? null : plateTypes.join(),
@@ -332,8 +349,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
               fingerprint_id          : fingerprintID,
               mixpanel_id             : mixpanelID,
-              responded_to            : true
+              responded_to            : true,
+              unique_identifier       : uniqueIdentifier
             }
+            let frequency = (lookupSource == null) ? 0 : 1;
             let previous_count = null;
             let previous_date  = null;
 
