@@ -745,8 +745,10 @@ normalizeViolations = (violations) => {
                   return Promise.resolve(newViolation)
                 },
                 error => {
-                  console.log(newViolation.location)
-                  console.error(error);
+                  console.log('\n\n')
+                  console.log(`There was an error requesting the geocode for ${newViolation.location}`)
+                  console.error(error)
+                  console.log('\n\n')
 
                   return Promise.resolve(newViolation)
                 }
@@ -808,6 +810,7 @@ var connection = initializeConnection({
 
 http.createServer(function (req, res) {
 
+  console.log('----------------------------------------------------')
   console.log(`request received at: ${new Date()}`)
   console.log(`request url: ${req.url}`)
   console.log('\n\n')
@@ -820,21 +823,23 @@ http.createServer(function (req, res) {
       req.on('data', (chunk) => {
         body.push(chunk);
       }).on('end', () => {
-        body = Buffer.concat(body).toString();
+        body = Buffer.concat(body).toString()
         // at this point, `body` has the entire request body stored in it as a string
 
-        console.log(body);
+        console.log('\n\n')
+        console.log(body)
+        console.log('\n\n')
 
         const hmac          = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
         let   expectedSHA   = 'sha256=' + hmac.update(body).digest('base64')
 
         if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
-          let json = JSON.parse(body);
+          let json = JSON.parse(body)
 
           if (json.tweet_create_events) {
 
-            console.log('We have a new tweet');
+            console.log('message type: tweet')
 
             json.tweet_create_events.forEach((event) => {
 
@@ -909,8 +914,9 @@ http.createServer(function (req, res) {
                   responded_to:           false
                 }
 
-                console.log('newEvent: ');
-                console.log(newEvent);
+                console.log('\n\n')
+                console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
+                console.log('\n\n')
 
                 connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                   if (error) throw error;
@@ -937,7 +943,9 @@ http.createServer(function (req, res) {
 
           } else if (json.direct_message_events) {
 
-            console.log('We have a new direct message');
+            console.log('\n\n')
+            console.log('message type: direct message')
+            console.log('\n\n')
 
             json.direct_message_events.forEach((event) => {
 
@@ -946,7 +954,9 @@ http.createServer(function (req, res) {
                 let message_create_data = event.message_create
                 let photoURL = null;
 
-                console.log(message_create_data)
+                console.log('\n\n')
+                console.log(`message create data: ${JSON.stringify(message_create_data)}`)
+                console.log('\n\n')
 
                 recipient_id = message_create_data.target.recipient_id
                 sender_id    = message_create_data.sender_id
@@ -971,9 +981,12 @@ http.createServer(function (req, res) {
                   }
                 }
                 
+                console.log('\n\n')
                 console.log('finished parsing direct message event')
-                console.log(sender)
-                console.log(event.message_create.target.recipient_id)
+                console.log(`sender: ${JSON.stringify(sender)}`)
+                console.log(`event.message_create.target.recipient_id): ${event.message_create.target.recipient_id}`)
+                console.log('\n\n')
+                console.log('----------------------------------------------------')
 
                 if (sender && event.message_create.target.recipient_id === '976593574732222465') {
 
@@ -989,8 +1002,7 @@ http.createServer(function (req, res) {
                     responded_to:           false
                   }
 
-                  console.log('new twitter event: ')
-                  console.log(newEvent)
+                  console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
                   connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
                     if (error) throw error;
