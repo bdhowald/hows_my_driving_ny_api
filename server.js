@@ -798,22 +798,18 @@ stripReturnData = (obj, selectedFields) => {
 
 
 var connection = initializeConnection({
-  host              : 'localhost',
-  user              : process.env.MYSQL_DATABASE_USER,
-  password          : process.env.MYSQL_DATABASE_PASSWORD,
-  database          : 'traffic_violations',
-  multipleStatements: true
+  host               : 'localhost',
+  user               : process.env.MYSQL_DATABASE_USER,
+  password           : process.env.MYSQL_DATABASE_PASSWORD,
+  database           : 'traffic_violations',
+  multipleStatements : true
 });
 
 
 http.createServer(function (req, res) {
 
-  console.log('request: ')
-  console.log(req);
-  console.log('\n\n')
-
-  console.log('response:')
-  console.log(res)
+  console.log(`request received at: ${new Date()}`)
+  console.log(`request url: ${req.url}`)
   console.log('\n\n')
 
   if (req.url.match('/webhook/twitter')) {
