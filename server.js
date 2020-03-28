@@ -905,7 +905,7 @@ http.createServer(function (req, res) {
                   event_type:             'status',
                   event_id:               event.id_str,
                   user_handle:            event.user.screen_name,
-                  user_id:                event.user.id,
+                  user_id:                event.user.id_str,
                   user_mentions:          userMentions == null ? null : userMentions.substring(userMentions.length - 560),
                   event_text:             text.substring(text.length - 560),
                   created_at:             event.timestamp_ms,
@@ -980,11 +980,11 @@ http.createServer(function (req, res) {
                     }
                   }
                 }
-                
+
                 console.log('\n\n')
                 console.log('finished parsing direct message event')
                 console.log(`sender: ${JSON.stringify(sender)}`)
-                console.log(`event.message_create.target.recipient_id): ${event.message_create.target.recipient_id}`)
+                console.log(`event.message_create.target.recipient_id: ${event.message_create.target.recipient_id}`)
                 console.log('\n\n')
                 console.log('----------------------------------------------------')
 
