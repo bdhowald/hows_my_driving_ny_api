@@ -251,6 +251,15 @@ obtainUniqueIdentifier = async () => {
     return uniqueIdentifier
 }
 
+getPreviousQueryResult = async (identifier) => {
+  return new Promise((resolve, reject) => {
+    connection.query("select plate, state, plate_types from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
+      if (error) throw error
+      return resolve(results[0])
+    })
+  })
+}
+
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
   return new Promise((resolve,reject) => {
@@ -334,24 +343,6 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
             if (error) throw error;
 
-            const uniqueIdentifier = await obtainUniqueIdentifier()
-            const newLookup = {
-              plate                   : plate,
-              state                   : state,
-              plate_types             : (plateTypes == undefined) ? null : plateTypes.join(),
-              observed                : null,
-              message_id              : null,
-              lookup_source           : (lookupSource == undefined) ? 'api' : lookupSource,
-              created_at              : new Date(),
-              external_username       : null,
-              count_towards_frequency : (lookupSource == undefined) ? false : true,
-              num_tickets             : violations.length,
-              boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
-              fingerprint_id          : fingerprintID,
-              mixpanel_id             : mixpanelID,
-              responded_to            : true,
-              unique_identifier       : uniqueIdentifier
-            }
             let frequency = (lookupSource == null) ? 0 : 1;
             let previous_count = null;
             let previous_date  = null;
@@ -363,9 +354,31 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               previous_date  = results[1][0].created_at
             }
 
-            insertNewLookup(newLookup, (error, results, fields) => {
-              if (error) throw error;
-            });
+            if (lookupSource !== 'existing_lookup') {
+
+              const uniqueIdentifier = await obtainUniqueIdentifier()
+              const newLookup = {
+                plate                   : plate,
+                state                   : state,
+                plate_types             : (plateTypes == undefined) ? null : plateTypes.join(),
+                observed                : null,
+                message_id              : null,
+                lookup_source           : (lookupSource == undefined) ? 'api' : lookupSource,
+                created_at              : new Date(),
+                external_username       : null,
+                count_towards_frequency : (lookupSource == undefined) ? false : true,
+                num_tickets             : violations.length,
+                boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
+                fingerprint_id          : fingerprintID,
+                mixpanel_id             : mixpanelID,
+                responded_to            : true,
+                unique_identifier       : uniqueIdentifier
+              }
+
+              insertNewLookup(newLookup, (error, results, fields) => {
+                if (error) throw error;
+              });
+            }
 
             let returnObject = {
               vehicle : {
@@ -1056,6 +1069,69 @@ http.createServer(function (req, res) {
 
     }
 
+  } else if (req.url.match('/api/v1/lookup')) {
+
+    const parser = url.parse(req.url, true);
+    const pathname = parser.pathname
+    const identifier = (pathname.substring(pathname.lastIndexOf('/') + 1))
+
+    getPreviousQueryResult(identifier).then((previousLookup) => {
+      if (previousLookup) {
+
+        potentialVehicle = [
+          `${previousLookup['plate']}:${previousLookup['state']}${previousLookup['plate_types'] ? `:${previousLookup['plate_types']}` : ''}`
+        ]
+
+        const vehicles = detectVehicles(potentialVehicle)
+
+        const externalData = {
+          lookup_source  : 'existing_lookup',
+          fingerprint_id : null,
+          mixpanel_id    : null
+        }
+
+        Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
+          .then((allResponses) => {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.writeHead(200);
+            res.end(JSON.stringify({data: allResponses}));
+
+            return
+        })
+      }
+    })
+
+    // TODO: Move external lookup sources to another url.
+    //
+    // var apiKey = query.api_key;
+
+    // if (apiKey == undefined) {
+    //   res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    //   res.setHeader('Access-Control-Allow-Origin', '*');
+    //   res.writeHead(401);
+    //   res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
+
+    //   return;
+
+    // } else {
+    //   let _ = connection.query('select * from authorized_external_users where api_key = ?', [apiKey], (error, results, fields) => {
+    //     if (error) throw error;
+
+    //     if (results.length == 0) {
+    //       res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    //       res.setHeader('Access-Control-Allow-Origin', '*');
+    //       res.writeHead(403);
+    //       res.end(JSON.stringify({error: "You supplied an invalid api key."}));
+
+    //       return;
+    //     } else {
+    //       lookupSource  = 'external'
+    //     }
+
+    //   });
+    // }
+
   } else if (req.url.match('/api/v1')) {
 
     var parser = url.parse(req.url, true);
@@ -1092,7 +1168,6 @@ http.createServer(function (req, res) {
       potentialVehicles.push( plate + ':' + state + (plateTypes == undefined ? '' : (':' + plateTypes)) )
     }
 
-
     const vehicles = detectVehicles(potentialVehicles)
 
     let externalData = {
@@ -1100,38 +1175,6 @@ http.createServer(function (req, res) {
       fingerprint_id : query.fingerprint_id,
       mixpanel_id    : query.mixpanel_id
     }
-
-    if (parser.pathname.match(/\/lookup/)) {
-
-      var apiKey = query.api_key;
-
-      if (apiKey == undefined) {
-        res.setHeader('Content-Type', 'application/json;charset=utf-8');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.writeHead(401);
-        res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
-
-        return;
-
-      } else {
-        let _ = connection.query('select * from authorized_external_users where api_key = ?', [apiKey], (error, results, fields) => {
-          if (error) throw error;
-
-          if (results.length == 0) {
-            res.setHeader('Content-Type', 'application/json;charset=utf-8');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.writeHead(403);
-            res.end(JSON.stringify({error: "You supplied an invalid api key."}));
-
-            return;
-          } else {
-            lookupSource  = 'external'
-          }
-
-        });
-      }
-    }
-
 
     Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
@@ -1143,8 +1186,6 @@ http.createServer(function (req, res) {
 
         return
       })
-
-
     // res.setHeader('Content-Type', 'application/json');
     // res.setHeader('Access-Control-Allow-Origin', '*');
     // res.writeHead(200, {'Content-Type': 'application/javascript'});s
