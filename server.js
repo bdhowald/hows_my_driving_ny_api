@@ -268,9 +268,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
     let state      = vehicle.state;
     let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',').map((part) => part.trim());
 
-    let lookupSource  = externalData.lookup_source;
-    let fingerprintID = externalData.fingerprint_id;
-    let mixpanelID    = externalData.mixpanel_id;
+    let lookupSource       = externalData.lookup_source;
+    let fingerprintID      = externalData.fingerprint_id;
+    let mixpanelID         = externalData.mixpanel_id;
+    let existingIdentifier = externalData.unique_identifier
 
 
     if (plate && state) {
@@ -354,9 +355,9 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               previous_date  = results[1][0].created_at
             }
 
-            if (lookupSource !== 'existing_lookup') {
+            const uniqueIdentifier = existingIdentifier || await obtainUniqueIdentifier()
 
-              const uniqueIdentifier = await obtainUniqueIdentifier()
+            if (lookupSource !== 'existing_lookup') {
               const newLookup = {
                 plate                   : plate,
                 state                   : state,
@@ -390,6 +391,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
                 previous_violation_count : previous_count,
                 state                    : state,
                 times_queried            : frequency,
+                uniqueIdentifier         : uniqueIdentifier,
                 violations               : violations,
                 violations_count         : violations.length
               },
@@ -1085,9 +1087,10 @@ http.createServer(function (req, res) {
         const vehicles = detectVehicles(potentialVehicle)
 
         const externalData = {
-          lookup_source  : 'existing_lookup',
-          fingerprint_id : null,
-          mixpanel_id    : null
+          lookup_source     : 'existing_lookup',
+          fingerprint_id    : null,
+          mixpanel_id       : null,
+          unique_identifier : identifier
         }
 
         Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
