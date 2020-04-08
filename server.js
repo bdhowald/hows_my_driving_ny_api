@@ -268,7 +268,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
     let state      = vehicle.state;
     let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',').map((part) => part.trim());
 
-    let lookupSource       = externalData.lookup_source;
+    let lookupSource       = externalData.lookup_source || 'api';
     let fingerprintID      = externalData.fingerprint_id;
     let mixpanelID         = externalData.mixpanel_id;
     let existingIdentifier = externalData.unique_identifier
@@ -331,7 +331,6 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             state: state
           }
 
-
           searchQueryString = plateTypes == undefined
             ? 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
             : 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
@@ -344,13 +343,14 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
             if (error) throw error;
 
-            let frequency = (lookupSource == null) ? 0 : 1;
+            const countTowardsFrequency = !(['api', 'existing_lookup'].includes(lookupSource))
+            let frequency = countTowardsFrequency ? 1 : 0;
             let previous_count = null;
             let previous_date  = null;
 
 
             if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
-              frequency      = results[0][0].frequency + ((lookupSource == null) ? 0 : 1)
+              frequency      = results[0][0].frequency + frequency
               previous_count = results[1][0].num_tickets
               previous_date  = results[1][0].created_at
             }
@@ -364,10 +364,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
                 plate_types             : (plateTypes == undefined) ? null : plateTypes.join(),
                 observed                : null,
                 message_id              : null,
-                lookup_source           : (lookupSource == undefined) ? 'api' : lookupSource,
+                lookup_source           : lookupSource,
                 created_at              : new Date(),
                 external_username       : null,
-                count_towards_frequency : (lookupSource == undefined) ? false : true,
+                count_towards_frequency : countTowardsFrequency ? true : false,
                 num_tickets             : violations.length,
                 boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
                 fingerprint_id          : fingerprintID,
