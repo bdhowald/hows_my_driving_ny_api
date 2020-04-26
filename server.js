@@ -423,7 +423,212 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
   })
 }
 
- 
+handleBlockEvent = (event) => {
+  console.log(`handleBlockEvent is a stub method: ${JSON.stringify(event)}`)
+}
+
+handleDirectMessageEvent = (event) => {
+  if (event.type === 'message_create') {
+
+    let message_create_data = event.message_create
+    let photoURL = null;
+
+    console.log('\n\n')
+    console.log(`message create data: ${JSON.stringify(message_create_data)}`)
+    console.log('\n\n')
+
+    recipient_id = message_create_data.target.recipient_id
+    sender_id    = message_create_data.sender_id
+
+    sender = json.users[sender_id]
+
+    // # photo_url data
+    if (message_create_data.message_data) {
+      let md = message_create_data.message_data;
+
+      if (md.attachment) {
+        let att = md.attachment;
+
+        if (att.media) {
+
+          let media = att.media;
+
+          if (media.type == 'photo') {
+            photoURL = media.media_url_https;
+          }
+        }
+      }
+    }
+
+    if (sender && event.message_create.target.recipient_id === '976593574732222465') {
+
+      let newEvent = {
+        event_type:             'direct_message',
+        event_id:               event.id,
+        user_handle:            sender.screen_name,
+        user_id:                sender.id,
+        event_text:             message_create_data.message_data.text,
+        created_at:             event.created_timestamp,
+        in_reply_to_message_id: null,
+        location:               null,
+        responded_to:           false
+      }
+
+      console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
+
+      connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
+        if (error) throw error;
+
+        if (results && photoURL != null) {
+          const insertID = results.insertId;
+
+          let mediaObject = {
+            url: photoURL,
+            type: 'photo',
+            twitter_event_id: insertID
+          }
+
+          connection.query('insert into twitter_media_objects set ?', mediaObject, (error, results, fields) => {
+            if (error) throw error;
+          });
+        }
+      });
+    }
+  }
+}
+
+handleDirectMessageIndicateTypingEvent = (event) => {
+  console.log(`handleDirectMessageIndicateTypingEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleDirectMessageMarkReadEvent = (event) => {
+  console.log(`handleDirectMessageMarkReadEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleFavoriteEvent = (event) => {
+  console.log(`handleFavoriteEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleFollowEvent = (event) => {
+  console.log(`handleFollowEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleMuteEvent = (event) => {
+  console.log(`handleMuteEvent is a stub method: ${JSON.stringify(event)}`)
+}
+
+handleTweetCreateEvent = (event) => {
+  if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
+
+    let text;
+    let userMentions = null;
+    let photoURLs    = [];
+
+    if (event.extended_tweet) {
+      let et = event.extended_tweet;
+      text = et.full_text
+
+      if (et.entities.user_mentions) {
+        userMentions = et.entities.user_mentions.map((mention) =>
+          text.includes(mention.screen_name) ? mention.screen_name : ''
+        ).join(' ').trim();
+      }
+
+      if (et.extended_entities) {
+        let ee = et.extended_entities;
+
+        if (ee.media) {
+          let media = ee.media;
+
+          media.map((med) => {
+            if (med.type == 'photo') {
+              photoURLs.push(med.media_url_https);
+            }
+          })
+        }
+      }
+    } else {
+      text = event.text;
+
+      if (event.entities) {
+
+        let entities = event.entities;
+
+        if (entities.user_mentions) {
+          userMentions = entities.user_mentions.map((mention) =>
+            text.includes(mention.screen_name) ? mention.screen_name : ''
+          ).join(' ').trim();
+        }
+      }
+
+      if (event.extended_entities) {
+        let ee = event.extended_entities;
+
+        if (ee.media) {
+          let media = ee.media;
+
+          media.map((med) => {
+            if (med.type == 'photo') {
+              photoURLs.push(med.media_url_https);
+            }
+          })
+        }
+      }
+    }
+
+    newEvent = {
+      event_type:             'status',
+      event_id:               event.id_str,
+      user_handle:            event.user.screen_name,
+      user_id:                event.user.id_str,
+      user_mentions:          userMentions == null ? null : userMentions.substring(userMentions.length - 560),
+      event_text:             text.substring(text.length - 560),
+      created_at:             event.timestamp_ms,
+      in_reply_to_message_id: event.in_reply_to_status_id_str,
+      location:               (event.place && event.place.full_name) ? event.place.full_name : null,
+      responded_to:           false
+    }
+
+    console.log('\n\n')
+    console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
+    console.log('\n\n')
+
+    connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
+      if (error) throw error;
+
+      if (results && photoURLs.length > 0) {
+        const insertID = results.insertId;
+
+        let mediaObjects = photoURLs.map((photoURL) => {
+          return({
+            url: photoURL,
+            type: 'photo',
+            twitter_event_id: insertID
+          })
+        })
+
+        connection.query('insert into twitter_media_objects set ?', mediaObjects, (error, results, fields) => {
+          if (error) throw error;
+        });
+      }
+
+    });
+  }
+}
+
+handleTweetDeleteEvent = (event) => {
+  console.log(`handleTweetDeleteEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleUnblockEvent = (event) => {
+  console.log(`handleUnblockEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleUnfollowEvent = (event) => {
+  console.log(`handleUnfollowEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleUnmuteEvent = (event) => {
+  console.log(`handleUnmuteEvent is a stub method: ${JSON.stringify(event)}`)
+}
+handleUserEvent = (event) => {
+  console.log(`handleUserEvent is a stub method: ${JSON.stringify(event)}`)
+}
+
+
 insertNewLookup = (newLookup, callback) => {
   connection.query('insert into plate_lookups set ?', newLookup, callback)
 }
@@ -845,200 +1050,76 @@ http.createServer(function (req, res) {
         console.log(body)
         console.log('\n\n')
 
-        const hmac          = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
-        let   expectedSHA   = 'sha256=' + hmac.update(body).digest('base64')
+        const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+        const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
 
         if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
-          let json = JSON.parse(body)
+          const json = JSON.parse(body)
 
-          if (json.tweet_create_events) {
-
-            console.log('message type: tweet')
-
-            json.tweet_create_events.forEach((event) => {
-
-              if (!event.retweeted_status && event.user && event.user.screen_name != 'HowsMyDrivingNY') {
-
-                let text;
-                let userMentions = null;
-                let photoURLs    = [];
-
-                if (event.extended_tweet) {
-                  let et = event.extended_tweet;
-                  text = et.full_text
-
-                  if (et.entities.user_mentions) {
-                    userMentions = et.entities.user_mentions.map((mention) =>
-                      text.includes(mention.screen_name) ? mention.screen_name : ''
-                    ).join(' ').trim();
-                  }
-
-                  if (et.extended_entities) {
-                    let ee = et.extended_entities;
-
-                    if (ee.media) {
-                      let media = ee.media;
-
-                      media.map((med) => {
-                        if (med.type == 'photo') {
-                          photoURLs.push(med.media_url_https);
-                        }
-                      })
-                    }
-                  }
-                } else {
-                  text = event.text;
-
-                  if (event.entities) {
-
-                    let entities = event.entities;
-
-                    if (entities.user_mentions) {
-                      userMentions = entities.user_mentions.map((mention) =>
-                        text.includes(mention.screen_name) ? mention.screen_name : ''
-                      ).join(' ').trim();
-                    }
-                  }
-
-                  if (event.extended_entities) {
-                    let ee = event.extended_entities;
-
-                    if (ee.media) {
-                      let media = ee.media;
-
-                      media.map((med) => {
-                        if (med.type == 'photo') {
-                          photoURLs.push(med.media_url_https);
-                        }
-                      })
-                    }
-                  }
-                }
-
-                newEvent = {
-                  event_type:             'status',
-                  event_id:               event.id_str,
-                  user_handle:            event.user.screen_name,
-                  user_id:                event.user.id_str,
-                  user_mentions:          userMentions == null ? null : userMentions.substring(userMentions.length - 560),
-                  event_text:             text.substring(text.length - 560),
-                  created_at:             event.timestamp_ms,
-                  in_reply_to_message_id: event.in_reply_to_status_id_str,
-                  location:               (event.place && event.place.full_name) ? event.place.full_name : null,
-                  responded_to:           false
-                }
-
-                console.log('\n\n')
-                console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
-                console.log('\n\n')
-
-                connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-                  if (error) throw error;
-
-                  if (results && photoURLs.length > 0) {
-                    const insertID = results.insertId;
-
-                    let mediaObjects = photoURLs.map((photoURL) => {
-                      return({
-                        url: photoURL,
-                        type: 'photo',
-                        twitter_event_id: insertID
-                      })
-                    })
-
-                    connection.query('insert into twitter_media_objects set ?', mediaObjects, (error, results, fields) => {
-                      if (error) throw error;
-                    });
-                  }
-
-                });
-              }
+          if (json.block_events) {
+            console.log('event type: block(s)')
+            json.block_events.forEach((event) => {
+              handleBlockEvent(event)
             })
-
           } else if (json.direct_message_events) {
-
-            console.log('\n\n')
-            console.log('message type: direct message')
-            console.log('\n\n')
-
+            console.log('event type: direct message(s)')
             json.direct_message_events.forEach((event) => {
-
-              if (event.type === 'message_create') {
-
-                let message_create_data = event.message_create
-                let photoURL = null;
-
-                console.log('\n\n')
-                console.log(`message create data: ${JSON.stringify(message_create_data)}`)
-                console.log('\n\n')
-
-                recipient_id = message_create_data.target.recipient_id
-                sender_id    = message_create_data.sender_id
-
-                sender = json.users[sender_id]
-
-                // # photo_url data
-                if (message_create_data.message_data) {
-                  let md = message_create_data.message_data;
-
-                  if (md.attachment) {
-                    let att = md.attachment;
-
-                    if (att.media) {
-
-                      let media = att.media;
-
-                      if (media.type == 'photo') {
-                        photoURL = media.media_url_https;
-                      }
-                    }
-                  }
-                }
-
-                console.log('\n\n')
-                console.log('finished parsing direct message event')
-                console.log(`sender: ${JSON.stringify(sender)}`)
-                console.log(`event.message_create.target.recipient_id: ${event.message_create.target.recipient_id}`)
-                console.log('\n\n')
-                console.log('----------------------------------------------------')
-
-                if (sender && event.message_create.target.recipient_id === '976593574732222465') {
-
-                  let newEvent = {
-                    event_type:             'direct_message',
-                    event_id:               event.id,
-                    user_handle:            sender.screen_name,
-                    user_id:                sender.id,
-                    event_text:             message_create_data.message_data.text,
-                    created_at:             event.created_timestamp,
-                    in_reply_to_message_id: null,
-                    location:               null,
-                    responded_to:           false
-                  }
-
-                  console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
-
-                  connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-                    if (error) throw error;
-
-                    if (results && photoURL != null) {
-                      const insertID = results.insertId;
-
-                      let mediaObject = {
-                        url: photoURL,
-                        type: 'photo',
-                        twitter_event_id: insertID
-                      }
-
-                      connection.query('insert into twitter_media_objects set ?', mediaObject, (error, results, fields) => {
-                        if (error) throw error;
-                      });
-                    }
-                  });
-                }
-              }
+              handleDirectMessageEvent(event)
             })
+          } else if (json.direct_message_indicate_typing_events) {
+            console.log('event type: direct message indicate typing event(s)')
+            json.direct_message_indicate_typing_events.forEach((event) => {
+              handleDirectMessageIndicateTypingEvent(event)
+            })
+          } else if (json.direct_message_mark_read_events) {
+            console.log('event type: direct message mark read event(s)')
+            json.direct_message_mark_read_events.forEach((event) => {
+              handleDirectMessageMarkReadEvent(event)
+            })
+          } else if (json.favorite_events) {
+            console.log('event type: favorite(s)')
+            json.favorite_events.forEach((event) => {
+              handleFavoriteEvent(event)
+            })
+          } else if (json.follow_events) {
+            console.log('event type: follow(s)')
+            json.follow_events.forEach((event) => {
+              handleFollowEvent(event)
+            })
+          } else if (json.mute_events) {
+            console.log('event type: mute(s)')
+            json.mute_events.forEach((event) => {
+              handleMuteEvent(event)
+            })
+          } else if (json.tweet_create_events) {
+            console.log('event type: tweet create event(s)')
+            json.tweet_create_events.forEach((event) => {
+              handleTweetCreateEvent(event)
+            })
+          } else if (json.tweet_delete_events) {
+            console.log('event type: tweet delete event(s)')
+            json.tweet_delete_events.forEach((event) => {
+              handleTweetDeleteEvent(event)
+            })
+          } else if (json.unblock_events) {
+            console.log('event type: unblock(s)')
+            json.unblock_events.forEach((event) => {
+              handleUnblockEvent(event)
+            })
+          } else if (json.unfollow_events) {
+            console.log('event type: follow(s)')
+            json.unfollow_events.forEach((event) => {
+              handleUnfollowEvent(event)
+            })
+          } else if (json.unmute_events) {
+            console.log('event type: unmute(s)')
+            json.unmute_events.forEach((event) => {
+              handleUnmuteEvent(event)
+            })
+          } else if (json.user_event) {
+            console.log('events type: user(s)')
+            handleUserEvent(json.user_event)
           } else {
             console.log('Not sure how to process the following payload: ')
             console.log(json)
