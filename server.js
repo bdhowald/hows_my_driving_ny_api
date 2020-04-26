@@ -236,7 +236,10 @@ obtainUniqueIdentifier = async () => {
     const identifierAlreadyExists = (identifier) => {
       return new Promise((resolve, reject) => {
         connection.query("select count(*) as count from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
-          if (error) throw error
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error;
+          }
           return resolve((results && results[0] && results[0] && results[0]['count'] !== 0) ? true : false)
         })
       })
@@ -254,7 +257,10 @@ obtainUniqueIdentifier = async () => {
 getPreviousQueryResult = async (identifier) => {
   return new Promise((resolve, reject) => {
     connection.query("select plate, state, plate_types from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
-      if (error) throw error
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error;
+      }
       return resolve(results[0])
     })
   })
@@ -341,7 +347,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
 
           queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
-            if (error) throw error;
+            if (error) {
+              console.log(`error thrown at: ${new Date()}`)
+              throw error;
+            }
 
             const countTowardsFrequency = !(['api', 'existing_lookup'].includes(lookupSource))
             let frequency = countTowardsFrequency ? 1 : 0;
@@ -377,7 +386,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               }
 
               insertNewLookup(newLookup, (error, results, fields) => {
-                if (error) throw error;
+                if (error) {
+                  console.log(`error thrown at: ${new Date()}`)
+                  throw error;
+                }
               });
             }
 
@@ -477,7 +489,10 @@ handleDirectMessageEvent = (event) => {
       console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
       connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-        if (error) throw error;
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error;
+        }
 
         if (results && photoURL != null) {
           const insertID = results.insertId;
@@ -489,7 +504,10 @@ handleDirectMessageEvent = (event) => {
           }
 
           connection.query('insert into twitter_media_objects set ?', mediaObject, (error, results, fields) => {
-            if (error) throw error;
+            if (error) {
+              console.log(`error thrown at: ${new Date()}`)
+              throw error;
+            }
           });
         }
       });
@@ -590,7 +608,10 @@ handleTweetCreateEvent = (event) => {
     console.log('\n\n')
 
     connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-      if (error) throw error;
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error;
+      }
 
       if (results && photoURLs.length > 0) {
         const insertID = results.insertId;
@@ -604,7 +625,10 @@ handleTweetCreateEvent = (event) => {
         })
 
         connection.query('insert into twitter_media_objects set ?', mediaObjects, (error, results, fields) => {
-          if (error) throw error;
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error;
+          }
         });
       }
 
@@ -951,7 +975,10 @@ normalizeViolations = (violations) => {
                         }
 
                         connection.query('insert into geocodes set ?', newGeocode, (error, results, fields) => {
-                          if (error) throw error;
+                          if (error) {
+                            console.log(`error thrown at: ${new Date()}`)
+                            throw error;
+                          }
                         });
                       }
 
