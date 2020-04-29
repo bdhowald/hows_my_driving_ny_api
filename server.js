@@ -214,15 +214,25 @@ findMaxCameraViolationsStreak = violationTimes => {
       let yearLater = new Date(date).setYear(date.getFullYear() + 1);
 
       let yearLongTickets = violationTimes.filter(otherDate =>
-        otherDate >= date && otherDate <= yearLater
+        otherDate >= date && otherDate < yearLater
       );
+
+      sortedYearLongTickets = yearLongTickets.sort((a,b) => {
+        if (a > b) {
+          return 1
+        }
+        if (b > a) {
+          return -1
+        }
+        return 0
+      })
 
       let thisStreak = yearLongTickets.length
 
       if (thisStreak > maxStreak) {
         maxStreak     = thisStreak;
-        streakEnd     = yearLongTickets[0]
-        streakStart   = yearLongTickets[yearLongTickets.length - 1]
+        streakEnd     = sortedYearLongTickets[yearLongTickets.length - 1]
+        streakStart   = sortedYearLongTickets[0]
       }
     })
 
