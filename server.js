@@ -559,8 +559,8 @@ handleFollowEvent = (event) => {
         console.log(`error thrown at: ${new Date()}`)
         throw error;
       }
-  
-      if (results && results.length) {
+
+      if (results && results.length > 0) {
         results.forEach((result) => {
           const inReplyToMessageId = results[0].in_reply_to_message_id;
           respondToReplyForNewFollower(
