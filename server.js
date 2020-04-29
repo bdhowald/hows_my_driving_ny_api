@@ -452,7 +452,7 @@ handleDirectMessageEvent = (event) => {
     recipient_id = message_create_data.target.recipient_id
     sender_id    = message_create_data.sender_id
 
-    sender = json.users[sender_id]
+    sender = event.users[sender_id]
 
     // # photo_url data
     if (message_create_data.message_data) {
