@@ -522,11 +522,60 @@ handleDirectMessageMarkReadEvent = (event) => {
   console.log(`handleDirectMessageMarkReadEvent is a stub method: ${JSON.stringify(event)}`)
 }
 handleFavoriteEvent = (event) => {
-  console.log(`handleFavoriteEvent is a stub method: ${JSON.stringify(event)}`)
+  favoritedStatusId = event && event.favorited_status && event.favorited_status.id_str
+  userId = event && event.user && event.user.id_str
+
+  if (favoritedStatusId && userId) {
+    connection.query('select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false', [favoritedStatusId, userId], (error, results, fields) => {
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error;
+      }
+
+      if (results && results[0]) {
+        const inReplyToMessageId = results[0].in_reply_to_message_id;
+        console.log(`Setting responded_to to false for event_id: ${inReplyToMessageId}`)
+        respondToNonFollowerFavorite(
+          favoritedStatusId,
+          inReplyToMessageId,
+          userId
+        )
+      } else {
+        console.log('No message matches.')
+        console.log(`favorited status id: ${favoritedStatusId}`)
+        console.log(`favoriting user id: ${userId}`)
+      }
+    })
+  }
 }
+
 handleFollowEvent = (event) => {
-  console.log(`handleFollowEvent is a stub method: ${JSON.stringify(event)}`)
+  userId = event && event.source && event.source.id
+  console.log(`userId: ${userId}`)
+
+  if (userId) {
+    connection.query('select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false', [userId], (error, results, fields) => {
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error;
+      }
+  
+      if (results && results.length) {
+        results.forEach((result) => {
+          const inReplyToMessageId = results[0].in_reply_to_message_id;
+          respondToReplyForNewFollower(
+            inReplyToMessageId,
+            userId
+          )
+        })
+      } else {
+        console.log('No messages match.')
+        console.log(`following user id: ${userId}`)
+      }
+    })
+  }
 }
+
 handleMuteEvent = (event) => {
   console.log(`handleMuteEvent is a stub method: ${JSON.stringify(event)}`)
 }
@@ -1020,6 +1069,34 @@ normalizeViolations = (violations) => {
 
 queryForLookups = (queryString, queryArgs, callback) => {
   connection.query(queryString, queryArgs, callback)
+}
+
+respondToReplyForNewFollower = (inReplyToMessageId, userId) => {
+  console.log(`inReplyToMessageId: ${inReplyToMessageId}`)
+  console.log(`userId: ${userId}`)
+
+  connection.query(`
+    update non_follower_replies set favorited = true where user_id = ?;
+    update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ?
+  `, [userId, inReplyToMessageId], (error, results, fields) => {
+    if (error) {
+      console.log(`error thrown at: ${new Date()}`)
+      throw error;
+    }
+  })
+}
+
+respondToNonFollowerFavorite = (favoritedStatusId, inReplyToMessageId, userId) => {
+  console.log(`Updating twitter_events, setting user_favorited_non_follower_reply = true and responded_to = false for event ${inReplyToMessageId}`)
+  connection.query(`
+    update non_follower_replies set favorited = true where event_id = ? and user_id = ?;
+    update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ? and is_duplicate = false
+  `, [favoritedStatusId, userId, inReplyToMessageId], (error, results, fields) => {
+    if (error) {
+      console.log(`error thrown at: ${new Date()}`)
+      throw error;
+    }
+  })
 }
 
 
