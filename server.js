@@ -439,7 +439,7 @@ handleBlockEvent = (event) => {
   console.log(`handleBlockEvent is a stub method: ${JSON.stringify(event)}`)
 }
 
-handleDirectMessageEvent = (event) => {
+handleDirectMessageEvent = (event, users) => {
   if (event.type === 'message_create') {
 
     let message_create_data = event.message_create
@@ -452,7 +452,7 @@ handleDirectMessageEvent = (event) => {
     recipient_id = message_create_data.target.recipient_id
     sender_id    = message_create_data.sender_id
 
-    sender = event.users[sender_id]
+    sender = users[sender_id]
 
     // # photo_url data
     if (message_create_data.message_data) {
@@ -1169,7 +1169,7 @@ http.createServer(function (req, res) {
           } else if (json.direct_message_events) {
             console.log('event type: direct message(s)')
             json.direct_message_events.forEach((event) => {
-              handleDirectMessageEvent(event)
+              handleDirectMessageEvent(event, json.users)
             })
           } else if (json.direct_message_indicate_typing_events) {
             console.log('event type: direct message indicate typing event(s)')
