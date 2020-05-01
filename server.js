@@ -846,7 +846,7 @@ modifyViolationsForResponse = (violations, selectedFields) => {
         if (isPM && parseInt(hour) < 12) {
           hour = (parseInt(hour) + 12).toString()
         } else if (isAM && hour == 12) {
-          hour = (parseInt(hour) - 12).toString()
+          hour = '00'
         }
       } else if (timeMatch = violationTime.match(/\d{2}:\d{2}/)) {
         hour   = timeMatch[0].split(':')[0]
@@ -860,12 +860,6 @@ modifyViolationsForResponse = (violations, selectedFields) => {
           hour = (parseInt(hour) - 12).toString()
         }
       }
-
-
-      // console.log(violation.summons_number)
-      // console.log(violation.street_name)
-      // console.log(violation.intersecting_street)
-      // console.log(' ')
 
       if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
         date = date.replace(/\//g,'-')
