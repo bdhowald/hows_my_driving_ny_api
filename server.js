@@ -350,10 +350,15 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           const redLightCameraStreakData = findMaxCameraViolationsStreak(redLightCameraViolations.map(function(violation){return violation.formatted_time}));
           const speedCameraStreakData = findMaxCameraViolationsStreak(speedCameraViolations.map(function(violation){return violation.formatted_time}));
 
-          const streakData = {
-            'camera_violations': mixedCameraStreakData,
-            'red_light_camera_violations': redLightCameraStreakData,
-            'school_zone_speed_camera_violations': speedCameraStreakData
+          const streakData = {}
+          if (mixedCameraStreakData) {
+            streakData['camera_violations'] = mixedCameraStreakData
+          }
+          if (redLightCameraStreakData) {
+            streakData['red_light_camera_violations'] = redLightCameraStreakData
+          }
+          if (speedCameraStreakData) {
+            streakData['school_zone_speed_camera_violations'] = speedCameraStreakData
           }
 
           frequencyLookup  = {
