@@ -339,8 +339,16 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             violation.humanized_description == 'School Zone Speed Camera Violation' ||
               violation.humanized_description == 'Failure to Stop at Red Light'
           )
+          let redLightCameraViolations = violations.filter((violation) =>
+            violation.humanized_description == 'Failure to Stop at Red Light'
+          )
+          let speedCameraViolations = violations.filter((violation) =>
+            violation.humanized_description == 'School Zone Speed Camera Violation'
+          )
 
-          const streakData = findMaxCameraViolationsStreak(cameraViolations.map(function(violation){return violation.formatted_time}));
+          const mixedCameraStreakData = findMaxCameraViolationsStreak(cameraViolations.map(function(violation){return violation.formatted_time}));
+          const redLightCameraStreakData = findMaxCameraViolationsStreak(redLightCameraViolations.map(function(violation){return violation.formatted_time}));
+          const speedCameraStreakData = findMaxCameraViolationsStreak(speedCameraViolations.map(function(violation){return violation.formatted_time}));
 
           frequencyLookup  = {
             plate: plate,
@@ -378,21 +386,23 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
             if (lookupSource !== 'existing_lookup') {
               const newLookup = {
-                plate                   : plate,
-                state                   : state,
-                plate_types             : (plateTypes == undefined) ? null : plateTypes.join(),
-                observed                : null,
-                message_id              : null,
-                lookup_source           : lookupSource,
-                created_at              : new Date(),
-                external_username       : null,
-                count_towards_frequency : countTowardsFrequency ? true : false,
-                num_tickets             : violations.length,
-                boot_eligible           : (streakData && streakData.max_streak >= 5) || 0,
-                fingerprint_id          : fingerprintID,
-                mixpanel_id             : mixpanelID,
-                responded_to            : true,
-                unique_identifier       : uniqueIdentifier
+                plate                              : plate,
+                state                              : state,
+                plate_types                        : (plateTypes == undefined) ? null : plateTypes.join(),
+                observed                           : null,
+                message_id                         : null,
+                lookup_source                      : lookupSource,
+                created_at                         : new Date(),
+                external_username                  : null,
+                count_towards_frequency            : countTowardsFrequency ? true : false,
+                num_tickets                        : violations.length,
+                boot_eligible_under_rdaa_threshold : (mixedCameraStreakData && mixedCameraStreakData.max_streak >= 5) || 0,
+                boot_eligible_under_dvaa_threshold : ((redLightCameraStreakData && redLightCameraStreakData.max_streak >= 5) ||
+                                                      (speedCameraStreakData && speedCameraStreakData.max_streak >= 15) || 0),
+                fingerprint_id                     : fingerprintID,
+                mixpanel_id                        : mixpanelID,
+                responded_to                       : true,
+                unique_identifier                  : uniqueIdentifier
               }
 
               insertNewLookup(newLookup, (error, results, fields) => {
