@@ -1185,6 +1185,8 @@ http.createServer(function (req, res) {
         if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
           const json = JSON.parse(body)
+          console.log('received event')
+          console.log(json)
 
           if (json.block_events) {
             console.log('event type: block(s)')
