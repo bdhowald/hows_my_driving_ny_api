@@ -1164,7 +1164,7 @@ http.createServer(function (req, res) {
   console.log(`request url: ${req.url}`)
   console.log('\n\n')
 
-  if (req.url.match('/webhook/twitter') || (req.url.match('/webhook/twitter_new')) {
+  if (req.url.match('/webhook/twitter') || req.url.match('/webhook/twitter_new')) {
 
     if (req.method == 'POST') {
 
