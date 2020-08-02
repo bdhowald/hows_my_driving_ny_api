@@ -1164,7 +1164,7 @@ http.createServer(function (req, res) {
   console.log(`request url: ${req.url}`)
   console.log('\n\n')
 
-  if (req.url.match('/webhook/twitter') || req.url.match('/webhook/twitter_new')) {
+  if (req.url.match('/webhook/twitter')) {
 
     if (req.method == 'POST') {
 
@@ -1415,5 +1415,8 @@ http.createServer(function (req, res) {
     // res.writeHead(422, {'Content-Type': 'application/javascript'});
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
 
+  } else {
+    res.writeHead(404);
+    res.end(JSON.stringify({'error': 'not found'}))
   }
 }).listen(8080);
