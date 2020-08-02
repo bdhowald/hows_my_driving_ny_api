@@ -1164,15 +1164,9 @@ http.createServer(function (req, res) {
   console.log(`request url: ${req.url}`)
   console.log('\n\n')
 
-  console.log(req.url)
-
   if (req.url.match('/webhook/twitter')) {
 
-    console.log('Twitter webhook')
-
     if (req.method == 'POST') {
-
-      console.log('POST request')
 
       let body = [];
       req.on('data', (chunk) => {
@@ -1187,9 +1181,6 @@ http.createServer(function (req, res) {
 
         const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
         const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
-
-        console.log(hmac)
-        console.log(expectedSHA)
 
         if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
@@ -1269,11 +1260,14 @@ http.createServer(function (req, res) {
 
     } else if (req.method == 'GET') {
 
+      console.log('getting a challenge request')
+
       var query = url.parse(req.url, true).query
 
       console.log(query);
 
       const crc_token = query.crc_token || ''
+      console.log(crc_token)
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
       const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
