@@ -1166,7 +1166,11 @@ http.createServer(function (req, res) {
 
   if (req.url.match('/webhook/twitter')) {
 
+    console.log('Twitter webhook')
+
     if (req.method == 'POST') {
+
+      console.log('POST request')
 
       let body = [];
       req.on('data', (chunk) => {
