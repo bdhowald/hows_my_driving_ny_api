@@ -1282,6 +1282,8 @@ http.createServer(function (req, res) {
       res.writeHead(200);
       res.end(JSON.stringify(response))
 
+      console.log(JSON.stringify(response))
+
       return;
 
     }
