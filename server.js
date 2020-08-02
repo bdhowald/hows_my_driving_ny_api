@@ -1179,7 +1179,6 @@ http.createServer(function (req, res) {
         body.push(chunk);
       }).on('end', () => {
         body = Buffer.concat(body).toString()
-        console.log('do i get here?')
         // at this point, `body` has the entire request body stored in it as a string
 
         console.log('\n\n')
@@ -1188,6 +1187,9 @@ http.createServer(function (req, res) {
 
         const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
         const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
+
+        console.log(hmac)
+        console.log(expectedSHA)
 
         if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
 
