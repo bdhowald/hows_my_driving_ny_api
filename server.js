@@ -1179,6 +1179,7 @@ http.createServer(function (req, res) {
         body.push(chunk);
       }).on('end', () => {
         body = Buffer.concat(body).toString()
+        console.log('do i get here?')
         // at this point, `body` has the entire request body stored in it as a string
 
         console.log('\n\n')
