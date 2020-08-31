@@ -205,41 +205,37 @@ findFilterFields = fieldsString => {
 
 
 findMaxCameraViolationsStreak = violationTimes => {
-  if (violationTimes.length) {
-    let maxStreak     = 0;
-    let streakEnd     = null;
-    let streakStart   = null;
+  let maxStreak     = 0;
+  let streakEnd     = null;
+  let streakStart   = null;
 
-    violationTimes.forEach((date) => {
-      let yearLater = new Date(date).setYear(date.getFullYear() + 1);
+  violationTimes.forEach((date) => {
+    let yearLater = new Date(date).setYear(date.getFullYear() + 1);
 
-      let yearLongTickets = violationTimes.filter(otherDate =>
-        otherDate >= date && otherDate < yearLater
-      );
+    let yearLongTickets = violationTimes.filter(otherDate =>
+      otherDate >= date && otherDate < yearLater
+    );
 
-      sortedYearLongTickets = yearLongTickets.sort((a,b) => {
-        if (a > b) {
-          return 1
-        }
-        if (b > a) {
-          return -1
-        }
-        return 0
-      })
-
-      let thisStreak = yearLongTickets.length
-
-      if (thisStreak > maxStreak) {
-        maxStreak     = thisStreak;
-        streakEnd     = sortedYearLongTickets[yearLongTickets.length - 1]
-        streakStart   = sortedYearLongTickets[0]
+    sortedYearLongTickets = yearLongTickets.sort((a,b) => {
+      if (a > b) {
+        return 1
       }
+      if (b > a) {
+        return -1
+      }
+      return 0
     })
 
-    return {max_streak: maxStreak, streak_end: streakEnd, streak_start: streakStart};
-  } else {
-    return null;
-  }
+    let thisStreak = yearLongTickets.length
+
+    if (thisStreak > maxStreak) {
+      maxStreak     = thisStreak;
+      streakEnd     = sortedYearLongTickets[yearLongTickets.length - 1]
+      streakStart   = sortedYearLongTickets[0]
+    }
+  })
+
+  return {max_streak: maxStreak, streak_end: streakEnd, streak_start: streakStart};
 }
 
 obtainUniqueIdentifier = async () => {
@@ -626,6 +622,7 @@ handleTweetCreateEvent = (event) => {
         userMentions = et.entities.user_mentions.map((mention) =>
           text.includes(mention.screen_name) ? mention.screen_name : ''
         ).join(' ').trim();
+        userMentionIDs = et.entities.user_mentions.map((mention) => mention.id).join(',').trim();
       }
 
       if (et.extended_entities) {
@@ -652,6 +649,7 @@ handleTweetCreateEvent = (event) => {
           userMentions = entities.user_mentions.map((mention) =>
             text.includes(mention.screen_name) ? mention.screen_name : ''
           ).join(' ').trim();
+          userMentionIDs = entities.user_mentions.map((mention) => mention.id).join(',').trim();
         }
       }
 
@@ -676,6 +674,7 @@ handleTweetCreateEvent = (event) => {
       user_handle:            event.user.screen_name,
       user_id:                event.user.id_str,
       user_mentions:          userMentions == null ? null : userMentions.substring(userMentions.length - 560),
+      user_mention_ids:       userMentionIDs,
       event_text:             text.substring(text.length - 560),
       created_at:             event.timestamp_ms,
       in_reply_to_message_id: event.in_reply_to_status_id_str,
