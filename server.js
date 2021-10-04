@@ -919,7 +919,7 @@ modifyViolationsForResponse = (violations, selectedFields) => {
       violation.reduced = parseFloat(violation.reduction_amount);
     }
 
-    if (violation.outstanding_amount) {
+    if (violation.amount_due) {
       violation.outstanding = parseFloat(violation.amount_due);
     }
 
