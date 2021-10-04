@@ -584,7 +584,7 @@ modifyViolationsForResponse = (violations, selectedFields) => {
     }
 
     if (violation.outstanding_amount) {
-      violation.outstanding = parseFloat(violation.outstanding_amount);
+      violation.outstanding = parseFloat(violation.amount_due);
     }
 
   })
