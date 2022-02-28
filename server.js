@@ -622,7 +622,7 @@ handleTweetCreateEvent = (event) => {
         userMentions = et.entities.user_mentions.map((mention) =>
           text.includes(mention.screen_name) ? mention.screen_name : ''
         ).join(' ').trim();
-        userMentionIDs = et.entities.user_mentions.map((mention) => mention.id).join(',').trim();
+        userMentionIDs = et.entities.user_mentions.map((mention) => mention.id_str).join(',').trim();
       }
 
       if (et.extended_entities) {
