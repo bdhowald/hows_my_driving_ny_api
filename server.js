@@ -1415,7 +1415,6 @@ normalizeViolations = (violations) => {
     let street1     = newViolation.street_name
     let street2     = newViolation.intersecting_street
 
-
     if (street1 && street2) {
       if (street1.length == 20 && street1.charAt(street1.length - 1) != ' '){
         fullStreet = street1 + street2
@@ -1433,7 +1432,13 @@ normalizeViolations = (violations) => {
     }
 
     if (fullStreet) {
-      fullStreet = fullStreet.split(' ').map((strPart) =>
+      if (fullStreet.match(/@\w/)) {
+        fullStreet = fullStreet.replace(/@(\w)/, '@ $1')
+      }
+
+      fullStreet = fullStreet.split(/\s/).filter((strPart) =>
+        strPart.replace(/\(?[ENSW]\/?B\)?/i , '') !== ''
+      ).map((strPart) =>
         strPart.toLowerCase()
       ).map((strPart) =>
         strPart.charAt(0).toUpperCase() + strPart.substr(1)
@@ -1444,10 +1449,8 @@ normalizeViolations = (violations) => {
 
 
     if (newViolation.violation_county == null) {
-
       if (newViolation.location) {
-
-        promise = connection.promiseQuery("select borough from geocodes WHERE lookup_string = ?", [newViolation.location = fullStreet.replace(/[ENSW]\/?B/i , '').trim() + ' New York NY'])
+        promise = connection.promiseQuery("select borough from geocodes WHERE lookup_string = ?", [newViolation.location + ' New York NY'])
           .then((results) => {
             if (results.length) {
               newViolation.violation_county = results[0].borough
@@ -1487,8 +1490,6 @@ normalizeViolations = (violations) => {
                   } else {
                     newViolation.violation_county = 'No Borough Available'
                   }
-                  // console.log(newViolation.location)
-                  // console.log(lat, lng);
 
                   return Promise.resolve(newViolation)
                 },
