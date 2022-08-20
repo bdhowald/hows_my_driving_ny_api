@@ -1153,6 +1153,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
     'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
     'https://data.cityofnewyork.us/resource/kvfd-bves.json',
+    'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
