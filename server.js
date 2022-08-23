@@ -117,7 +117,7 @@ const opacvHumanizedNames = {
   'WRONG WAY' : 'No Parking Opposite Street Direction'}
 
 // humanized names for violations
-const fyHumanizedNames    = {
+const fyHumanizedNames = {
   '01': 'Failure to Display Bus Permit',
   '02': 'Failure to Display Operator Information',
   '03': 'Unauthorized Passenger Pick-Up',
@@ -131,7 +131,15 @@ const fyHumanizedNames    = {
   '09': 'Obstructing Traffic or Intersection',
   '10': 'No Stopping or Standing Except for Passenger Pick-Up',
   '11': 'No Parking - Except Hotel Loading',
-  '12': 'No Standing - Snow Emergency',
+  '12': [
+    {
+      description: 'No Standing - Snow Emergency',
+      startDate: new Date(1970, 0, 1)
+    }, {
+      description: 'Mobile Bus Lane Violation',
+      startDate: new Date(2019, 11, 6)
+    }
+  ],
   '13': 'No Standing - Taxi Stand',
   '14': 'No Standing - Day/Time Limits',
   '16': 'No Standing - Except Truck Loading/Unloading',
@@ -154,7 +162,15 @@ const fyHumanizedNames    = {
   '31': 'No Standing - Commercial Meter Zone',
   '32': 'Overtime Parking at Missing or Broken Meter',
   '32A': 'Overtime Parking at Missing or Broken Meter',
-  '33': [{description: 'Feeding Meter', startDate: new Date(1970, 0, 1)}, {description: 'Misuse of Parking Permit', startDate: new Date(2019, 5, 11)}],
+  '33': [
+    {
+      description: 'Feeding Meter',
+      startDate: new Date(1970, 0, 1)
+    }, {
+      description: 'Misuse of Parking Permit',
+      startDate: new Date(2019, 5, 11)
+    }
+  ],
   '35': 'Selling or Offering Merchandise From Metered Parking',
   '36': 'School Zone Speed Camera Violation',
   '37': 'Expired Meter',
@@ -219,11 +235,14 @@ const fyHumanizedNames    = {
   '84': 'Commercial Vehicle Platform Lifts in Lowered Position',
   '85': 'Street Storage of Commercial Vehicle Over 3 Hours',
   '86': 'Midtown Parking or Standing - 3 Hour Limit',
+  '87': 'Fraudulent Use of Agency Parking Permit',
   '89': 'No Standing - Except Trucks in Garment District',
   '91': 'No Parking on Street to Display Vehicle for Sale',
   '92': 'No Parking on Street to Wash or Repair Vehicle',
   '93': 'Replacing Flat Tire on Major Roadway',
+  '94': 'NYPD Tow Pound Release Fine',
   '96': 'No Stopping - Railroad Crossing',
+  '97': 'Parking in a Vacant Lot',
   '98': 'Obstructing Driveway',
   '01-No Intercity Pmt Displ': 'Failure to Display Bus Permit',
   '02-No operator N/A/PH': 'Failure to Display Operator Information',
@@ -336,7 +355,7 @@ const fyHumanizedNames    = {
   'PHTO SCHOOL ZN SPEED VIOLATION': 'School Zone Speed Camera Violation'}
 
 // mapping humanized naes to violation codes
-const namesToCodes        = {
+const namesToCodes = {
   'Failure to Display Bus Permit': '01',
   'Failure to Display Operator Information': '02',
   'Unauthorized Passenger Pick-Up': '03',
@@ -349,7 +368,7 @@ const namesToCodes        = {
   'Idling': '08',
   'Obstructing Traffic or Intersection': '09',
   'No Stopping or Standing Except for Passenger Pick-Up': '10',
-  'No Parking - Except Hotel Loading': '22',
+  'Mobile Bus Lane Violation': '12',
   'No Standing - Snow Emergency': '12',
   'No Standing - Taxi Stand': '13',
   'No Standing - Day/Time Limits': '14',
@@ -359,6 +378,7 @@ const namesToCodes        = {
   'No Standing - Bus Stop': '19',
   'No Parking - Day/Time Limits': '20',
   'No Parking - Street Cleaning': '21',
+  'No Parking - Except Hotel Loading': '22',
   'No Parking - Taxi Stand': '23',
   'No Standing - Commuter Van Stop': '25',
   'No Standing - For Hire Vehicle Stop': '26',
@@ -422,11 +442,14 @@ const namesToCodes        = {
   'Commercial Vehicle Platform Lifts in Lowered Position': '84',
   'Street Storage of Commercial Vehicle Over 3 Hours': '85',
   'Midtown Parking or Standing - 3 Hour Limit': '86',
+  'Fraudulent Use of Agency Parking Permit': '87',
   'No Standing - Except Trucks in Garment District': '89',
   'No Parking on Street to Display Vehicle for Sale': '91',
   'No Parking on Street to Wash or Repair Vehicle': '92',
   'Replacing Flat Tire on Major Roadway': '93',
+  'NYPD Tow Pound Release Fine': '94',
   'No Stopping - Railroad Crossing': '96',
+  'Parking in a Vacant Lot': '97',
   'Obstructing Driveway': '98'
 }
 
@@ -737,6 +760,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           }
 
 
+          let busLaneCameraViolations = violations.filter((violation) =>
+            violation.humanized_description == 'Bus Lane Violation' ||
+              violation.humanized_description == 'Mobile Bus Lane Violation'
+          )
           let cameraViolations = violations.filter((violation) =>
             violation.humanized_description == 'School Zone Speed Camera Violation' ||
               violation.humanized_description == 'Failure to Stop at Red Light'
@@ -799,22 +826,25 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
             if (lookupSource !== 'existing_lookup') {
               const newLookup = {
-                plate                              : plate,
-                state                              : state,
-                plate_types                        : (plateTypes == undefined) ? null : plateTypes.join(),
-                observed                           : null,
-                message_id                         : null,
-                lookup_source                      : lookupSource,
-                created_at                         : new Date(),
-                external_username                  : null,
-                count_towards_frequency            : countTowardsFrequency ? true : false,
-                num_tickets                        : violations.length,
                 boot_eligible_under_rdaa_threshold : (mixedCameraStreakData && mixedCameraStreakData.max_streak >= 5) || 0,
                 boot_eligible_under_dvaa_threshold : ((redLightCameraStreakData && redLightCameraStreakData.max_streak >= 5) ||
                                                       (speedCameraStreakData && speedCameraStreakData.max_streak >= 15) || 0),
+                bus_lane_camera_violations         : busLaneCameraViolations.length,
+                count_towards_frequency            : countTowardsFrequency ? true : false,
+                created_at                         : new Date(),
+                external_username                  : null,
                 fingerprint_id                     : fingerprintID,
+                lookup_source                      : lookupSource,
+                message_id                         : null,
                 mixpanel_id                        : mixpanelID,
+                num_tickets                        : violations.length,
+                observed                           : null,
+                plate                              : plate,
+                plate_types                        : (plateTypes == undefined) ? null : plateTypes.join(),
                 responded_to                       : true,
+                red_light_camera_violations        : redLightCameraViolations.length,
+                speed_camera_violations            : speedCameraViolations.length,
+                state                              : state,
                 unique_identifier                  : uniqueIdentifier
               }
 
