@@ -124,6 +124,8 @@ const fyHumanizedNames = {
   '04': 'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit',
   '04A': 'Bus Parking in Lower Manhattan - Non-Bus',
   '04B': 'Bus Parking in Lower Manhattan - No Permit',
+  '5': 'Bus Lane Violation',
+  '05': 'Bus Lane Violation',
   '06': 'Overnight Parking of Tractor Trailer',
   '7': 'Failure to Stop at Red Light',
   '07': 'Failure to Stop at Red Light',
