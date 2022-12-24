@@ -670,25 +670,25 @@ findMaxCameraViolationsStreak = violationTimes => {
 }
 
 obtainUniqueIdentifier = async () => {
-    const identifierAlreadyExists = (identifier) => {
-      return new Promise((resolve, reject) => {
-        connection.query("select count(*) as count from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error;
-          }
-          return resolve((results && results[0] && results[0] && results[0]['count'] !== 0) ? true : false)
-        })
+  const identifierAlreadyExists = (identifier) => {
+    return new Promise((resolve, reject) => {
+      connection.query("select count(*) as count from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error;
+        }
+        return resolve((results && results[0] && results[0] && results[0]['count'] !== 0) ? true : false)
       })
-    }
+    })
+  }
 
-    const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
-    let uniqueIdentifier = getUniqueIdentifier()
+  const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
+  let uniqueIdentifier = getUniqueIdentifier()
 
-    while (await identifierAlreadyExists(uniqueIdentifier).catch(error => { throw error })) {
-      uniqueIdentifier = getUniqueIdentifier()
-    }
-    return uniqueIdentifier
+  while (await identifierAlreadyExists(uniqueIdentifier).catch(error => { throw error })) {
+    uniqueIdentifier = getUniqueIdentifier()
+  }
+  return uniqueIdentifier
 }
 
 getPreviousQueryResult = async (identifier) => {
@@ -1780,6 +1780,11 @@ http.createServer(function (req, res) {
 
             return
         })
+      } else {
+        res.setHeader('Content-Type', 'application/json;charset=utf-8');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200);
+        res.end(JSON.stringify({data: []}));
       }
     })
 
