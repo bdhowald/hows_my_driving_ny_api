@@ -114,7 +114,8 @@ const opacvHumanizedNames = {
   'VEHICLE FOR SALE(DEALERS ONLY)' : 'No Parking on Street to Display Vehicle for Sale',
   'VIN OBSCURED' : 'Vehicle Identification Number Obscured',
   'WASH/REPAIR VEHCL-REPAIR ONLY' : 'No Parking on Street to Wash or Repair Vehicle',
-  'WRONG WAY' : 'No Parking Opposite Street Direction'}
+  'WRONG WAY' : 'No Parking Opposite Street Direction'
+}
 
 // humanized names for violations
 const fyHumanizedNames = {
@@ -1412,6 +1413,7 @@ normalizeViolations = (violations) => {
       issuer_command                    : violation.issuer_command                                 || null,
       issuer_precinct                   : isNaN(parseInt(violation.issuer_precinct)) ? null : parseInt(violation.issuer_precinct),
       issuing_agency                    : issuingAgencies[violation.issuing_agency]                || null,
+      judgment_entry_date               : violation.judgment_entry_date                            || null,
       law_section                       : violation.law_section                                    || null,
       payment_amount                    : isNaN(parseFloat(violation.payment_amount)) ? null : parseFloat(violation.payment_amount),
       penalty_amount                    : isNaN(parseFloat(violation.penalty_amount)) ? null : parseFloat(violation.penalty_amount),
