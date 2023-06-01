@@ -822,7 +822,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               throw error;
             }
 
-            const countTowardsFrequency = !(['api', 'existing_lookup'].includes(lookupSource))
+            const countTowardsFrequency = !(['api'].includes(lookupSource))
             let frequency = countTowardsFrequency ? 1 : 0;
             let previous_count = null;
             let previous_date  = null;
