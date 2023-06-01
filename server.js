@@ -736,45 +736,42 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
           modifyViolationsForResponse(violations);
 
+          let totalFined = 0
+          let totalPaid = 0
+          let totalReduced = 0
+          let totalOutstanding = 0
+          let totalInJudgment = 0
 
-          const reducer  = (accumulator, currentValue) => accumulator + currentValue;
+          violations.forEach((obj) => {
+            totalFined += obj.fined ?? 0
+            totalPaid += obj.paid ?? 0
+            totalReduced += obj.reduced ?? 0
+            totalOutstanding += obj.outstanding ?? 0
+            totalInJudgment += obj.judgment_entry_date && obj.outstanding
+              ? obj.outstanding
+              : 0
+          })
 
-          const totalFined = violations.map((obj) =>
-            obj.fined || 0
-          ).reduce(reducer, 0)
-
-          const totalPaid = violations.map((obj) =>
-            obj.paid || 0
-          ).reduce(reducer, 0)
-
-          const totalReduced = violations.map((obj) =>
-            obj.reduced || 0
-          ).reduce(reducer, 0)
-
-          const totalOutstanding = violations.map((obj) =>
-            obj.outstanding || 0
-          ).reduce(reducer, 0)
-
-          let fines = {
+          const fines = {
             total_fined:       totalFined,
             total_paid:        totalPaid,
             total_reduced:     totalReduced,
-            total_outstanding: totalOutstanding
+            total_outstanding: totalOutstanding,
+            total_in_judgment: totalInJudgment,
           }
 
-
-          let busLaneCameraViolations = violations.filter((violation) =>
+          const busLaneCameraViolations = violations.filter((violation) =>
             violation.humanized_description == 'Bus Lane Violation' ||
               violation.humanized_description == 'Mobile Bus Lane Violation'
           )
-          let cameraViolations = violations.filter((violation) =>
+          const cameraViolations = violations.filter((violation) =>
             violation.humanized_description == 'School Zone Speed Camera Violation' ||
               violation.humanized_description == 'Failure to Stop at Red Light'
           )
-          let redLightCameraViolations = violations.filter((violation) =>
+          const redLightCameraViolations = violations.filter((violation) =>
             violation.humanized_description == 'Failure to Stop at Red Light'
           )
-          let speedCameraViolations = violations.filter((violation) =>
+          const speedCameraViolations = violations.filter((violation) =>
             violation.humanized_description == 'School Zone Speed Camera Violation'
           )
 
@@ -805,7 +802,6 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           searchQueryArgs   = plateTypes == undefined
             ? [plate, state, plate, state]
             : [plate, state, plateTypes.join(), plate, state, plateTypes.join()]
-
 
           queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
             if (error) {
@@ -859,25 +855,24 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               });
             }
 
-            let returnObject = {
-              vehicle : {
-                camera_streak_data       : streakData,
-                fines                    : fines,
-                plate                    : plate,
-                plate_types              : plateTypes,
-                previous_lookup_date     : previous_date,
-                previous_violation_count : previous_count,
-                state                    : state,
-                times_queried            : frequency,
-                uniqueIdentifier         : uniqueIdentifier,
-                violations               : violations,
-                violations_count         : violations.length
-              },
+            const fullVehicleLookup = {
+              camera_streak_data       : streakData,
+              fines                    : fines,
+              plate                    : plate,
+              plate_types              : plateTypes,
+              previous_lookup_date     : previous_date,
+              previous_violation_count : previous_count,
+              state                    : state,
+              times_queried            : frequency,
+              uniqueIdentifier         : uniqueIdentifier,
+              violations               : violations,
+              violations_count         : violations.length
             }
 
-            returnObject.vehicle = stripReturnData(returnObject.vehicle, selectedFields)
-
-            returnObject['successful_lookup'] = true
+            const returnObject = {
+              successful_lookup: true,
+              vehicle: stripReturnData(fullVehicleLookup, selectedFields)
+            }
 
             resolve(returnObject);
 
