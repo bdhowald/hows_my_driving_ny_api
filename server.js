@@ -790,18 +790,31 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             streakData['school_zone_speed_camera_violations'] = speedCameraStreakData
           }
 
-          frequencyLookup  = {
-            plate: plate,
-            state: state
+          let baseFrequencyQueryString = 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+          let baseNumTicketsQueryString = 'select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+
+          let baseFrequencyQueryArgs = [plate, state]
+          let baseNumTicketsQueryArgs = [plate, state]
+
+          if (plateTypes) {
+            baseFrequencyQueryString += ' and plate_types = ?'
+            baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, plateTypes.join()]
+
+            baseNumTicketsQueryString += ' and plate_types = ?'
+            baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+          }
+          if (lookupSource === 'existing_lookup') {
+            baseFrequencyQueryString += ' and unique_identifier != ?'
+            baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, existingIdentifier]
+
+            baseNumTicketsQueryString += ' and unique_identifier != ?'
+            baseNumTicketsQueryArgs = [...baseFrequencyQueryArgs, existingIdentifier]
           }
 
-          searchQueryString = plateTypes == undefined
-            ? 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
-            : 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1; select num_tickets, created_at from plate_lookups where plate = ? and state = ? and plate_types = ? and count_towards_frequency = 1 ORDER BY created_at DESC LIMIT 1'
+          baseNumTicketsQueryString += ' ORDER BY created_at DESC LIMIT 1'
 
-          searchQueryArgs   = plateTypes == undefined
-            ? [plate, state, plate, state]
-            : [plate, state, plateTypes.join(), plate, state, plateTypes.join()]
+          const searchQueryArgs = [...baseFrequencyQueryArgs, ...baseNumTicketsQueryArgs]
+          const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
 
           queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
             if (error) {
@@ -813,7 +826,6 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             let frequency = countTowardsFrequency ? 1 : 0;
             let previous_count = null;
             let previous_date  = null;
-
 
             if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
               frequency      = results[0][0].frequency + frequency
