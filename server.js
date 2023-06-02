@@ -2,6 +2,7 @@
 const crypto  = require('crypto');
 const http    = require('http');
 const https   = require('https');
+const mysql   = require('mysql');
 const q       = require('q');
 const rp      = require('request-promise');
 const url     = require('url');
@@ -11,9 +12,11 @@ const googleMapsClient = require('@google/maps').createClient({
   Promise: Promise
 });
 
-const mysql    = require('mysql');
+const API_LOOKUP_PATH = '/api/v1'
+const EXISTING_LOOKUP_PATH = '/api/v1/lookup'
 
-
+const SERVER_PORT = 8080
+const LOCAL_SERVER_LOCATION = `localhost:${SERVER_PORT}`
 
 // humanized names for violations
 const opacvHumanizedNames = {
@@ -1626,8 +1629,10 @@ var connection = initializeConnection({
   multipleStatements : true
 });
 
-
-http.createServer(function (req, res) {
+const server = http.createServer(function (req, res) {
+  // Set response headers
+  res.setHeader('Content-Type', 'application/json;charset=utf-8')
+  res.setHeader('Access-Control-Allow-Origin', '*')
 
   console.log('----------------------------------------------------')
   console.log(`request received at: ${new Date()}`)
@@ -1747,8 +1752,6 @@ http.createServer(function (req, res) {
       }
 
       // # returns properly formatted json response
-      res.setHeader('Content-Type', 'application/json;charset=utf-8');
-      res.setHeader('Access-Control-Allow-Origin', '*');
       res.writeHead(200);
       res.end(JSON.stringify(response))
 
@@ -1758,11 +1761,24 @@ http.createServer(function (req, res) {
 
     }
 
-  } else if (req.url.match('/api/v1/lookup')) {
+  } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
+    const host = req.headers.host
+    const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+    const parser = new URL(req.url, `${protocol}://${host}`)
 
-    const parser = url.parse(req.url, true);
     const pathname = parser.pathname
-    const identifier = (pathname.substring(pathname.lastIndexOf('/') + 1))
+    const regexString = `${EXISTING_LOOKUP_PATH}[/]*`
+    const identifier = (pathname.replace(new RegExp(regexString), ''))
+
+    if (!identifier) {
+      const body = {
+        error: "You must supply the identifier of a lookup, e.g. 'a1b2c3d4' "
+      }
+      res.writeHead(400)
+      res.end(JSON.stringify(body))
+
+      return
+    }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
       if (previousLookup) {
@@ -1782,16 +1798,12 @@ http.createServer(function (req, res) {
 
         Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
           .then((allResponses) => {
-            res.setHeader('Content-Type', 'application/json;charset=utf-8');
-            res.setHeader('Access-Control-Allow-Origin', '*');
             res.writeHead(200);
             res.end(JSON.stringify({data: allResponses}));
 
             return
         })
       } else {
-        res.setHeader('Content-Type', 'application/json;charset=utf-8');
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.writeHead(200);
         res.end(JSON.stringify({data: []}));
       }
@@ -1802,8 +1814,6 @@ http.createServer(function (req, res) {
     // var apiKey = query.api_key;
 
     // if (apiKey == undefined) {
-    //   res.setHeader('Content-Type', 'application/json;charset=utf-8');
-    //   res.setHeader('Access-Control-Allow-Origin', '*');
     //   res.writeHead(401);
     //   res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
 
@@ -1814,8 +1824,6 @@ http.createServer(function (req, res) {
     //     if (error) throw error;
 
     //     if (results.length == 0) {
-    //       res.setHeader('Content-Type', 'application/json;charset=utf-8');
-    //       res.setHeader('Access-Control-Allow-Origin', '*');
     //       res.writeHead(403);
     //       res.end(JSON.stringify({error: "You supplied an invalid api key."}));
 
@@ -1827,7 +1835,7 @@ http.createServer(function (req, res) {
     //   });
     // }
 
-  } else if (req.url.match('/api/v1')) {
+  } else if (req.url.match(API_LOOKUP_PATH)) {
 
     var parser = url.parse(req.url, true);
 
@@ -1846,8 +1854,6 @@ http.createServer(function (req, res) {
 
 
     if (query.plate_id instanceof Array || query.state instanceof Array) {
-      res.setHeader('Content-Type', 'application/json;charset=utf-8');
-      res.setHeader('Access-Control-Allow-Origin', '*');
       res.writeHead(422);
       res.end(JSON.stringify({error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"}));
 
@@ -1873,20 +1879,14 @@ http.createServer(function (req, res) {
 
     Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
-        res.setHeader('Content-Type', 'application/json;charset=utf-8');
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.writeHead(200);
 
         res.end(JSON.stringify({data: allResponses}));
 
         return
       })
-    // res.setHeader('Content-Type', 'application/json');
-    // res.setHeader('Access-Control-Allow-Origin', '*');
     // res.writeHead(200, {'Content-Type': 'application/javascript'});s
 
-    // res.setHeader('Content-Type', 'application/json');
-    // res.setHeader('Access-Control-Allow-Origin', '*');
     // res.writeHead(422, {'Content-Type': 'application/javascript'});
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
 
@@ -1894,4 +1894,6 @@ http.createServer(function (req, res) {
     res.writeHead(404);
     res.end(JSON.stringify({'error': 'not found'}))
   }
-}).listen(8080);
+})
+
+server.listen(SERVER_PORT);
