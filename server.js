@@ -697,7 +697,7 @@ obtainUniqueIdentifier = async () => {
 
 getPreviousQueryResult = async (identifier) => {
   return new Promise((resolve, reject) => {
-    connection.query("select plate, state, plate_types from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
+    connection.query("select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
       if (error) {
         console.log(`error thrown at: ${new Date()}`)
         throw error;
@@ -709,20 +709,19 @@ getPreviousQueryResult = async (identifier) => {
 
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
 
-    let plate      = vehicle.plate;
-    let state      = vehicle.state;
-    let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',').map((part) => part.trim());
+    let plate      = vehicle.plate
+    let state      = vehicle.state
+    let plateTypes = vehicle.types == undefined ? null : vehicle.types.split(',').map((part) => part.trim())
 
-    let lookupSource       = externalData.lookup_source || 'api';
-    let fingerprintID      = externalData.fingerprint_id;
-    let mixpanelID         = externalData.mixpanel_id;
-    let existingIdentifier = externalData.unique_identifier
-
+    let lookupSource            = externalData.lookup_source || 'api'
+    let fingerprintID           = externalData.fingerprint_id
+    let mixpanelID              = externalData.mixpanel_id
+    let existingIdentifier      = externalData.unique_identifier
+    let previousLookupCreatedAt = externalData.previous_lookup_created_at
 
     if (plate && state) {
-
       let apiPromises = makeOpenDataRequests(plate, state, plateTypes)
 
       q.all(apiPromises).then((endpointResponses) => {
@@ -735,9 +734,9 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
         q.all(newPromises).then((violations) => {
 
-          violations = mergeDuplicateViolationRecords(violations);
+          violations = mergeDuplicateViolationRecords(violations)
 
-          modifyViolationsForResponse(violations);
+          modifyViolationsForResponse(violations)
 
           let totalFined = 0
           let totalPaid = 0
@@ -807,11 +806,19 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
             baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
           }
           if (lookupSource === 'existing_lookup') {
-            baseFrequencyQueryString += ' and unique_identifier != ?'
-            baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, existingIdentifier]
+            baseFrequencyQueryString += ' and unique_identifier <> ? and created_at < ?'
+            baseFrequencyQueryArgs = [
+              ...baseFrequencyQueryArgs,
+              existingIdentifier,
+              previousLookupCreatedAt
+            ]
 
-            baseNumTicketsQueryString += ' and unique_identifier != ?'
-            baseNumTicketsQueryArgs = [...baseFrequencyQueryArgs, existingIdentifier]
+            baseNumTicketsQueryString += ' and unique_identifier <> ? and created_at < ?'
+            baseNumTicketsQueryArgs = [
+              ...baseFrequencyQueryArgs,
+              existingIdentifier,
+              previousLookupCreatedAt
+            ]
           }
 
           baseNumTicketsQueryString += ' ORDER BY created_at DESC LIMIT 1'
@@ -1790,10 +1797,11 @@ const server = http.createServer(function (req, res) {
         const vehicles = detectVehicles(potentialVehicle)
 
         const externalData = {
-          lookup_source     : 'existing_lookup',
-          fingerprint_id    : null,
-          mixpanel_id       : null,
-          unique_identifier : identifier
+          lookup_source              : 'existing_lookup',
+          fingerprint_id             : null,
+          mixpanel_id                : null,
+          unique_identifier          : identifier,
+          previous_lookup_created_at : previousLookup['created_at'],
         }
 
         Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
