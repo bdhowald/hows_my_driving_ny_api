@@ -517,7 +517,7 @@ const issuingAgencies = {
 
 
 initializeConnection = config => {
-  addDisconnectHandler = connection => {
+  const addDisconnectHandler = (connection) => {
     connection.on("error", (error) => {
       if (error instanceof Error) {
         if (error.code === "PROTOCOL_CONNECTION_LOST") {
@@ -532,7 +532,7 @@ initializeConnection = config => {
     });
   }
 
-  var connection = mysql.createConnection(config);
+  const connection = mysql.createConnection(config);
 
   connection.promiseQuery = (sql, values) => {
     return new Promise((resolve, reject) => {
@@ -726,7 +726,7 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
 
       q.all(apiPromises).then((endpointResponses) => {
 
-        let newPromises = [];
+        let newPromises = []
 
         endpointResponses.forEach((response) => {
           newPromises = newPromises.concat(normalizeViolations(JSON.parse(response)))
@@ -1207,53 +1207,68 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
-  var violations = [];
-
   // Checking for selected fields for violations
+  // const violations = [];
   // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
 
   // Fiscal Year Databases
   let promises = fy_endpoints.map((endpoint) => {
-    let queryString = endpoint + '?plate_id=' + encodeURIComponent(plate.toUpperCase()) + '&registration_state=' + state.toUpperCase()
+    const searchParams = new URLSearchParams({
+      '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
+      '$limit': 10000,
+      plate_id: encodeURIComponent(plate.toUpperCase()),
+      registration_state: state.toUpperCase()
+    })
 
     if (plateTypes) {
+      const plateTypesArray = plateTypes.map((item) =>
+        `'${item.toUpperCase().trim()}'`
+      )
 
-      let plateTypesQuery = plateTypes.map((item) =>
-        "%27" + item.toUpperCase().trim() + "%27"
-      ).join()
+      const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
 
-      queryString += "&$where=plate_type%20in(" + plateTypesQuery + ")"
+      searchParams.append(
+        '$where', plateTypesQueryValue
+      )
     }
 
     // if (fieldsForExternalRequests) {
     //   queryString += '&$select=' + fieldsForExternalRequests.join(',')
     // }
 
-    queryString += ('&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G')
+    const urlObject = new URL(`?${searchParams}`, endpoint)
 
-    return rp(queryString)
+    return rp(urlObject.toString())
   });
 
   // Open Parking & Camera Violations Database
-  let opacvQueryString = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' + '?plate=' + encodeURIComponent(plate.toUpperCase()) + '&state=' + state.toUpperCase();
+  const searchParams = new URLSearchParams({
+    '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
+    '$limit': 10000,
+    plate: encodeURIComponent(plate.toUpperCase()),
+    state: state.toUpperCase()
+  })
 
   if (plateTypes) {
-    let plateTypesQuery = plateTypes.map((item) =>
-      "%27" + item.toUpperCase().trim() + "%27"
-    ).join()
+    const plateTypesArray = plateTypes.map((item) =>
+      `'${item.toUpperCase().trim()}'`
+    )
 
-    opacvQueryString += "&$where=license_type%20in(" + plateTypesQuery + ")"
+    const plateTypesQueryValue = `license_type in(${plateTypesArray.join()})`
+
+    searchParams.append(
+      '$where', plateTypesQueryValue
+    )
   }
 
   // if (fieldsForExternalRequests) {
   //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
   // }
 
-  opacvQueryString += '&$limit=10000&$$app_token=q198HrEaAdCJZD4XCLDl2Uq0G'
-
+  const urlObject = new URL(`?${searchParams}`, 'https://data.cityofnewyork.us/resource/uvbq-3m68.json')
 
   promises.push(
-    rp(opacvQueryString)
+    rp(urlObject.toString())
   )
 
   return promises;
@@ -1628,7 +1643,7 @@ stripReturnData = (obj, selectedFields) => {
 
 
 
-var connection = initializeConnection({
+const connection = initializeConnection({
   host               : 'localhost',
   user               : process.env.MYSQL_DATABASE_USER,
   password           : process.env.MYSQL_DATABASE_PASSWORD,
