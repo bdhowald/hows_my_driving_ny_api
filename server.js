@@ -708,7 +708,6 @@ getPreviousQueryResult = async (identifier) => {
 }
 
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
-
   return new Promise((resolve, reject) => {
 
     let plate      = vehicle.plate
@@ -1207,42 +1206,41 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
+  const fiscalYearSearchParams = new URLSearchParams({
+    '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
+    '$limit': 10000,
+    plate_id: encodeURIComponent(plate.toUpperCase()),
+    registration_state: state.toUpperCase()
+  })
+
+  if (plateTypes) {
+    const plateTypesArray = plateTypes.map((item) =>
+      `'${item.toUpperCase().trim()}'`
+    )
+
+    const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
+
+    searchParams.append(
+      '$where', plateTypesQueryValue
+    )
+  }
+
+  // if (fieldsForExternalRequests) {
+  //   queryString += '&$select=' + fieldsForExternalRequests.join(',')
+  // }
+
   // Checking for selected fields for violations
   // const violations = [];
   // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
 
   // Fiscal Year Databases
   let promises = fy_endpoints.map((endpoint) => {
-    const searchParams = new URLSearchParams({
-      '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
-      '$limit': 10000,
-      plate_id: encodeURIComponent(plate.toUpperCase()),
-      registration_state: state.toUpperCase()
-    })
-
-    if (plateTypes) {
-      const plateTypesArray = plateTypes.map((item) =>
-        `'${item.toUpperCase().trim()}'`
-      )
-
-      const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
-
-      searchParams.append(
-        '$where', plateTypesQueryValue
-      )
-    }
-
-    // if (fieldsForExternalRequests) {
-    //   queryString += '&$select=' + fieldsForExternalRequests.join(',')
-    // }
-
-    const urlObject = new URL(`?${searchParams}`, endpoint)
-
-    return rp(urlObject.toString())
+    const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
+    return rp(fiscalYearUrlObject.toString())
   });
 
   // Open Parking & Camera Violations Database
-  const searchParams = new URLSearchParams({
+  const openParkingAndCameraViolationsSearchParams = new URLSearchParams({
     '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
     '$limit': 10000,
     plate: encodeURIComponent(plate.toUpperCase()),
@@ -1256,7 +1254,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
 
     const plateTypesQueryValue = `license_type in(${plateTypesArray.join()})`
 
-    searchParams.append(
+    openParkingAndCameraViolationsSearchParams.append(
       '$where', plateTypesQueryValue
     )
   }
@@ -1265,7 +1263,9 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
   //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
   // }
 
-  const urlObject = new URL(`?${searchParams}`, 'https://data.cityofnewyork.us/resource/uvbq-3m68.json')
+  const urlObject = new URL(`?${
+    openParkingAndCameraViolationsSearchParams
+  }`, 'https://data.cityofnewyork.us/resource/uvbq-3m68.json')
 
   promises.push(
     rp(urlObject.toString())
@@ -1401,9 +1401,6 @@ modifyViolationsForResponse = (violations, selectedFields) => {
 
 
 normalizeViolations = (violations) => {
-
-  const that = this;
-
   const returnViolations = [];
 
   violations.forEach((violation) => {
