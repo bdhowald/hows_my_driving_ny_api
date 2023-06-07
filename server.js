@@ -608,6 +608,10 @@ detectVehicles = potentialVehicles => {
 
 }
 
+filterOutViolationsAfterSearchDate = (violations, previousLookupCreatedAt) => (
+  violations.filter((item) => item.formatted_time <= previousLookupCreatedAt)
+)
+
 
 findFilterFields = fieldsString => {
   if (fieldsString == undefined || fieldsString == '') return {}
@@ -736,6 +740,13 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           violations = mergeDuplicateViolationRecords(violations)
 
           modifyViolationsForResponse(violations)
+
+          if (previousLookupCreatedAt) {
+            violations = filterOutViolationsAfterSearchDate(
+              violations,
+              previousLookupCreatedAt
+            )
+          }
 
           let totalFined = 0
           let totalPaid = 0
