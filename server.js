@@ -1231,7 +1231,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
 
     const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
 
-    searchParams.append(
+    fiscalYearSearchParams.append(
       '$where', plateTypesQueryValue
     )
   }
