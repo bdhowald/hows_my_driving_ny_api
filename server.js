@@ -1,16 +1,14 @@
 #!/usr/bin/env node
-const crypto  = require('crypto');
-const http    = require('http');
-const https   = require('https');
-const mysql   = require('mysql');
-const q       = require('q');
-const rp      = require('request-promise');
-const url     = require('url');
+const axios   = require('axios')
+const crypto  = require('crypto')
+const http    = require('http')
+const mysql   = require('mysql')
+const url     = require('url')
 
 const googleMapsClient = require('@google/maps').createClient({
   key: process.env.GOOGLE_PLACES_API_KEY,
   Promise: Promise
-});
+})
 
 const API_LOOKUP_PATH = '/api/v1'
 const EXISTING_LOOKUP_PATH = '/api/v1/lookup'
@@ -712,7 +710,7 @@ getPreviousQueryResult = async (identifier) => {
 }
 
 getVehicleResponse = (vehicle, selectedFields, externalData) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
 
     let plate      = vehicle.plate
     let state      = vehicle.state
@@ -725,17 +723,20 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
     let previousLookupCreatedAt = externalData.previous_lookup_created_at
 
     if (plate && state) {
-      let apiPromises = makeOpenDataRequests(plate, state, plateTypes)
+      let apiPromises = await makeOpenDataRequests(plate, state, plateTypes)
 
-      q.all(apiPromises).then((endpointResponses) => {
+      Promise.all(apiPromises).then((endpointResponses) => {
 
         let newPromises = []
 
         endpointResponses.forEach((response) => {
-          newPromises = newPromises.concat(normalizeViolations(JSON.parse(response)))
+          newPromises = newPromises.concat(normalizeViolations(response.data))
         })
 
-        q.all(newPromises).then((violations) => {
+        Promise.all(newPromises).then((violations) => {
+          // The plate may have been modified for some queries (e.g. medallions),
+          // so let's set the default value.
+          let rectifiedPlate = plate
 
           violations = mergeDuplicateViolationRecords(violations)
 
@@ -746,6 +747,11 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               violations,
               previousLookupCreatedAt
             )
+          }
+
+          // If the plate was modified, let's get what it was modified to.
+          if (violations.length) {
+            rectifiedPlate = violations[0].plate_id
           }
 
           let totalFined = 0
@@ -894,9 +900,10 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
               plate_types              : plateTypes,
               previous_lookup_date     : previous_date,
               previous_violation_count : previous_count,
+              rectified_plate          : rectifiedPlate,
               state                    : state,
               times_queried            : frequency,
-              uniqueIdentifier         : uniqueIdentifier,
+              unique_identifier        : uniqueIdentifier,
               violations               : violations,
               violations_count         : violations.length
             }
@@ -1202,9 +1209,43 @@ insertNewLookup = (newLookup, callback) => {
   connection.query('insert into plate_lookups set ?', newLookup, callback)
 }
 
+retrievePossibleMedallionVehiclePlate = async (plate) => {
+  medallionEndpoint = 'https://data.cityofnewyork.us/resource/rhe8-mgbb.json'
 
-makeOpenDataRequests = (plate, state, plateTypes) => {
-  const fy_endpoints = [
+  const medallionEndpointSearchParams = new URLSearchParams({
+    '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
+    '$group': 'dmv_license_plate_number',
+    '$limit': 10000,
+    '$select': 'dmv_license_plate_number, max(last_updated_date)',
+    '$where': `license_number='${encodeURIComponent(plate.toUpperCase())}'`,
+  })
+
+  const medallionUrlObject = new URL(`?${medallionEndpointSearchParams}`, medallionEndpoint)
+
+  try {
+    const medallionEndpointResponse = await axios.get(medallionUrlObject)
+    const medallionResults = medallionEndpointResponse.data
+
+    if (!medallionResults.length) {
+      return plate
+    }
+
+    const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
+      const previousDate = new Date(prev.max_last_updated_date)
+      const currentDate = new Date(cur.max_last_updated_date)
+      return currentDate > previousDate ? cur : prev
+    })
+
+    return currentMedallionHolder.dmv_license_plate_number
+  } catch(error){
+    console.error(error)
+  }
+}
+
+makeOpenDataRequests = async (plate, state, plateTypes) => {
+  const rectifiedPlate = await retrievePossibleMedallionVehiclePlate(plate)
+
+  const fiscalYearEndpoints = [
     'https://data.cityofnewyork.us/resource/j7ig-zgkq.json',
     'https://data.cityofnewyork.us/resource/aagd-wyjz.json',
     'https://data.cityofnewyork.us/resource/avxe-2nrn.json',
@@ -1220,7 +1261,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
   const fiscalYearSearchParams = new URLSearchParams({
     '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
     '$limit': 10000,
-    plate_id: encodeURIComponent(plate.toUpperCase()),
+    plate_id: encodeURIComponent(rectifiedPlate.toUpperCase()),
     registration_state: state.toUpperCase()
   })
 
@@ -1245,16 +1286,16 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
   // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
 
   // Fiscal Year Databases
-  let promises = fy_endpoints.map((endpoint) => {
+  let promises = fiscalYearEndpoints.map((endpoint) => {
     const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
-    return rp(fiscalYearUrlObject.toString())
-  });
+    return axios.get(fiscalYearUrlObject.toString())
+  })
 
   // Open Parking & Camera Violations Database
   const openParkingAndCameraViolationsSearchParams = new URLSearchParams({
     '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
     '$limit': 10000,
-    plate: encodeURIComponent(plate.toUpperCase()),
+    plate: encodeURIComponent(rectifiedPlate.toUpperCase()),
     state: state.toUpperCase()
   })
 
@@ -1278,9 +1319,7 @@ makeOpenDataRequests = (plate, state, plateTypes) => {
     openParkingAndCameraViolationsSearchParams
   }`, 'https://data.cityofnewyork.us/resource/uvbq-3m68.json')
 
-  promises.push(
-    rp(urlObject.toString())
-  )
+  promises.push(axios.get(urlObject.toString()))
 
   return promises;
 }
