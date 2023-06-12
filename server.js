@@ -698,12 +698,17 @@ obtainUniqueIdentifier = async () => {
 }
 
 getPreviousQueryResult = async (identifier) => {
+  const beforePreviousQueryRunsDate = new Date()
   return new Promise((resolve, reject) => {
     connection.query("select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
       if (error) {
         console.log(`error thrown at: ${new Date()}`)
         throw error;
       }
+      const afterPreviousQueryRunsDate = new Date()
+      console.log(`Time to process previous lookup query: ${
+        (afterPreviousQueryRunsDate - beforePreviousQueryRunsDate) / 1000
+      }`)
       return resolve(results[0])
     })
   })
@@ -1275,9 +1280,11 @@ makeOpenDataRequests = async (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
+  console.log('\n\n')
   console.log('in makeOpenDataRequests')
   console.log(`rectifiedPlate: ${rectifiedPlate}`)
   console.log(`state: ${state.toUpperCase()}`)
+  console.log('\n\n')
 
 
   const fiscalYearSearchParams = new URLSearchParams({
