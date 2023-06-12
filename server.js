@@ -723,9 +723,12 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
     let previousLookupCreatedAt = externalData.previous_lookup_created_at
 
     if (plate && state) {
+      const beforeMakingOpenDataRequestsDate = new Date()
+
       let apiPromises = await makeOpenDataRequests(plate, state, plateTypes)
 
       Promise.all(apiPromises).then((endpointResponses) => {
+        const afterMakingOpenDataRequestsDate = new Date()
 
         let newPromises = []
 
@@ -733,7 +736,21 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
           newPromises = newPromises.concat(normalizeViolations(response.data))
         })
 
+        const afterNormalizingViolationDataDate = new Date()
+
         Promise.all(newPromises).then((violations) => {
+          const allViolationDataProcuredDate = new Date()
+
+          console.log(`Time to fulfill open data requests: ${
+            (afterMakingOpenDataRequestsDate - beforeMakingOpenDataRequestsDate) / 1000
+          }`)
+          console.log(`Time to normalize violations: ${
+            (afterNormalizingViolationDataDate - afterMakingOpenDataRequestsDate) / 1000
+          }`)
+          console.log(`Time to begin processing violations: ${
+            (allViolationDataProcuredDate - afterNormalizingViolationDataDate) / 1000
+          }`)
+
           // The plate may have been modified for some queries (e.g. medallions),
           // so let's set the default value.
           let rectifiedPlate = plate
@@ -1258,6 +1275,11 @@ makeOpenDataRequests = async (plate, state, plateTypes) => {
     'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
   ]
 
+  console.log('in makeOpenDataRequests')
+  console.log(`rectifiedPlate: ${rectifiedPlate}`)
+  console.log(`state: ${state.toUpperCase()}`)
+
+
   const fiscalYearSearchParams = new URLSearchParams({
     '$$app_token': 'q198HrEaAdCJZD4XCLDl2Uq0G',
     '$limit': 10000,
@@ -1703,8 +1725,10 @@ const server = http.createServer(function (req, res) {
   res.setHeader('Content-Type', 'application/json;charset=utf-8')
   res.setHeader('Access-Control-Allow-Origin', '*')
 
+  const receivedAtDate = new Date()
+
   console.log('----------------------------------------------------')
-  console.log(`request received at: ${new Date()}`)
+  console.log(`request received at: ${receivedAtDate}`)
   console.log(`request url: ${req.url}`)
   console.log('\n\n')
 
@@ -1831,6 +1855,8 @@ const server = http.createServer(function (req, res) {
     }
 
   } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
+    const existingLookupPathDeterminedDate = new Date()
+
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -1850,6 +1876,8 @@ const server = http.createServer(function (req, res) {
     }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
+      const existingLookupQueryCompleteDate = new Date()
+
       if (previousLookup) {
 
         potentialVehicle = [
@@ -1868,14 +1896,30 @@ const server = http.createServer(function (req, res) {
 
         Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
           .then((allResponses) => {
-            res.writeHead(200);
-            res.end(JSON.stringify({data: allResponses}));
+            const existingLookupAllVehiclesRequeried = new Date()
+
+            res.writeHead(200)
+            res.end(JSON.stringify({data: allResponses}))
+
+            console.log(`Time from request received to URL match: ${
+              (existingLookupPathDeterminedDate - receivedAtDate) / 1000
+            }`)
+            console.log(`Time from URL match to previous lookup found/not found: ${
+              (existingLookupQueryCompleteDate - existingLookupPathDeterminedDate) / 1000
+            }`)
+            console.log(`Time from previous lookup found/not found to all vehicles requeried: ${
+              (existingLookupAllVehiclesRequeried - existingLookupQueryCompleteDate) / 1000
+            }`)
+            console.log(`Time from request received to request fulfilled: ${
+              (new Date() - receivedAtDate) / 1000
+            }`)
+            console.log('----------------------------------------------------')
 
             return
         })
       } else {
-        res.writeHead(200);
-        res.end(JSON.stringify({data: []}));
+        res.writeHead(200)
+        res.end(JSON.stringify({data: []}))
       }
     })
 
