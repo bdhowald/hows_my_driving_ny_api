@@ -698,17 +698,12 @@ obtainUniqueIdentifier = async () => {
 }
 
 getPreviousQueryResult = async (identifier) => {
-  const beforePreviousQueryRunsDate = new Date()
   return new Promise((resolve, reject) => {
     connection.query("select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?", [identifier], (error, results, fields) => {
       if (error) {
         console.log(`error thrown at: ${new Date()}`)
         throw error;
       }
-      const afterPreviousQueryRunsDate = new Date()
-      console.log(`Time to process previous lookup query: ${
-        (afterPreviousQueryRunsDate - beforePreviousQueryRunsDate) / 1000
-      }`)
       return resolve(results[0])
     })
   })
@@ -728,34 +723,16 @@ getVehicleResponse = (vehicle, selectedFields, externalData) => {
     let previousLookupCreatedAt = externalData.previous_lookup_created_at
 
     if (plate && state) {
-      const beforeMakingOpenDataRequestsDate = new Date()
-
       let apiPromises = await makeOpenDataRequests(plate, state, plateTypes)
 
       Promise.all(apiPromises).then((endpointResponses) => {
-        const afterMakingOpenDataRequestsDate = new Date()
-
         let newPromises = []
 
         endpointResponses.forEach((response) => {
           newPromises = newPromises.concat(normalizeViolations(response.data))
         })
 
-        const afterNormalizingViolationDataDate = new Date()
-
         Promise.all(newPromises).then((violations) => {
-          const allViolationDataProcuredDate = new Date()
-
-          console.log(`Time to fulfill open data requests: ${
-            (afterMakingOpenDataRequestsDate - beforeMakingOpenDataRequestsDate) / 1000
-          }`)
-          console.log(`Time to normalize violations: ${
-            (afterNormalizingViolationDataDate - afterMakingOpenDataRequestsDate) / 1000
-          }`)
-          console.log(`Time to begin processing violations: ${
-            (allViolationDataProcuredDate - afterNormalizingViolationDataDate) / 1000
-          }`)
-
           // The plate may have been modified for some queries (e.g. medallions),
           // so let's set the default value.
           let rectifiedPlate = plate
@@ -1862,8 +1839,6 @@ const server = http.createServer(function (req, res) {
     }
 
   } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
-    const existingLookupPathDeterminedDate = new Date()
-
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -1883,8 +1858,6 @@ const server = http.createServer(function (req, res) {
     }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
-      const existingLookupQueryCompleteDate = new Date()
-
       if (previousLookup) {
 
         potentialVehicle = [
@@ -1903,24 +1876,8 @@ const server = http.createServer(function (req, res) {
 
         Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
           .then((allResponses) => {
-            const existingLookupAllVehiclesRequeried = new Date()
-
             res.writeHead(200)
             res.end(JSON.stringify({data: allResponses}))
-
-            console.log(`Time from request received to URL match: ${
-              (existingLookupPathDeterminedDate - receivedAtDate) / 1000
-            }`)
-            console.log(`Time from URL match to previous lookup found/not found: ${
-              (existingLookupQueryCompleteDate - existingLookupPathDeterminedDate) / 1000
-            }`)
-            console.log(`Time from previous lookup found/not found to all vehicles requeried: ${
-              (existingLookupAllVehiclesRequeried - existingLookupQueryCompleteDate) / 1000
-            }`)
-            console.log(`Time from request received to request fulfilled: ${
-              (new Date() - receivedAtDate) / 1000
-            }`)
-            console.log('----------------------------------------------------')
 
             return
         })
