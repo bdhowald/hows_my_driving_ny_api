@@ -611,7 +611,7 @@ filterOutViolationsAfterSearchDate = (violations, previousLookupCreatedAt) => (
 )
 
 
-findFilterFields = fieldsString => {
+findFilterFields = (fieldsString) => {
   if (fieldsString == undefined || fieldsString == '') return {}
 
   let returnFields = {};
@@ -1915,33 +1915,42 @@ const server = http.createServer(function (req, res) {
 
   } else if (req.url.match(API_LOOKUP_PATH)) {
 
-    var parser = url.parse(req.url, true);
+    const host = req.headers.host
+    const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+    const parser = new URL(req.url, `${protocol}://${host}`)
+    const searchParams = parser.searchParams
 
-    var query  = parser.query;
+    var fields = findFilterFields(searchParams.fields)
 
-    var fields = findFilterFields(query.fields);
+    const plateFromQuery = searchParams.get('plate')
+    const plateIdFromQuery = searchParams.get('plate_id')
+    const plateTypesFromQuery = searchParams.get('plate_types')
+    const stateFromQuery = searchParams.get('state')
 
+    const lookupSource = searchParams.get('lookup_source')
+    const fingerprintId = searchParams.get('fingerprint_id')
+    const mixpanelId = searchParams.get('mixpanel_id')
 
-    if (query.plate == undefined) {
+    if (plateFromQuery == undefined) {
       potentialVehicles = []
-    } else if((query.plate instanceof Array)) {
-      potentialVehicles = query.plate
+    } else if((plateFromQuery instanceof Array)) {
+      potentialVehicles = plateFromQuery
     } else {
-      potentialVehicles = [query.plate];
+      potentialVehicles = [plateFromQuery]
     }
 
 
-    if (query.plate_id instanceof Array || query.state instanceof Array) {
-      res.writeHead(422);
-      res.end(JSON.stringify({error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"}));
+    if (plateIdFromQuery instanceof Array || stateFromQuery instanceof Array) {
+      res.writeHead(422)
+      res.end(JSON.stringify({error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"}))
 
       return
     }
 
 
-    var plate           = (query.plate_id || '').toUpperCase();
-    var state           = (query.state || '').toUpperCase();
-    var plateTypes      = query.plate_types == undefined ? null : query.plate_types.split(',').map((item) => item.toUpperCase().trim()).sort()
+    var plate           = (plateIdFromQuery || '').toUpperCase()
+    var state           = (stateFromQuery || '').toUpperCase()
+    var plateTypes      = plateTypesFromQuery == undefined ? null : plateTypesFromQuery.split(',').map((item) => item.toUpperCase().trim()).sort()
 
     if (plate && state) {
       potentialVehicles.push( plate + ':' + state + (plateTypes == undefined ? '' : (':' + plateTypes)) )
@@ -1950,28 +1959,28 @@ const server = http.createServer(function (req, res) {
     const vehicles = detectVehicles(potentialVehicles)
 
     let externalData = {
-      lookup_source  : query.lookup_source,
-      fingerprint_id : query.fingerprint_id,
-      mixpanel_id    : query.mixpanel_id
+      lookup_source  : lookupSource,
+      fingerprint_id : fingerprintId,
+      mixpanel_id    : mixpanelId
     }
 
     Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
-        res.writeHead(200);
+        res.writeHead(200)
 
-        res.end(JSON.stringify({data: allResponses}));
+        res.end(JSON.stringify({data: allResponses}))
 
         return
       })
-    // res.writeHead(200, {'Content-Type': 'application/javascript'});s
+    // res.writeHead(200, {'Content-Type': 'application/javascript'})
 
-    // res.writeHead(422, {'Content-Type': 'application/javascript'});
-    // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}));
+    // res.writeHead(422, {'Content-Type': 'application/javascript'})
+    // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}))
 
   } else {
-    res.writeHead(404);
+    res.writeHead(404)
     res.end(JSON.stringify({'error': 'not found'}))
   }
 })
 
-server.listen(SERVER_PORT);
+server.listen(SERVER_PORT)
