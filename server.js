@@ -32,8 +32,10 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   'DIVIDED HIGHWAY': 'No Stopping - Divided Highway',
   'DOUBLE PARKING': 'Double Parking',
   'DOUBLE PARKING-MIDTOWN COMML': 'Double Parking - Midtown Commercial Zone',
-  'ELEVATED/DIVIDED HIGHWAY/TUNNL': 'No Stopping in Tunnel or on Elevated Highway',
-  'EXCAVATION-VEHICLE OBSTR TRAFF': 'No Stopping - Adjacent to Street Construction',
+  'ELEVATED/DIVIDED HIGHWAY/TUNNL':
+    'No Stopping in Tunnel or on Elevated Highway',
+  'EXCAVATION-VEHICLE OBSTR TRAFF':
+    'No Stopping - Adjacent to Street Construction',
   'EXPIRED METER': 'Expired Meter',
   'EXPIRED METER-COMM METER ZONE': 'Expired Meter - Commercial Meter Zone',
   'EXPIRED MUNI METER': 'Expired Meter',
@@ -47,14 +49,16 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   'FRONT OR BACK PLATE MISSING': 'Front or Back Plate Missing',
   IDLING: 'Idling',
   'IMPROPER REGISTRATION': 'Improper Registration',
-  'INSP STICKER-MUTILATED/C\'FEIT': 'Inspection Sticker Mutilated or Counterfeit',
+  "INSP STICKER-MUTILATED/C'FEIT":
+    'Inspection Sticker Mutilated or Counterfeit',
   'INSP. STICKER-EXPIRED/MISSING': 'Inspection Sticker Expired or Missing',
   INTERSECTION: 'No Stopping - Intersection',
   'MARGINAL STREET/WATER FRONT': 'No Parking on Marginal Street or Waterfront',
   'MIDTOWN PKG OR STD-3HR LIMIT': 'Midtown Parking or Standing - 3 Hour Limit',
   MISCELLANEOUS: 'Miscellaneous',
   'MISSING EQUIPMENT': 'Missing Required Equipment',
-  'NGHT PKG ON RESID STR-COMM VEH': 'No Nighttime Parking on Residential Street - Commercial Vehicle',
+  'NGHT PKG ON RESID STR-COMM VEH':
+    'No Nighttime Parking on Residential Street - Commercial Vehicle',
   'NIGHTTIME STD/ PKG IN A PARK': 'No Nighttime Standing or Parking in a Park',
   'NO MATCH-PLATE/STICKER': 'Plate and Sticker Do Not Match',
   'NO OPERATOR NAM/ADD/PH DISPLAY': 'Failure to Display Operator Information',
@@ -78,13 +82,16 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   'NO STANDING-OFF-STREET LOT': 'No Standing - Off-Street Lot',
   'NO STANDING-SNOW EMERGENCY': 'No Standing - Snow Emergency',
   'NO STANDING-TAXI STAND': 'No Standing - Taxi Stand',
-  'NO STD(EXC TRKS/GMTDST NO-TRK)': 'No Standing - Except Trucks in Garment District',
-  'NO STOP/STANDNG EXCEPT PAS P/U': 'No Stopping or Standing Except for Passenger Pick-Up',
+  'NO STD(EXC TRKS/GMTDST NO-TRK)':
+    'No Standing - Except Trucks in Garment District',
+  'NO STOP/STANDNG EXCEPT PAS P/U':
+    'No Stopping or Standing Except for Passenger Pick-Up',
   'NO STOPPING-DAY/TIME LIMITS': 'No Stopping - Day/Time Limits',
   'NON-COMPLIANCE W/ POSTED SIGN': 'Non-Compliance with Posted Sign',
   'OBSTRUCTING DRIVEWAY': 'Obstructing Driveway',
   'OBSTRUCTING TRAFFIC/INTERSECT': 'Obstructing Traffic or Intersection',
-  'OT PARKING-MISSING/BROKEN METR': 'Overtime Parking at Missing or Broken Meter',
+  'OT PARKING-MISSING/BROKEN METR':
+    'Overtime Parking at Missing or Broken Meter',
   OTHER: 'Other',
   'OVERNIGHT TRACTOR TRAILER PKG': 'Overnight Parking of Tractor Trailer',
   'OVERTIME PKG-TIME LIMIT POSTED': 'Overtime Parking - Time Limit Posted',
@@ -93,14 +100,18 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   'PARKED BUS-EXC. DESIG. AREA': 'Bus Parking Outside of Designated Area',
   'PEDESTRIAN RAMP': 'Blocking Pedestrian Ramp',
   'PHTO SCHOOL ZN SPEED VIOLATION': 'School Zone Speed Camera Violation',
-  'PKG IN EXC. OF LIM-COMM MTR ZN': 'Parking in Excess of Limits - Commercial Meter Zone',
-  'PLTFRM LFTS LWRD POS COMM VEH': 'Commercial Vehicle Platform Lifts in Lowered Position',
+  'PKG IN EXC. OF LIM-COMM MTR ZN':
+    'Parking in Excess of Limits - Commercial Meter Zone',
+  'PLTFRM LFTS LWRD POS COMM VEH':
+    'Commercial Vehicle Platform Lifts in Lowered Position',
   'RAILROAD CROSSING': 'No Stopping - Railroad Crossing',
-  'REG STICKER-MUTILATED/C\'FEIT': 'Registration Sticker Mutilated or Counterfeit',
+  "REG STICKER-MUTILATED/C'FEIT":
+    'Registration Sticker Mutilated or Counterfeit',
   'REG. STICKER-EXPIRED/MISSING': 'Registration Sticker Expired or Missing',
   'REMOVE/REPLACE FLAT TIRE': 'Replacing Flat Tire on Major Roadway',
   'SAFETY ZONE': 'No Standing - Safety Zone',
-  'SELLING/OFFERING MCHNDSE-METER': 'Selling or Offering Merchandise From Metered Parking',
+  'SELLING/OFFERING MCHNDSE-METER':
+    'Selling or Offering Merchandise From Metered Parking',
   SIDEWALK: 'Parked on Sidewalk',
   'STORAGE-3HR COMMERCIAL': 'Street Storage of Commercial Vehicle Over 3 Hours',
   'TRAFFIC LANE': 'No Stopping - Traffic Lane',
@@ -110,10 +121,13 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   'UNAUTHORIZED BUS LAYOVER': 'Bus Layover in Unauthorized Location',
   'UNAUTHORIZED PASSENGER PICK-UP': 'Unauthorized Passenger Pick-Up',
   'VACANT LOT': 'No Parking - Vacant Lot',
-  'VEH-SALE/WSHNG/RPRNG/DRIVEWAY': 'No Parking on Street to Wash or Repair Vehicle',
-  'VEHICLE FOR SALE(DEALERS ONLY)': 'No Parking on Street to Display Vehicle for Sale',
+  'VEH-SALE/WSHNG/RPRNG/DRIVEWAY':
+    'No Parking on Street to Wash or Repair Vehicle',
+  'VEHICLE FOR SALE(DEALERS ONLY)':
+    'No Parking on Street to Display Vehicle for Sale',
   'VIN OBSCURED': 'Vehicle Identification Number Obscured',
-  'WASH/REPAIR VEHCL-REPAIR ONLY': 'No Parking on Street to Wash or Repair Vehicle',
+  'WASH/REPAIR VEHCL-REPAIR ONLY':
+    'No Parking on Street to Wash or Repair Vehicle',
   'WRONG WAY': 'No Parking Opposite Street Direction'
 }
 
@@ -138,7 +152,8 @@ const fiscalYearReadableViolationDescriptions = {
     {
       description: 'No Standing - Snow Emergency',
       startDate: new Date(1970, 0, 1)
-    }, {
+    },
+    {
       description: 'Mobile Bus Lane Violation',
       startDate: new Date(2019, 11, 6)
     }
@@ -169,7 +184,8 @@ const fiscalYearReadableViolationDescriptions = {
     {
       description: 'Feeding Meter',
       startDate: new Date(1970, 0, 1)
-    }, {
+    },
+    {
       description: 'Misuse of Parking Permit',
       startDate: new Date(2019, 5, 11)
     }
@@ -246,7 +262,8 @@ const fiscalYearReadableViolationDescriptions = {
   '01-No Intercity Pmt Displ': 'Failure to Display Bus Permit',
   '02-No operator N/A/PH': 'Failure to Display Operator Information',
   '03-Unauth passenger pick-up': 'Unauthorized Passenger Pick-Up',
-  '04-Downtown Bus Area,3 Hr Lim': 'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit',
+  '04-Downtown Bus Area,3 Hr Lim':
+    'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit',
   '04A-Downtown Bus Area,Non-Bus': 'Bus Parking in Lower Manhattan - Non-Bus',
   '04A-Downtown Bus Area, Non-Bus': 'Bus Parking in Lower Manhattan - Non-Bus',
   '04B-Downtown Bus Area,No Prmt': 'Bus Parking in Lower Manhattan - No Permit',
@@ -258,8 +275,10 @@ const fiscalYearReadableViolationDescriptions = {
   '12-No Stand (snow emergency)': 'No Standing - Snow Emergency',
   '13-No Stand (taxi stand)': 'No Standing - Taxi Stand',
   '14-No Standing': 'No Standing - Day/Time Limits',
-  '16-No Std (Com Veh) Com Plate': 'No Standing - Except Truck Loading/Unloading',
-  '16A-No Std (Com Veh) Non-COM': 'No Standing - Except Truck Loading/Unloading',
+  '16-No Std (Com Veh) Com Plate':
+    'No Standing - Except Truck Loading/Unloading',
+  '16A-No Std (Com Veh) Non-COM':
+    'No Standing - Except Truck Loading/Unloading',
   '17-No Stand (exc auth veh)': 'No Parking - Except Authorized Vehicles',
   '18-No Stand (bus lane)': 'No Standing - Bus Lane',
   '19-No Stand (bus stop)': 'No Standing - Bus Stop',
@@ -276,10 +295,13 @@ const fiscalYearReadableViolationDescriptions = {
   '29-Altered Intercity bus pmt': 'Altered Intercity Bus Permit',
   '30-No stopping/standing': 'No Stopping/Standing',
   '31-No Stand (Com. Mtr. Zone)': 'No Standing - Commercial Meter Zone',
-  '32-Overtime PKG-Missing Meter': 'Overtime Parking at Missing or Broken Meter',
-  '32A Overtime PKG-Broken Meter': 'Overtime Parking at Missing or Broken Meter',
+  '32-Overtime PKG-Missing Meter':
+    'Overtime Parking at Missing or Broken Meter',
+  '32A Overtime PKG-Broken Meter':
+    'Overtime Parking at Missing or Broken Meter',
   '33-Feeding Meter': 'Feeding Meter',
-  '35-Selling/Offer Merchandise': 'Selling or Offering Merchandise From Metered Parking',
+  '35-Selling/Offer Merchandise':
+    'Selling or Offering Merchandise From Metered Parking',
   '37-Expired Muni Meter': 'Expired Meter',
   '37-Expired Parking Meter': 'Expired Meter',
   '38-Failure to Display Muni Rec': 'Failure to Display Meter Receipt',
@@ -293,11 +315,13 @@ const fiscalYearReadableViolationDescriptions = {
   '45-Traffic Lane': 'No Stopping - Traffic Lane',
   '46-Double Parking (Com Plate)': 'Double Parking',
   '46A-Double Parking (Non-COM)': 'Double Parking',
-  '46B-Double Parking (Com-100Ft)': 'Double Parking - Within 100 ft. of Loading Zone',
+  '46B-Double Parking (Com-100Ft)':
+    'Double Parking - Within 100 ft. of Loading Zone',
   '47-Double PKG-Midtown': 'Double Parking - Midtown Commercial Zone',
   '47A-Angle PKG - Midtown': 'Double Parking - Angle Parking',
   '48-Bike Lane': 'Blocking Bike Lane',
-  '49-Excavation (obstruct traff)': 'No Stopping - Adjacent to Street Construction',
+  '49-Excavation (obstruct traff)':
+    'No Stopping - Adjacent to Street Construction',
   '50-Crosswalk': 'Blocking Crosswalk',
   '51-Sidewalk': 'Parked on Sidewalk',
   '52-Intersection': 'No Stopping - Intersection',
@@ -305,14 +329,17 @@ const fiscalYearReadableViolationDescriptions = {
   '55-Tunnel/Elevated Roadway': 'No Stopping in Tunnel or on Elevated Highway',
   '56-Divided Highway': 'No Stopping - Divided Highway',
   '57-Blue Zone': 'No Parking - Blue Zone',
-  '58-Marginal Street/Water Front': 'No Parking on Marginal Street or Waterfront',
+  '58-Marginal Street/Water Front':
+    'No Parking on Marginal Street or Waterfront',
   '59-Angle PKG-Commer. Vehicle': 'No Angle Parking',
   '60-Angle Parking': 'No Angle Parking',
   '61-Wrong Way': 'No Parking Opposite Street Direction',
   '62-Beyond Marked Space': 'No Parking Beyond Marked Space',
-  '63-Nighttime STD/PKG in a Park': 'No Nighttime Standing or Parking in a Park',
+  '63-Nighttime STD/PKG in a Park':
+    'No Nighttime Standing or Parking in a Park',
   '64-No STD Ex Con/DPL,D/S Dec': 'No Standing - Consul or Diplomat',
-  '65-O/T STD,pl/Con,0 Mn,/S': 'Overtime Standing - Consul or Diplomat Over 30 Minutes',
+  '65-O/T STD,pl/Con,0 Mn,/S':
+    'Overtime Standing - Consul or Diplomat Over 30 Minutes',
   '66-Detached Trailer': 'Detached Trailer',
   '67-Blocking Ped. Ramp': 'Blocking Pedestrian Ramp',
   '68-Not Pkg. Comp. w Psted Sign': 'Non-Compliance with Posted Sign',
@@ -333,18 +360,25 @@ const fiscalYearReadableViolationDescriptions = {
   '74B-Covered Plate': 'Covered Plate',
   '75-No Match-Plate/Reg. Sticker': 'Plate and Sticker Do Not Match',
   '77-Parked Bus (exc desig area)': 'Bus Parking Outside of Designated Area',
-  '78-Nighttime PKG on Res Street': 'Nighttime Parking on Residential Street - Commercial Vehicle',
+  '78-Nighttime PKG on Res Street':
+    'Nighttime Parking on Residential Street - Commercial Vehicle',
   '79-Bus Layover': 'Bus Layover in Unauthorized Location',
   '80-Missing Equipment (specify)': 'Missing Required Equipment',
   '81-No STD Ex C,&D Dec,30 Mn': 'No Standing - Except Diplomat',
   '82-Unaltered Commerc Vehicle': 'Commercial Plates on Unaltered Vehicle',
   '83-Improper Registration': 'Improper Registration',
-  '84-Platform lifts in low posit': 'Commercial Vehicle Platform Lifts in Lowered Position',
-  '85-Storage-3 hour Commercial': 'Street Storage of Commercial Vehicle Over 3 Hours',
-  '86-Midtown PKG or STD-3 hr lim': 'Midtown Parking or Standing - 3 Hour Limit',
-  '89-No Stand Exc Com Plate': 'No Standing - Except Trucks in Garment District',
-  '91-Veh for Sale (Dealer Only)': 'No Parking on Street to Display Vehicle for Sale',
-  '92-Washing/Repairing Vehicle': 'No Parking on Street to Wash or Repair Vehicle',
+  '84-Platform lifts in low posit':
+    'Commercial Vehicle Platform Lifts in Lowered Position',
+  '85-Storage-3 hour Commercial':
+    'Street Storage of Commercial Vehicle Over 3 Hours',
+  '86-Midtown PKG or STD-3 hr lim':
+    'Midtown Parking or Standing - 3 Hour Limit',
+  '89-No Stand Exc Com Plate':
+    'No Standing - Except Trucks in Garment District',
+  '91-Veh for Sale (Dealer Only)':
+    'No Parking on Street to Display Vehicle for Sale',
+  '92-Washing/Repairing Vehicle':
+    'No Parking on Street to Wash or Repair Vehicle',
   '93-Repair Flat Tire (Maj Road)': 'Replacing Flat Tire on Major Roadway',
   '96-Railroad Crossing': 'No Stopping - Railroad Crossing',
   '98-Obstructing Driveway': 'Obstructing Driveway',
@@ -453,8 +487,10 @@ const namesToCodes = {
   'Obstructing Driveway': '98'
 }
 
-const stateAbbrRegex = /^(99|AB|AK|AL|AR|AZ|BC|CA|CO|CT|DC|DE|DP|FL|FM|FO|GA|GU|GV|HI|IA|ID|IL|IN|KS|KY|LA|MA|MB|MD|ME|MI|MN|MO|MP|MS|MT|MX|NB|NC|ND|NE|NF|NH|NJ|NM|NS|NT|NV|NY|OH|OK|ON|OR|PA|PE|PR|PW|QC|RI|SC|SD|SK|TN|TX|UT|VA|VI|VT|WA|WI|WV|WY|YT)$/
-const registrationTypesRegex = /^(AGC|AGR|AMB|APP|ARG|ATD|ATV|AYG|BOB|BOT|CBS|CCK|CHC|CLG|CMB|CME|CMH|COM|CSP|DLR|FAR|FPW|GAC|GSM|HAC|HAM|HIR|HIS|HOU|HSM|IRP|ITP|JCA|JCL|JSC|JWV|LMA|LMB|LMC|LOC|LTR|LUA|MCD|MCL|MED|MOT|NLM|NYA|NYC|NYS|OMF|OML|OMO|OMR|OMS|OMT|OMV|ORC|ORG|ORM|PAS|PHS|PPH|PSD|RGC|RGL|SCL|SEM|SNO|SOS|SPC|SPO|SRF|SRN|STA|STG|SUP|THC|TOW|TRA|TRC|TRL|USC|USS|VAS|VPL|WUG)$/
+const stateAbbrRegex =
+  /^(99|AB|AK|AL|AR|AZ|BC|CA|CO|CT|DC|DE|DP|FL|FM|FO|GA|GU|GV|HI|IA|ID|IL|IN|KS|KY|LA|MA|MB|MD|ME|MI|MN|MO|MP|MS|MT|MX|NB|NC|ND|NE|NF|NH|NJ|NM|NS|NT|NV|NY|OH|OK|ON|OR|PA|PE|PR|PW|QC|RI|SC|SD|SK|TN|TX|UT|VA|VI|VT|WA|WI|WV|WY|YT)$/
+const registrationTypesRegex =
+  /^(AGC|AGR|AMB|APP|ARG|ATD|ATV|AYG|BOB|BOT|CBS|CCK|CHC|CLG|CMB|CME|CMH|COM|CSP|DLR|FAR|FPW|GAC|GSM|HAC|HAM|HIR|HIS|HOU|HSM|IRP|ITP|JCA|JCL|JSC|JWV|LMA|LMB|LMC|LOC|LTR|LUA|MCD|MCL|MED|MOT|NLM|NYA|NYC|NYS|OMF|OML|OMO|OMR|OMS|OMT|OMV|ORC|ORG|ORM|PAS|PHS|PPH|PSD|RGC|RGL|SCL|SEM|SNO|SOS|SPC|SPO|SRF|SRN|STA|STG|SUP|THC|TOW|TRA|TRC|TRL|USC|USS|VAS|VPL|WUG)$/
 
 const counties = {
   Bronx: 'Bronx',
@@ -507,7 +543,7 @@ const issuingAgencies = {
   V: 'NYC DOT'
 }
 
-const initializeConnection = config => {
+const initializeConnection = (config) => {
   const addDisconnectHandler = (connection) => {
     connection.on('error', (error) => {
       if (error instanceof Error) {
@@ -541,7 +577,7 @@ const initializeConnection = config => {
   return connection
 }
 
-const detectPlateTypes = potentialPlateTypeString => {
+const detectPlateTypes = (potentialPlateTypeString) => {
   if (potentialPlateTypeString.indexOf(',') !== -1) {
     const parts = potentialPlateTypeString.split(',')
     const bools = parts.map((part) => !!part.match(registrationTypesRegex))
@@ -551,11 +587,11 @@ const detectPlateTypes = potentialPlateTypeString => {
   }
 }
 
-const detectState = potentialStateString => {
+const detectState = (potentialStateString) => {
   return !!potentialStateString.match(stateAbbrRegex)
 }
 
-const detectVehicles = potentialVehicles => {
+const detectVehicles = (potentialVehicles) => {
   return potentialVehicles.map((plate) => {
     const vehicle = { original_string: plate }
 
@@ -568,12 +604,13 @@ const detectVehicles = potentialVehicles => {
       const plateTypesBools = parts.map((part) => detectPlateTypes(part))
       const plateTypesIndex = plateTypesBools.indexOf(true)
 
-      const haveValidPlate = (parts.length === 2 && stateIndex !== -1) ||
-                             (parts.length === 3 && ![plateTypesIndex, stateIndex].includes(-1))
+      const haveValidPlate =
+        (parts.length === 2 && stateIndex !== -1) ||
+        (parts.length === 3 && ![plateTypesIndex, stateIndex].includes(-1))
 
       if (haveValidPlate) {
-        const plateIndex = [...Array(parts.length).keys()].filter((part) =>
-          ![stateIndex, plateTypesIndex].includes(part)
+        const plateIndex = [...Array(parts.length).keys()].filter(
+          (part) => ![stateIndex, plateTypesIndex].includes(part)
         )[0]
 
         vehicle.state = parts[stateIndex]
@@ -591,9 +628,11 @@ const detectVehicles = potentialVehicles => {
   })
 }
 
-const filterOutViolationsAfterSearchDate = (violations, previousLookupCreatedAt) => (
+const filterOutViolationsAfterSearchDate = (
+  violations,
+  previousLookupCreatedAt
+) =>
   violations.filter((item) => item.formatted_time <= previousLookupCreatedAt)
-)
 
 const findFilterFields = (fieldsString) => {
   const returnFields = {}
@@ -608,7 +647,9 @@ const findFilterFields = (fieldsString) => {
     if (fieldsString[fieldsString.indexOf(field) + field.length] === '(') {
       const re = new RegExp(field + '\\([\\w|,]*\\)', 'g')
 
-      let subfields = fieldsString.match(re) ? fieldsString.match(re)[0].replace(field, '') : null
+      let subfields = fieldsString.match(re)
+        ? fieldsString.match(re)[0].replace(field, '')
+        : null
       subfields = subfields.substring(1, subfields.length - 1)
 
       if (subfields) {
@@ -624,7 +665,7 @@ const findFilterFields = (fieldsString) => {
   return returnFields
 }
 
-const findMaxCameraViolationsStreak = violationTimes => {
+const findMaxCameraViolationsStreak = (violationTimes) => {
   let maxStreak = 0
   let streakEnd = null
   let streakStart = null
@@ -632,8 +673,8 @@ const findMaxCameraViolationsStreak = violationTimes => {
   violationTimes.forEach((date) => {
     const yearLater = new Date(date).setYear(date.getFullYear() + 1)
 
-    const yearLongTickets = violationTimes.filter(otherDate =>
-      otherDate >= date && otherDate < yearLater
+    const yearLongTickets = violationTimes.filter(
+      (otherDate) => otherDate >= date && otherDate < yearLater
     )
 
     const sortedYearLongTickets = yearLongTickets.sort((a, b) => {
@@ -655,22 +696,36 @@ const findMaxCameraViolationsStreak = violationTimes => {
     }
   })
 
-  return { max_streak: maxStreak, streak_end: streakEnd, streak_start: streakStart }
+  return {
+    max_streak: maxStreak,
+    streak_end: streakEnd,
+    streak_start: streakStart
+  }
 }
 
 const getReadableViolationDescription = (violation) => {
-  const fiscalYearViolationDescriptionKey = violation.violation_code || violation.violation_description
+  const fiscalYearViolationDescriptionKey =
+    violation.violation_code || violation.violation_description
 
   if (fiscalYearViolationDescriptionKey) {
-    const violationDescriptionDefinition = fiscalYearReadableViolationDescriptions[fiscalYearViolationDescriptionKey]
+    const violationDescriptionDefinition =
+      fiscalYearReadableViolationDescriptions[
+        fiscalYearViolationDescriptionKey
+      ]
 
     if (violationDescriptionDefinition) {
-      if (typeof (violationDescriptionDefinition) === 'object' && violation.issue_date) {
+      if (
+        typeof violationDescriptionDefinition === 'object' &&
+        violation.issue_date
+      ) {
         let fiscalYearReadableDescription
 
         // Some violation codes have applied to multiple violations.
         violationDescriptionDefinition.forEach((possibleDescription) => {
-          if (Date.parse(possibleDescription.startDate) < Date.parse(violation.issue_date)) {
+          if (
+            Date.parse(possibleDescription.startDate) <
+            Date.parse(violation.issue_date)
+          ) {
             fiscalYearReadableDescription = possibleDescription.description
           }
         })
@@ -682,7 +737,10 @@ const getReadableViolationDescription = (violation) => {
     }
   }
 
-  const openParkingAndCameraViolationsReadableDescription = openParkingAndCameraViolationsReadableViolationDescriptions[violation.violation]
+  const openParkingAndCameraViolationsReadableDescription =
+    openParkingAndCameraViolationsReadableViolationDescriptions[
+      violation.violation
+    ]
   if (openParkingAndCameraViolationsReadableDescription) {
     return openParkingAndCameraViolationsReadableDescription
   }
@@ -693,20 +751,30 @@ const getReadableViolationDescription = (violation) => {
 const obtainUniqueIdentifier = async () => {
   const identifierAlreadyExists = (identifier) => {
     return new Promise((resolve, reject) => {
-      connection.query('select count(*) as count from plate_lookups where unique_identifier = ?', [identifier], (error, results, fields) => {
-        if (error) {
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
+      connection.query(
+        'select count(*) as count from plate_lookups where unique_identifier = ?',
+        [identifier],
+        (error, results, fields) => {
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error
+          }
+          return resolve(
+            !!(results && results[0] && results[0] && results[0].count !== 0)
+          )
         }
-        return resolve(!!((results && results[0] && results[0] && results[0].count !== 0)))
-      })
+      )
     })
   }
 
   const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
   let uniqueIdentifier = getUniqueIdentifier()
 
-  while (await identifierAlreadyExists(uniqueIdentifier).catch(error => { throw error })) {
+  while (
+    await identifierAlreadyExists(uniqueIdentifier).catch((error) => {
+      throw error
+    })
+  ) {
     uniqueIdentifier = getUniqueIdentifier()
   }
   return uniqueIdentifier
@@ -714,20 +782,26 @@ const obtainUniqueIdentifier = async () => {
 
 const getPreviousQueryResult = async (identifier) => {
   return new Promise((resolve, reject) => {
-    connection.query('select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?', [identifier], (error, results, fields) => {
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
+    connection.query(
+      'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
+      [identifier],
+      (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error
+        }
+        return resolve(results[0])
       }
-      return resolve(results[0])
-    })
+    )
   })
 }
 
 const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   const plate = vehicle.plate
   const state = vehicle.state
-  const plateTypes = vehicle.types ? vehicle.types.split(',').map((part) => part.trim()) : null
+  const plateTypes = vehicle.types
+    ? vehicle.types.split(',').map((part) => part.trim())
+    : null
 
   const lookupSource = externalData.lookup_source || 'api'
   const fingerprintID = externalData.fingerprint_id
@@ -739,16 +813,19 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     let flattenedResponses = []
     let rectifiedPlate = plate
 
-    const endpointResponses = await makeOpenDataRequests(plate, state, plateTypes)
+    const endpointResponses = await makeOpenDataRequests(
+      plate,
+      state,
+      plateTypes
+    )
     const normalizedResponses = endpointResponses.map((response) =>
       normalizeViolations(response.data)
     )
-    await Promise.all(normalizedResponses)
-      .then((normalizedResponses) => {
-        normalizedResponses.forEach((normalizedResponse) => {
-          flattenedResponses = [...flattenedResponses, ...normalizedResponse]
-        })
+    await Promise.all(normalizedResponses).then((normalizedResponses) => {
+      normalizedResponses.forEach((normalizedResponse) => {
+        flattenedResponses = [...flattenedResponses, ...normalizedResponse]
       })
+    })
 
     let violations = mergeDuplicateViolationRecords(flattenedResponses)
 
@@ -777,9 +854,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       totalPaid += obj.paid ?? 0
       totalReduced += obj.reduced ?? 0
       totalOutstanding += obj.outstanding ?? 0
-      totalInJudgment += obj.judgment_entry_date && obj.outstanding
-        ? obj.outstanding
-        : 0
+      totalInJudgment +=
+        obj.judgment_entry_date && obj.outstanding ? obj.outstanding : 0
     })
 
     const fines = {
@@ -790,24 +866,41 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       total_in_judgment: totalInJudgment
     }
 
-    const busLaneCameraViolations = violations.filter((violation) =>
-      violation.humanized_description === 'Bus Lane Violation' ||
+    const busLaneCameraViolations = violations.filter(
+      (violation) =>
+        violation.humanized_description === 'Bus Lane Violation' ||
         violation.humanized_description === 'Mobile Bus Lane Violation'
     )
-    const cameraViolations = violations.filter((violation) =>
-      violation.humanized_description === 'School Zone Speed Camera Violation' ||
+    const cameraViolations = violations.filter(
+      (violation) =>
+        violation.humanized_description ===
+          'School Zone Speed Camera Violation' ||
         violation.humanized_description === 'Failure to Stop at Red Light'
     )
-    const redLightCameraViolations = violations.filter((violation) =>
-      violation.humanized_description === 'Failure to Stop at Red Light'
+    const redLightCameraViolations = violations.filter(
+      (violation) =>
+        violation.humanized_description === 'Failure to Stop at Red Light'
     )
-    const speedCameraViolations = violations.filter((violation) =>
-      violation.humanized_description === 'School Zone Speed Camera Violation'
+    const speedCameraViolations = violations.filter(
+      (violation) =>
+        violation.humanized_description === 'School Zone Speed Camera Violation'
     )
 
-    const mixedCameraStreakData = findMaxCameraViolationsStreak(cameraViolations.map(function (violation) { return violation.formatted_time }))
-    const redLightCameraStreakData = findMaxCameraViolationsStreak(redLightCameraViolations.map(function (violation) { return violation.formatted_time }))
-    const speedCameraStreakData = findMaxCameraViolationsStreak(speedCameraViolations.map(function (violation) { return violation.formatted_time }))
+    const mixedCameraStreakData = findMaxCameraViolationsStreak(
+      cameraViolations.map(function (violation) {
+        return violation.formatted_time
+      })
+    )
+    const redLightCameraStreakData = findMaxCameraViolationsStreak(
+      redLightCameraViolations.map(function (violation) {
+        return violation.formatted_time
+      })
+    )
+    const speedCameraStreakData = findMaxCameraViolationsStreak(
+      speedCameraViolations.map(function (violation) {
+        return violation.formatted_time
+      })
+    )
 
     const streakData = {}
     if (mixedCameraStreakData) {
@@ -820,8 +913,10 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       streakData.school_zone_speed_camera_violations = speedCameraStreakData
     }
 
-    let baseFrequencyQueryString = 'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
-    let baseNumTicketsQueryString = 'select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+    let baseFrequencyQueryString =
+      'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+    let baseNumTicketsQueryString =
+      'select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
 
     let baseFrequencyQueryArgs = [plate, state]
     let baseNumTicketsQueryArgs = [plate, state]
@@ -834,14 +929,16 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
     }
     if (lookupSource === 'existing_lookup') {
-      baseFrequencyQueryString += ' and unique_identifier <> ? and created_at < ?'
+      baseFrequencyQueryString +=
+        ' and unique_identifier <> ? and created_at < ?'
       baseFrequencyQueryArgs = [
         ...baseFrequencyQueryArgs,
         existingIdentifier,
         previousLookupCreatedAt
       ]
 
-      baseNumTicketsQueryString += ' and unique_identifier <> ? and created_at < ?'
+      baseNumTicketsQueryString +=
+        ' and unique_identifier <> ? and created_at < ?'
       baseNumTicketsQueryArgs = [
         ...baseFrequencyQueryArgs,
         existingIdentifier,
@@ -851,88 +948,111 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
 
     baseNumTicketsQueryString += ' ORDER BY created_at DESC LIMIT 1'
 
-    const searchQueryArgs = [...baseFrequencyQueryArgs, ...baseNumTicketsQueryArgs]
+    const searchQueryArgs = [
+      ...baseFrequencyQueryArgs,
+      ...baseNumTicketsQueryArgs
+    ]
     const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
 
     return await new Promise((resolve, reject) => {
-      queryForLookups(searchQueryString, searchQueryArgs, async (error, results, fields) => {
-        if (error) {
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
-
-        const countTowardsFrequency = !(['api'].includes(lookupSource))
-        let frequency = countTowardsFrequency ? 1 : 0
-        let previousCount = null
-        let previousDate = null
-
-        if (results && results[0] && results[0][0] && results[1] && results[1][0]) {
-          frequency = results[0][0].frequency + frequency
-          previousCount = results[1][0].num_tickets
-          previousDate = results[1][0].created_at
-        }
-
-        const uniqueIdentifier = existingIdentifier || await obtainUniqueIdentifier()
-
-        if (lookupSource !== 'existing_lookup') {
-          const newLookup = {
-            boot_eligible_under_rdaa_threshold: (mixedCameraStreakData && mixedCameraStreakData.max_streak >= 5) || 0,
-            boot_eligible_under_dvaa_threshold: ((redLightCameraStreakData && redLightCameraStreakData.max_streak >= 5) ||
-                                                  (speedCameraStreakData && speedCameraStreakData.max_streak >= 15) || 0),
-            bus_lane_camera_violations: busLaneCameraViolations.length,
-            count_towards_frequency: !!countTowardsFrequency,
-            created_at: new Date(),
-            external_username: null,
-            fingerprint_id: fingerprintID,
-            lookup_source: lookupSource,
-            message_id: null,
-            mixpanel_id: mixpanelID,
-            num_tickets: violations.length,
-            observed: null,
-            plate,
-            plate_types: plateTypes ? plateTypes.join() : null,
-            responded_to: true,
-            red_light_camera_violations: redLightCameraViolations.length,
-            speed_camera_violations: speedCameraViolations.length,
-            state,
-            unique_identifier: uniqueIdentifier
+      queryForLookups(
+        searchQueryString,
+        searchQueryArgs,
+        async (error, results, fields) => {
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error
           }
 
-          insertNewLookup(newLookup, (error, results, fields) => {
-            if (error) {
-              console.log(`error thrown at: ${new Date()}`)
-              throw error
+          const countTowardsFrequency = !['api'].includes(lookupSource)
+          let frequency = countTowardsFrequency ? 1 : 0
+          let previousCount = null
+          let previousDate = null
+
+          if (
+            results &&
+            results[0] &&
+            results[0][0] &&
+            results[1] &&
+            results[1][0]
+          ) {
+            frequency = results[0][0].frequency + frequency
+            previousCount = results[1][0].num_tickets
+            previousDate = results[1][0].created_at
+          }
+
+          const uniqueIdentifier =
+            existingIdentifier || (await obtainUniqueIdentifier())
+
+          if (lookupSource !== 'existing_lookup') {
+            const newLookup = {
+              boot_eligible_under_rdaa_threshold:
+                (mixedCameraStreakData &&
+                  mixedCameraStreakData.max_streak >= 5) ||
+                0,
+              boot_eligible_under_dvaa_threshold:
+                (redLightCameraStreakData &&
+                  redLightCameraStreakData.max_streak >= 5) ||
+                (speedCameraStreakData &&
+                  speedCameraStreakData.max_streak >= 15) ||
+                0,
+              bus_lane_camera_violations: busLaneCameraViolations.length,
+              count_towards_frequency: !!countTowardsFrequency,
+              created_at: new Date(),
+              external_username: null,
+              fingerprint_id: fingerprintID,
+              lookup_source: lookupSource,
+              message_id: null,
+              mixpanel_id: mixpanelID,
+              num_tickets: violations.length,
+              observed: null,
+              plate,
+              plate_types: plateTypes ? plateTypes.join() : null,
+              responded_to: true,
+              red_light_camera_violations: redLightCameraViolations.length,
+              speed_camera_violations: speedCameraViolations.length,
+              state,
+              unique_identifier: uniqueIdentifier
             }
-          })
-        }
 
-        const fullVehicleLookup = {
-          camera_streak_data: streakData,
-          fines,
-          plate,
-          plate_types: plateTypes,
-          previous_lookup_date: previousDate,
-          previous_violation_count: previousCount,
-          rectified_plate: rectifiedPlate,
-          state,
-          times_queried: frequency,
-          unique_identifier: uniqueIdentifier,
-          violations,
-          violations_count: violations.length
-        }
+            insertNewLookup(newLookup, (error, results, fields) => {
+              if (error) {
+                console.log(`error thrown at: ${new Date()}`)
+                throw error
+              }
+            })
+          }
 
-        const returnObject = {
-          successful_lookup: true,
-          vehicle: stripReturnData(fullVehicleLookup, selectedFields)
-        }
+          const fullVehicleLookup = {
+            camera_streak_data: streakData,
+            fines,
+            plate,
+            plate_types: plateTypes,
+            previous_lookup_date: previousDate,
+            previous_violation_count: previousCount,
+            rectified_plate: rectifiedPlate,
+            state,
+            times_queried: frequency,
+            unique_identifier: uniqueIdentifier,
+            violations,
+            violations_count: violations.length
+          }
 
-        resolve(returnObject)
-      })
+          const returnObject = {
+            successful_lookup: true,
+            vehicle: stripReturnData(fullVehicleLookup, selectedFields)
+          }
+
+          resolve(returnObject)
+        }
+      )
     })
   } else {
     return {
       vehicle: {},
-      error_string: 'Sorry, a plate and state could not be inferred from ' + vehicle.original_string,
+      error_string:
+        'Sorry, a plate and state could not be inferred from ' +
+        vehicle.original_string,
       successful_lookup: false
     }
   }
@@ -945,9 +1065,10 @@ const getViolationBorough = async (violation, index) => {
   if (!violation.location) {
     return Promise.resolve('No Borough Available')
   }
-  const boroughFromLocation = await connection.promiseQuery(
-    'select borough from geocodes WHERE lookup_string = ?', [violation.location + ' New York NY']
-  )
+  const boroughFromLocation = await connection
+    .promiseQuery('select borough from geocodes WHERE lookup_string = ?', [
+      violation.location + ' New York NY'
+    ])
     .then(async (results) => {
       if (results.length) {
         return results[0].borough
@@ -973,7 +1094,10 @@ const getViolationLocation = (violation) => {
       fullStreetName = street1 + ' ' + street2
     }
   } else if (street1 && houseNumber) {
-    if (houseNumber.length === 20 && houseNumber.charAt(houseNumber.length - 1) !== ' ') {
+    if (
+      houseNumber.length === 20 &&
+      houseNumber.charAt(houseNumber.length - 1) !== ' '
+    ) {
       fullStreetName = houseNumber + street1
     } else {
       fullStreetName = houseNumber + ' ' + street1
@@ -987,13 +1111,12 @@ const getViolationLocation = (violation) => {
       fullStreetName = fullStreetName.replace(/@(\w)/, '@ $1')
     }
 
-    fullStreetName = fullStreetName.split(/\s/).filter((strPart) =>
-      strPart.replace(/\(?[ENSW]\/?B\)?/i, '') !== ''
-    ).map((strPart) =>
-      strPart.toLowerCase()
-    ).map((strPart) =>
-      strPart.charAt(0).toUpperCase() + strPart.substr(1)
-    ).join(' ')
+    fullStreetName = fullStreetName
+      .split(/\s/)
+      .filter((strPart) => strPart.replace(/\(?[ENSW]\/?B\)?/i, '') !== '')
+      .map((strPart) => strPart.toLowerCase())
+      .map((strPart) => strPart.charAt(0).toUpperCase() + strPart.substr(1))
+      .join(' ')
 
     return fullStreetName
   }
@@ -1035,7 +1158,10 @@ const handleDirectMessageEvent = (event, users) => {
       }
     }
 
-    if (sender && event.message_create.target.recipient_id === '976593574732222465') {
+    if (
+      sender &&
+      event.message_create.target.recipient_id === '976593574732222465'
+    ) {
       const newEvent = {
         event_type: 'direct_message',
         event_id: event.id,
@@ -1050,64 +1176,87 @@ const handleDirectMessageEvent = (event, users) => {
 
       console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
-      connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-        if (error) {
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
-
-        if (results && photoURL != null) {
-          const insertID = results.insertId
-
-          const mediaObject = {
-            url: photoURL,
-            type: 'photo',
-            twitter_event_id: insertID
+      connection.query(
+        'insert into twitter_events set ?',
+        newEvent,
+        (error, results, fields) => {
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error
           }
 
-          connection.query('insert into twitter_media_objects set ?', mediaObject, (error, results, fields) => {
-            if (error) {
-              console.log(`error thrown at: ${new Date()}`)
-              throw error
+          if (results && photoURL != null) {
+            const insertID = results.insertId
+
+            const mediaObject = {
+              url: photoURL,
+              type: 'photo',
+              twitter_event_id: insertID
             }
-          })
+
+            connection.query(
+              'insert into twitter_media_objects set ?',
+              mediaObject,
+              (error, results, fields) => {
+                if (error) {
+                  console.log(`error thrown at: ${new Date()}`)
+                  throw error
+                }
+              }
+            )
+          }
         }
-      })
+      )
     }
   }
 }
 
 const handleDirectMessageIndicateTypingEvent = (event) => {
-  console.log(`handleDirectMessageIndicateTypingEvent is a stub method: ${JSON.stringify(event)}`)
+  console.log(
+    `handleDirectMessageIndicateTypingEvent is a stub method: ${JSON.stringify(
+      event
+    )}`
+  )
 }
 const handleDirectMessageMarkReadEvent = (event) => {
-  console.log(`handleDirectMessageMarkReadEvent is a stub method: ${JSON.stringify(event)}`)
+  console.log(
+    `handleDirectMessageMarkReadEvent is a stub method: ${JSON.stringify(
+      event
+    )}`
+  )
 }
 const handleFavoriteEvent = (event) => {
-  const favoritedStatusId = event && event.favorited_status && event.favorited_status.id_str
+  const favoritedStatusId =
+    event && event.favorited_status && event.favorited_status.id_str
   const userId = event && event.user && event.user.id_str
 
   if (favoritedStatusId && userId) {
-    connection.query('select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false', [favoritedStatusId, userId], (error, results, fields) => {
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
-      }
+    connection.query(
+      'select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false',
+      [favoritedStatusId, userId],
+      (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error
+        }
 
-      if (results && results[0]) {
-        const inReplyToMessageId = results[0].in_reply_to_message_id
-        console.log(`Setting responded_to to false for event_id: ${inReplyToMessageId}`)
-        respondToNonFollowerFavorite(
-          favoritedStatusId,
-          inReplyToMessageId,
-          userId
-        )
-      } else {
-        console.log('No message matches.')
-        console.log(`favorited status id: ${favoritedStatusId}`)
-        console.log(`favoriting user id: ${userId}`)
+        if (results && results[0]) {
+          const inReplyToMessageId = results[0].in_reply_to_message_id
+          console.log(
+            `Setting responded_to to false for event_id: ${inReplyToMessageId}`
+          )
+          respondToNonFollowerFavorite(
+            favoritedStatusId,
+            inReplyToMessageId,
+            userId
+          )
+        } else {
+          console.log('No message matches.')
+          console.log(`favorited status id: ${favoritedStatusId}`)
+          console.log(`favoriting user id: ${userId}`)
+        }
       }
-    })
+    )
   }
 }
 
@@ -1117,25 +1266,26 @@ const handleFollowEvent = (event) => {
   console.log(`userId: ${userId}`)
 
   if (userId) {
-    connection.query('select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false', [userId], (error, results, fields) => {
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
-      }
+    connection.query(
+      'select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false',
+      [userId],
+      (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error
+        }
 
-      if (results && results.length > 0) {
-        results.forEach((result) => {
-          const inReplyToMessageId = results[0].in_reply_to_message_id
-          respondToReplyForNewFollower(
-            inReplyToMessageId,
-            userId
-          )
-        })
-      } else {
-        console.log('No messages match.')
-        console.log(`following user id: ${userId}`)
+        if (results && results.length > 0) {
+          results.forEach((result) => {
+            const inReplyToMessageId = results[0].in_reply_to_message_id
+            respondToReplyForNewFollower(inReplyToMessageId, userId)
+          })
+        } else {
+          console.log('No messages match.')
+          console.log(`following user id: ${userId}`)
+        }
       }
-    })
+    )
   }
 }
 
@@ -1144,7 +1294,11 @@ const handleMuteEvent = (event) => {
 }
 
 const handleTweetCreateEvent = (event) => {
-  if (!event.retweeted_status && event.user && event.user.screen_name !== 'HowsMyDrivingNY') {
+  if (
+    !event.retweeted_status &&
+    event.user &&
+    event.user.screen_name !== 'HowsMyDrivingNY'
+  ) {
     let text
     let userMentions = null
     let userMentionIDs = null
@@ -1156,10 +1310,16 @@ const handleTweetCreateEvent = (event) => {
       text = et.full_text
 
       if (et.entities.user_mentions) {
-        userMentions = et.entities.user_mentions.map((mention) =>
-          text.includes(mention.screen_name) ? mention.screen_name : ''
-        ).join(' ').trim()
-        userMentionIDs = et.entities.user_mentions.map((mention) => mention.id_str).join(',').trim()
+        userMentions = et.entities.user_mentions
+          .map((mention) =>
+            text.includes(mention.screen_name) ? mention.screen_name : ''
+          )
+          .join(' ')
+          .trim()
+        userMentionIDs = et.entities.user_mentions
+          .map((mention) => mention.id_str)
+          .join(',')
+          .trim()
       }
 
       if (et.extended_entities) {
@@ -1182,10 +1342,16 @@ const handleTweetCreateEvent = (event) => {
         const entities = event.entities
 
         if (entities.user_mentions) {
-          userMentions = entities.user_mentions.map((mention) =>
-            text.includes(mention.screen_name) ? mention.screen_name : ''
-          ).join(' ').trim()
-          userMentionIDs = entities.user_mentions.map((mention) => mention.id_str).join(',').trim()
+          userMentions = entities.user_mentions
+            .map((mention) =>
+              text.includes(mention.screen_name) ? mention.screen_name : ''
+            )
+            .join(' ')
+            .trim()
+          userMentionIDs = entities.user_mentions
+            .map((mention) => mention.id_str)
+            .join(',')
+            .trim()
         }
       }
 
@@ -1209,12 +1375,15 @@ const handleTweetCreateEvent = (event) => {
       event_id: event.id_str,
       user_handle: event.user.screen_name,
       user_id: event.user.id_str,
-      user_mentions: userMentions ? userMentions.substring(userMentions.length - 560) : null,
+      user_mentions: userMentions
+        ? userMentions.substring(userMentions.length - 560)
+        : null,
       user_mention_ids: userMentionIDs,
       event_text: text.substring(text.length - 560),
       created_at: event.timestamp_ms,
       in_reply_to_message_id: event.in_reply_to_status_id_str,
-      location: (event.place && event.place.full_name) ? event.place.full_name : null,
+      location:
+        event.place && event.place.full_name ? event.place.full_name : null,
       responded_to: false
     }
 
@@ -1222,36 +1391,46 @@ const handleTweetCreateEvent = (event) => {
     console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
     console.log('\n\n')
 
-    connection.query('insert into twitter_events set ?', newEvent, (error, results, fields) => {
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
-      }
+    connection.query(
+      'insert into twitter_events set ?',
+      newEvent,
+      (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error
+        }
 
-      if (results && photoURLs.length > 0) {
-        const insertID = results.insertId
+        if (results && photoURLs.length > 0) {
+          const insertID = results.insertId
 
-        const mediaObjects = photoURLs.map((photoURL) => {
-          return ({
-            url: photoURL,
-            type: 'photo',
-            twitter_event_id: insertID
+          const mediaObjects = photoURLs.map((photoURL) => {
+            return {
+              url: photoURL,
+              type: 'photo',
+              twitter_event_id: insertID
+            }
           })
-        })
 
-        connection.query('insert into twitter_media_objects set ?', mediaObjects, (error, results, fields) => {
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
-          }
-        })
+          connection.query(
+            'insert into twitter_media_objects set ?',
+            mediaObjects,
+            (error, results, fields) => {
+              if (error) {
+                console.log(`error thrown at: ${new Date()}`)
+                throw error
+              }
+            }
+          )
+        }
       }
-    })
+    )
   }
 }
 
 const handleTweetDeleteEvent = (event) => {
-  console.log(`handleTweetDeleteEvent is a stub method: ${JSON.stringify(event)}`)
+  console.log(
+    `handleTweetDeleteEvent is a stub method: ${JSON.stringify(event)}`
+  )
 }
 const handleUnblockEvent = (event) => {
   console.log(`handleUnblockEvent is a stub method: ${JSON.stringify(event)}`)
@@ -1306,15 +1485,13 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   })
 
   if (plateTypes) {
-    const plateTypesArray = plateTypes.map((item) =>
-      `'${item.toUpperCase().trim()}'`
+    const plateTypesArray = plateTypes.map(
+      (item) => `'${item.toUpperCase().trim()}'`
     )
 
     const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
 
-    fiscalYearSearchParams.append(
-      '$where', plateTypesQueryValue
-    )
+    fiscalYearSearchParams.append('$where', plateTypesQueryValue)
   }
 
   // if (fieldsForExternalRequests) {
@@ -1340,14 +1517,15 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   })
 
   if (plateTypes) {
-    const plateTypesArray = plateTypes.map((item) =>
-      `'${item.toUpperCase().trim()}'`
+    const plateTypesArray = plateTypes.map(
+      (item) => `'${item.toUpperCase().trim()}'`
     )
 
     const plateTypesQueryValue = `license_type in(${plateTypesArray.join()})`
 
     openParkingAndCameraViolationsSearchParams.append(
-      '$where', plateTypesQueryValue
+      '$where',
+      plateTypesQueryValue
     )
   }
 
@@ -1355,9 +1533,10 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
   // }
 
-  const urlObject = new URL(`?${
-    openParkingAndCameraViolationsSearchParams
-  }`, 'https://data.cityofnewyork.us/resource/uvbq-3m68.json')
+  const urlObject = new URL(
+    `?${openParkingAndCameraViolationsSearchParams}`,
+    'https://data.cityofnewyork.us/resource/uvbq-3m68.json'
+  )
 
   promises.push(axios.get(urlObject.toString()))
 
@@ -1366,7 +1545,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   return responses
 }
 
-const mergeDuplicateViolationRecords = violations => {
+const mergeDuplicateViolationRecords = (violations) => {
   const accum = []
 
   violations.forEach((object) => {
@@ -1485,30 +1664,45 @@ const modifyViolationsForResponse = (violations, selectedFields) => {
 
 const normalizeViolations = async (violations) => {
   const returnViolations = await violations.map(async (violation, index) => {
-    const readableViolationDescription = getReadableViolationDescription(violation)
+    const readableViolationDescription =
+      getReadableViolationDescription(violation)
 
     const newViolation = {
-      amount_due: isNaN(parseFloat(violation.amount_due)) ? null : parseFloat(violation.amount_due),
+      amount_due: isNaN(parseFloat(violation.amount_due))
+        ? null
+        : parseFloat(violation.amount_due),
       date_first_observed: violation.date_first_observed || null,
       feet_from_curb: violation.feet_from_curb || null,
-      fine_amount: isNaN(parseFloat(violation.fine_amount)) ? null : parseFloat(violation.fine_amount),
+      fine_amount: isNaN(parseFloat(violation.fine_amount))
+        ? null
+        : parseFloat(violation.fine_amount),
       from_hours_in_effect: violation.from_hours_in_effect || null,
       house_number: violation.house_number || null,
       humanized_description: readableViolationDescription,
-      interest_amount: isNaN(parseFloat(violation.interest_amount)) ? null : parseFloat(violation.interest_amount),
+      interest_amount: isNaN(parseFloat(violation.interest_amount))
+        ? null
+        : parseFloat(violation.interest_amount),
       intersecting_street: violation.intersecting_street || null,
       issue_date: violation.issue_date || null,
       issuer_code: violation.issuer_code || null,
       issuer_command: violation.issuer_command || null,
-      issuer_precinct: isNaN(parseInt(violation.issuer_precinct)) ? null : parseInt(violation.issuer_precinct),
+      issuer_precinct: isNaN(parseInt(violation.issuer_precinct))
+        ? null
+        : parseInt(violation.issuer_precinct),
       issuing_agency: issuingAgencies[violation.issuing_agency] || null,
       judgment_entry_date: violation.judgment_entry_date || null,
       law_section: violation.law_section || null,
-      payment_amount: isNaN(parseFloat(violation.payment_amount)) ? null : parseFloat(violation.payment_amount),
-      penalty_amount: isNaN(parseFloat(violation.penalty_amount)) ? null : parseFloat(violation.penalty_amount),
+      payment_amount: isNaN(parseFloat(violation.payment_amount))
+        ? null
+        : parseFloat(violation.payment_amount),
+      penalty_amount: isNaN(parseFloat(violation.penalty_amount))
+        ? null
+        : parseFloat(violation.penalty_amount),
       plate_id: violation.plate_id || violation.plate || null,
       plate_type: violation.plate_type || violation.license_type || null,
-      reduction_amount: isNaN(parseFloat(violation.reduction_amount)) ? null : parseFloat(violation.reduction_amount),
+      reduction_amount: isNaN(parseFloat(violation.reduction_amount))
+        ? null
+        : parseFloat(violation.reduction_amount),
       registration_state: violation.registration_state || null,
       street_code1: violation.street_code1 || null,
       street_code2: violation.street_code2 || null,
@@ -1523,13 +1717,22 @@ const normalizeViolations = async (violations) => {
       vehicle_expiration_date: violation.vehicle_expiration_date || null,
       vehicle_make: violation.vehicle_make || null,
       vehicle_year: violation.vehicle_year || null,
-      violation_code: (violation.violation_code || namesToCodes[readableViolationDescription]) || null,
-      violation_county: counties[violation.violation_county || violation.county] || null,
-      violation_in_front_of_or_opposite: violation.violation_in_front_of_or_opposite || null,
+      violation_code:
+        violation.violation_code ||
+        namesToCodes[readableViolationDescription] ||
+        null,
+      violation_county:
+        counties[violation.violation_county || violation.county] || null,
+      violation_in_front_of_or_opposite:
+        violation.violation_in_front_of_or_opposite || null,
       violation_legal_code: violation.violation_legal_code || null,
       violation_location: violation.violation_location || null,
       violation_post_code: violation.violation_post_code || null,
-      violation_precinct: isNaN(parseInt(violation.violation_precinct || violation.precinct)) ? null : parseInt(violation.violation_precinct || violation.precinct),
+      violation_precinct: isNaN(
+        parseInt(violation.violation_precinct || violation.precinct)
+      )
+        ? null
+        : parseInt(violation.violation_precinct || violation.precinct),
       violation_time: violation.violation_time || null
     }
 
@@ -1557,44 +1760,59 @@ const respondToReplyForNewFollower = (inReplyToMessageId, userId) => {
   console.log(`inReplyToMessageId: ${inReplyToMessageId}`)
   console.log(`userId: ${userId}`)
 
-  connection.query(`
+  connection.query(
+    `
     update non_follower_replies set favorited = true where user_id = ?;
     update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ?
-  `, [userId, inReplyToMessageId], (error, results, fields) => {
-    if (error) {
-      console.log(`error thrown at: ${new Date()}`)
-      throw error
+  `,
+    [userId, inReplyToMessageId],
+    (error, results, fields) => {
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error
+      }
     }
-  })
+  )
 }
 
-const respondToNonFollowerFavorite = (favoritedStatusId, inReplyToMessageId, userId) => {
-  console.log(`Updating twitter_events, setting user_favorited_non_follower_reply = true and responded_to = false for event ${inReplyToMessageId}`)
-  connection.query(`
+const respondToNonFollowerFavorite = (
+  favoritedStatusId,
+  inReplyToMessageId,
+  userId
+) => {
+  console.log(
+    `Updating twitter_events, setting user_favorited_non_follower_reply = true and responded_to = false for event ${inReplyToMessageId}`
+  )
+  connection.query(
+    `
     update non_follower_replies set favorited = true where event_id = ? and user_id = ?;
     update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ? and is_duplicate = false
-  `, [favoritedStatusId, userId, inReplyToMessageId], (error, results, fields) => {
-    if (error) {
-      console.log(`error thrown at: ${new Date()}`)
-      throw error
+  `,
+    [favoritedStatusId, userId, inReplyToMessageId],
+    (error, results, fields) => {
+      if (error) {
+        console.log(`error thrown at: ${new Date()}`)
+        throw error
+      }
     }
-  })
+  )
 }
 
 const retrieveBoroughFromGeocode = (location) => {
-  // Get latidude & longitude from address.
-  return googleMapsClient.geocode({ address: location })
+  return googleMapsClient
+    .geocode({ address: location })
     .asPromise()
     .then(
-      response => {
+      (response) => {
         const geocodeResult = response?.json?.results[0]
         if (!geocodeResult?.address_components?.length) {
           return 'No Borough Available'
         }
 
+        // Get latidude & longitude from address.
         // const { lat, lng } = geocodeResult.geometry.location
-        const borough = geocodeResult.address_components.find((elem) =>
-          elem.types[2] === 'sublocality_level_1'
+        const borough = geocodeResult.address_components.find(
+          (elem) => elem.types[2] === 'sublocality_level_1'
         )
 
         if (!borough?.long_name) {
@@ -1607,18 +1825,24 @@ const retrieveBoroughFromGeocode = (location) => {
           geocoding_service: 'google'
         }
 
-        connection.query('insert into geocodes set ?', newGeocode, (error, results, fields) => {
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
+        connection.query(
+          'insert into geocodes set ?',
+          newGeocode,
+          (error, results, fields) => {
+            if (error) {
+              console.log(`error thrown at: ${new Date()}`)
+              throw error
+            }
           }
-        })
+        )
 
         return borough.long_name
       },
       (error) => {
         console.log('\n\n')
-        console.log(`There was an error requesting the geocode for ${location}`)
+        console.log(
+          `There was an error requesting the geocode for ${location}`
+        )
         console.error(error)
         console.log('\n\n')
       }
@@ -1626,7 +1850,8 @@ const retrieveBoroughFromGeocode = (location) => {
 }
 
 const retrievePossibleMedallionVehiclePlate = async (plate) => {
-  const medallionEndpoint = 'https://data.cityofnewyork.us/resource/rhe8-mgbb.json'
+  const medallionEndpoint =
+    'https://data.cityofnewyork.us/resource/rhe8-mgbb.json'
 
   const medallionEndpointSearchParams = new URLSearchParams({
     $$app_token: 'q198HrEaAdCJZD4XCLDl2Uq0G',
@@ -1636,7 +1861,10 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
     $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`
   })
 
-  const medallionUrlObject = new URL(`?${medallionEndpointSearchParams}`, medallionEndpoint)
+  const medallionUrlObject = new URL(
+    `?${medallionEndpointSearchParams}`,
+    medallionEndpoint
+  )
 
   try {
     const medallionEndpointResponse = await axios.get(medallionUrlObject)
@@ -1699,93 +1927,100 @@ const server = http.createServer(async (req, res) => {
   if (req.url.match('/webhook/twitter')) {
     if (req.method === 'POST') {
       let body = []
-      req.on('data', (chunk) => {
-        body.push(chunk)
-      }).on('end', () => {
-        body = Buffer.concat(body).toString()
-        // at this point, `body` has the entire request body stored in it as a string
+      req
+        .on('data', (chunk) => {
+          body.push(chunk)
+        })
+        .on('end', () => {
+          body = Buffer.concat(body).toString()
+          // at this point, `body` has the entire request body stored in it as a string
 
-        console.log('\n\n')
-        console.log(body)
-        console.log('\n\n')
+          console.log('\n\n')
+          console.log(body)
+          console.log('\n\n')
 
-        const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET)
-        const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
+          const hmac = crypto.createHmac(
+            'sha256',
+            process.env.TWITTER_CONSUMER_SECRET
+          )
+          const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
 
-        if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
-          const json = JSON.parse(body)
-          console.log('received event')
-          console.log(json)
-
-          if (json.block_events) {
-            console.log('event type: block(s)')
-            json.block_events.forEach((event) => {
-              handleBlockEvent(event)
-            })
-          } else if (json.direct_message_events) {
-            console.log('event type: direct message(s)')
-            json.direct_message_events.forEach((event) => {
-              handleDirectMessageEvent(event, json.users)
-            })
-          } else if (json.direct_message_indicate_typing_events) {
-            console.log('event type: direct message indicate typing event(s)')
-            json.direct_message_indicate_typing_events.forEach((event) => {
-              handleDirectMessageIndicateTypingEvent(event)
-            })
-          } else if (json.direct_message_mark_read_events) {
-            console.log('event type: direct message mark read event(s)')
-            json.direct_message_mark_read_events.forEach((event) => {
-              handleDirectMessageMarkReadEvent(event)
-            })
-          } else if (json.favorite_events) {
-            console.log('event type: favorite(s)')
-            json.favorite_events.forEach((event) => {
-              handleFavoriteEvent(event)
-            })
-          } else if (json.follow_events) {
-            console.log('event type: follow(s)')
-            json.follow_events.forEach((event) => {
-              handleFollowEvent(event)
-            })
-          } else if (json.mute_events) {
-            console.log('event type: mute(s)')
-            json.mute_events.forEach((event) => {
-              handleMuteEvent(event)
-            })
-          } else if (json.tweet_create_events) {
-            console.log('event type: tweet create event(s)')
-            json.tweet_create_events.forEach((event) => {
-              handleTweetCreateEvent(event)
-            })
-          } else if (json.tweet_delete_events) {
-            console.log('event type: tweet delete event(s)')
-            json.tweet_delete_events.forEach((event) => {
-              handleTweetDeleteEvent(event)
-            })
-          } else if (json.unblock_events) {
-            console.log('event type: unblock(s)')
-            json.unblock_events.forEach((event) => {
-              handleUnblockEvent(event)
-            })
-          } else if (json.unfollow_events) {
-            console.log('event type: follow(s)')
-            json.unfollow_events.forEach((event) => {
-              handleUnfollowEvent(event)
-            })
-          } else if (json.unmute_events) {
-            console.log('event type: unmute(s)')
-            json.unmute_events.forEach((event) => {
-              handleUnmuteEvent(event)
-            })
-          } else if (json.user_event) {
-            console.log('events type: user(s)')
-            handleUserEvent(json.user_event)
-          } else {
-            console.log('Not sure how to process the following payload: ')
+          if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
+            const json = JSON.parse(body)
+            console.log('received event')
             console.log(json)
+
+            if (json.block_events) {
+              console.log('event type: block(s)')
+              json.block_events.forEach((event) => {
+                handleBlockEvent(event)
+              })
+            } else if (json.direct_message_events) {
+              console.log('event type: direct message(s)')
+              json.direct_message_events.forEach((event) => {
+                handleDirectMessageEvent(event, json.users)
+              })
+            } else if (json.direct_message_indicate_typing_events) {
+              console.log(
+                'event type: direct message indicate typing event(s)'
+              )
+              json.direct_message_indicate_typing_events.forEach((event) => {
+                handleDirectMessageIndicateTypingEvent(event)
+              })
+            } else if (json.direct_message_mark_read_events) {
+              console.log('event type: direct message mark read event(s)')
+              json.direct_message_mark_read_events.forEach((event) => {
+                handleDirectMessageMarkReadEvent(event)
+              })
+            } else if (json.favorite_events) {
+              console.log('event type: favorite(s)')
+              json.favorite_events.forEach((event) => {
+                handleFavoriteEvent(event)
+              })
+            } else if (json.follow_events) {
+              console.log('event type: follow(s)')
+              json.follow_events.forEach((event) => {
+                handleFollowEvent(event)
+              })
+            } else if (json.mute_events) {
+              console.log('event type: mute(s)')
+              json.mute_events.forEach((event) => {
+                handleMuteEvent(event)
+              })
+            } else if (json.tweet_create_events) {
+              console.log('event type: tweet create event(s)')
+              json.tweet_create_events.forEach((event) => {
+                handleTweetCreateEvent(event)
+              })
+            } else if (json.tweet_delete_events) {
+              console.log('event type: tweet delete event(s)')
+              json.tweet_delete_events.forEach((event) => {
+                handleTweetDeleteEvent(event)
+              })
+            } else if (json.unblock_events) {
+              console.log('event type: unblock(s)')
+              json.unblock_events.forEach((event) => {
+                handleUnblockEvent(event)
+              })
+            } else if (json.unfollow_events) {
+              console.log('event type: follow(s)')
+              json.unfollow_events.forEach((event) => {
+                handleUnfollowEvent(event)
+              })
+            } else if (json.unmute_events) {
+              console.log('event type: unmute(s)')
+              json.unmute_events.forEach((event) => {
+                handleUnmuteEvent(event)
+              })
+            } else if (json.user_event) {
+              console.log('events type: user(s)')
+              handleUserEvent(json.user_event)
+            } else {
+              console.log('Not sure how to process the following payload: ')
+              console.log(json)
+            }
           }
-        }
-      })
+        })
     } else if (req.method === 'GET') {
       console.log('getting a challenge request')
 
@@ -1801,7 +2036,10 @@ const server = http.createServer(async (req, res) => {
 
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
-      const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET)
+      const hmac = crypto.createHmac(
+        'sha256',
+        process.env.TWITTER_CONSUMER_SECRET
+      )
 
       const response = {
         response_token: `sha256=${hmac.update(crcToken).digest('base64')}`
@@ -1820,7 +2058,7 @@ const server = http.createServer(async (req, res) => {
 
     const pathname = parser.pathname
     const regexString = `${EXISTING_LOOKUP_PATH}[/]*`
-    const identifier = (pathname.replace(new RegExp(regexString), ''))
+    const identifier = pathname.replace(new RegExp(regexString), '')
     const searchParams = parser.searchParams
 
     const fields = findFilterFields(searchParams.fields)
@@ -1844,7 +2082,9 @@ const server = http.createServer(async (req, res) => {
       }
 
       const potentialVehicle = [
-        `${previousLookup.plate}:${previousLookup.state}${previousLookup.plate_types ? `:${previousLookup.plate_types}` : ''}`
+        `${previousLookup.plate}:${previousLookup.state}${
+          previousLookup.plate_types ? `:${previousLookup.plate_types}` : ''
+        }`
       ]
 
       const vehicles = detectVehicles(potentialVehicle)
@@ -1857,11 +2097,15 @@ const server = http.createServer(async (req, res) => {
         previous_lookup_created_at: previousLookup.created_at
       }
 
-      Promise.all(vehicles.map(async (vehicle) => await getVehicleResponse(vehicle, fields, externalData)))
-        .then((allResponses) => {
-          res.writeHead(200)
-          res.end(JSON.stringify({ data: allResponses }))
-        })
+      Promise.all(
+        vehicles.map(
+          async (vehicle) =>
+            await getVehicleResponse(vehicle, fields, externalData)
+        )
+      ).then((allResponses) => {
+        res.writeHead(200)
+        res.end(JSON.stringify({ data: allResponses }))
+      })
     })
 
     // TODO: Move external lookup sources to another url.
@@ -1918,7 +2162,8 @@ const server = http.createServer(async (req, res) => {
 
     if (plateIdFromQuery instanceof Array || stateFromQuery instanceof Array) {
       const errorObject = {
-        error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"
+        error:
+          "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"
       }
 
       res.writeHead(422)
@@ -1930,17 +2175,16 @@ const server = http.createServer(async (req, res) => {
     const plate = (plateIdFromQuery || '').toUpperCase()
     const state = (stateFromQuery || '').toUpperCase()
     const plateTypes = plateTypesFromQuery
-      ? plateTypesFromQuery.split(',').map((item) =>
-        item.toUpperCase().trim()
-      ).sort()
+      ? plateTypesFromQuery
+        .split(',')
+        .map((item) => item.toUpperCase().trim())
+        .sort()
       : null
 
     const plateTypesString = plateTypes ? `:${plateTypes}` : ''
 
     if (plate && state) {
-      potentialVehicles.push(
-        `${plate}:${state}${plateTypesString}`
-      )
+      potentialVehicles.push(`${plate}:${state}${plateTypesString}`)
     }
 
     const vehicles = detectVehicles(potentialVehicles)
@@ -1951,11 +2195,14 @@ const server = http.createServer(async (req, res) => {
       mixpanel_id: mixpanelId
     }
 
-    Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
-      .then((allResponses) => {
-        res.writeHead(200)
-        res.end(JSON.stringify({ data: allResponses }))
-      })
+    Promise.all(
+      vehicles.map((vehicle) =>
+        getVehicleResponse(vehicle, fields, externalData)
+      )
+    ).then((allResponses) => {
+      res.writeHead(200)
+      res.end(JSON.stringify({ data: allResponses }))
+    })
 
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which
     // are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}))
