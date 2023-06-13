@@ -622,7 +622,7 @@ findFilterFields = (fieldsString) => {
 
     if (fieldsString[fieldsString.indexOf(field) + field.length] == '(') {
 
-      var re = new RegExp(field + "\\([\\w|,]*\\)", "g");
+      const re = new RegExp(field + "\\([\\w|,]*\\)", "g");
 
       let subfields = fieldsString.match( re ) == undefined ? null : fieldsString.match( re )[0].replace(field, '')
       subfields = subfields.substring(1, subfields.length - 1);
@@ -1814,27 +1814,31 @@ const server = http.createServer(function (req, res) {
 
       console.log('getting a challenge request')
 
-      var query = url.parse(req.url, true).query
+      const host = req.headers.host
+      const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+      const parser = new URL(req.url, `${protocol}://${host}`)
+      const searchParams = parser.searchParams
 
-      console.log(query);
+      console.log(parser.searchParams)
 
-      const crc_token = query.crc_token || ''
-      console.log(crc_token)
+      const crcToken = searchParams.get('crc_token') || ''
+      console.log(crcToken)
+
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
-      const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET);
+      const hmac = crypto.createHmac('sha256', process.env.TWITTER_CONSUMER_SECRET)
 
       response = {
-        'response_token': 'sha256=' + hmac.update(crc_token).digest('base64')
+        'response_token': `sha256=${hmac.update(crcToken).digest('base64')}`
       }
 
       // # returns properly formatted json response
-      res.writeHead(200);
+      res.writeHead(200)
       res.end(JSON.stringify(response))
 
       console.log(JSON.stringify(response))
 
-      return;
+      return
 
     }
 
@@ -1846,6 +1850,9 @@ const server = http.createServer(function (req, res) {
     const pathname = parser.pathname
     const regexString = `${EXISTING_LOOKUP_PATH}[/]*`
     const identifier = (pathname.replace(new RegExp(regexString), ''))
+    const searchParams = parser.searchParams
+
+    const fields = findFilterFields(searchParams.fields)
 
     if (!identifier) {
       const body = {
@@ -1858,58 +1865,59 @@ const server = http.createServer(function (req, res) {
     }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
-      if (previousLookup) {
-
-        potentialVehicle = [
-          `${previousLookup['plate']}:${previousLookup['state']}${previousLookup['plate_types'] ? `:${previousLookup['plate_types']}` : ''}`
-        ]
-
-        const vehicles = detectVehicles(potentialVehicle)
-
-        const externalData = {
-          lookup_source              : 'existing_lookup',
-          fingerprint_id             : null,
-          mixpanel_id                : null,
-          unique_identifier          : identifier,
-          previous_lookup_created_at : previousLookup['created_at'],
-        }
-
-        Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
-          .then((allResponses) => {
-            res.writeHead(200)
-            res.end(JSON.stringify({data: allResponses}))
-
-            return
-        })
-      } else {
+      if (!previousLookup) {
         res.writeHead(200)
         res.end(JSON.stringify({data: []}))
+
+        return
       }
+
+      potentialVehicle = [
+        `${previousLookup.plate}:${previousLookup.state}${previousLookup.plate_types ? `:${previousLookup.plate_types}` : ''}`
+      ]
+
+      const vehicles = detectVehicles(potentialVehicle)
+
+      const externalData = {
+        lookup_source              : 'existing_lookup',
+        fingerprint_id             : null,
+        mixpanel_id                : null,
+        unique_identifier          : identifier,
+        previous_lookup_created_at : previousLookup['created_at'],
+      }
+
+      Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
+        .then((allResponses) => {
+          res.writeHead(200)
+          res.end(JSON.stringify({data: allResponses}))
+
+          return
+      })
     })
 
     // TODO: Move external lookup sources to another url.
     //
-    // var apiKey = query.api_key;
-
+    // const apiKey = query.api_key;
+    //
     // if (apiKey == undefined) {
     //   res.writeHead(401);
     //   res.end(JSON.stringify({error: "You must supply an api key to perform a recorded lookup, e.g. '&api_key=xxx' "}));
-
+    //
     //   return;
-
+    //
     // } else {
     //   let _ = connection.query('select * from authorized_external_users where api_key = ?', [apiKey], (error, results, fields) => {
     //     if (error) throw error;
-
+    //
     //     if (results.length == 0) {
     //       res.writeHead(403);
     //       res.end(JSON.stringify({error: "You supplied an invalid api key."}));
-
+    //
     //       return;
     //     } else {
     //       lookupSource  = 'external'
     //     }
-
+    //
     //   });
     // }
 
@@ -1920,45 +1928,55 @@ const server = http.createServer(function (req, res) {
     const parser = new URL(req.url, `${protocol}://${host}`)
     const searchParams = parser.searchParams
 
-    var fields = findFilterFields(searchParams.fields)
+    const fields = findFilterFields(searchParams.fields)
 
     const plateFromQuery = searchParams.get('plate')
     const plateIdFromQuery = searchParams.get('plate_id')
     const plateTypesFromQuery = searchParams.get('plate_types')
     const stateFromQuery = searchParams.get('state')
 
-    const lookupSource = searchParams.get('lookup_source')
     const fingerprintId = searchParams.get('fingerprint_id')
+    const lookupSource = searchParams.get('lookup_source')
     const mixpanelId = searchParams.get('mixpanel_id')
 
-    if (plateFromQuery == undefined) {
+    if (!plateFromQuery) {
       potentialVehicles = []
-    } else if((plateFromQuery instanceof Array)) {
+    } else if(plateFromQuery instanceof Array) {
       potentialVehicles = plateFromQuery
     } else {
       potentialVehicles = [plateFromQuery]
     }
 
-
     if (plateIdFromQuery instanceof Array || stateFromQuery instanceof Array) {
+      const errorObject = {
+        error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"
+      }
+
       res.writeHead(422)
-      res.end(JSON.stringify({error: "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"}))
+      res.end(JSON.stringify(errorObject))
 
       return
     }
 
+    const plate      = (plateIdFromQuery || '').toUpperCase()
+    const state      = (stateFromQuery || '').toUpperCase()
+    const plateTypes = plateTypesFromQuery
+      ? plateTypesFromQuery.split(',').map((item) =>
+          item.toUpperCase().trim()
+        ).sort()
+      : null
 
-    var plate           = (plateIdFromQuery || '').toUpperCase()
-    var state           = (stateFromQuery || '').toUpperCase()
-    var plateTypes      = plateTypesFromQuery == undefined ? null : plateTypesFromQuery.split(',').map((item) => item.toUpperCase().trim()).sort()
+    const plateTypesString = plateTypes ? `:${plateTypes}` : ''
 
     if (plate && state) {
-      potentialVehicles.push( plate + ':' + state + (plateTypes == undefined ? '' : (':' + plateTypes)) )
+      potentialVehicles.push(
+        `${plate}:${state}${plateTypesString}`
+      )
     }
 
     const vehicles = detectVehicles(potentialVehicles)
 
-    let externalData = {
+    const externalData = {
       lookup_source  : lookupSource,
       fingerprint_id : fingerprintId,
       mixpanel_id    : mixpanelId
@@ -1967,15 +1985,13 @@ const server = http.createServer(function (req, res) {
     Promise.all(vehicles.map((vehicle) => getVehicleResponse(vehicle, fields, externalData)))
       .then((allResponses) => {
         res.writeHead(200)
-
         res.end(JSON.stringify({data: allResponses}))
 
         return
       })
-    // res.writeHead(200, {'Content-Type': 'application/javascript'})
 
-    // res.writeHead(422, {'Content-Type': 'application/javascript'})
-    // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}))
+    // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which 
+    // are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}))
 
   } else {
     res.writeHead(404)
