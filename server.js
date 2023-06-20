@@ -21,6 +21,8 @@ const FAILURE_TO_STOP_AT_RED_LIGHT = "Failure to Stop at Red Light"
 const MOBILE_BUS_LANE_VIOLATION = "Mobile Bus Lane Violation"
 const SCHOOL_ZONE_SPEED_CAMERA_VIOLATION = "School Zone Speed Camera Violation"
 
+const EXISTING_LOOKUP_SOURCE = "existing_lookup"
+
 // humanized names for violations
 const openParkingAndCameraViolationsReadableViolationDescriptions = {
   "": "No Description Given",
@@ -583,6 +585,59 @@ const initializeConnection = (config) => {
   return connection
 }
 
+const createNewLookup = async (
+  plate,
+  state,
+  plateTypes,
+  numViolations,
+  lookupSource,
+  uniqueIdentifier,
+  cameraStreakData,
+  fingerprintID,
+  mixpanelID
+) => {
+  const countTowardsFrequency = !["api"].includes(lookupSource)
+
+  const bootEligibleUnderRdaaThreshold =
+    cameraStreakData?.camera_violations?.max_streak >= 5 || false
+  const bootEligibleUnderDvaaThreshold =
+    cameraStreakData?.red_light_camera_violations?.max_streak >= 5 ||
+    cameraStreakData?.school_zone_speed_camera_violations?.max_streak >= 15 ||
+    false
+
+  const newLookup = {
+    boot_eligible_under_rdaa_threshold: bootEligibleUnderRdaaThreshold,
+    boot_eligible_under_dvaa_threshold: bootEligibleUnderDvaaThreshold,
+    bus_lane_camera_violations:
+      cameraStreakData?.bus_lane_camera_violations?.total || 0,
+    count_towards_frequency: !!countTowardsFrequency,
+    created_at: new Date(),
+    external_username: null,
+    fingerprint_id: fingerprintID,
+    lookup_source: lookupSource,
+    message_id: null,
+    mixpanel_id: mixpanelID,
+    num_tickets: numViolations,
+    observed: null,
+    plate,
+    plate_types: plateTypes ? plateTypes.join() : null,
+    responded_to: true,
+    red_light_camera_violations:
+      cameraStreakData?.red_light_camera_violations?.total || 0,
+    speed_camera_violations:
+      cameraStreakData?.school_zone_speed_camera_violations?.total || 0,
+    state,
+    unique_identifier: uniqueIdentifier,
+  }
+
+  insertNewLookup(newLookup, (error, results, fields) => {
+    if (error) {
+      console.log(`error thrown at: ${new Date()}`)
+      throw error
+    }
+  })
+}
+
 const detectPlateTypes = (potentialPlateTypeString) => {
   if (potentialPlateTypeString.indexOf(",") !== -1) {
     // If the potential plate type string has a comma, split it on the comma
@@ -712,6 +767,133 @@ const findMaxCameraViolationsStreak = (violationTimes) => {
   }
 }
 
+const getAggregateFineDataForVehicle = (violations) => {
+  let totalFined = 0
+  let totalPaid = 0
+  let totalReduced = 0
+  let totalOutstanding = 0
+  let totalInJudgment = 0
+
+  violations.forEach((violation) => {
+    totalFined += violation.fined ?? 0
+    totalPaid += violation.paid ?? 0
+    totalReduced += violation.reduced ?? 0
+    totalOutstanding += violation.outstanding ?? 0
+    totalInJudgment +=
+      violation.judgment_entry_date && violation.outstanding
+        ? violation.outstanding
+        : 0
+  })
+
+  return {
+    total_fined: totalFined,
+    total_paid: totalPaid,
+    total_reduced: totalReduced,
+    total_outstanding: totalOutstanding,
+    total_in_judgment: totalInJudgment,
+  }
+}
+
+const getCameraStreakData = (violations) => {
+  const busLaneCameraViolations = violations.filter(
+    (violation) =>
+      violation.humanized_description === BUS_LANE_VIOLATION ||
+      violation.humanized_description === MOBILE_BUS_LANE_VIOLATION
+  )
+  const cameraViolations = violations.filter(
+    (violation) =>
+      violation.humanized_description === SCHOOL_ZONE_SPEED_CAMERA_VIOLATION ||
+      violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
+  )
+  const cameraViolationsWithBusCameraViolations = violations.filter(
+    (violation) =>
+      [
+        BUS_LANE_VIOLATION,
+        FAILURE_TO_STOP_AT_RED_LIGHT,
+        MOBILE_BUS_LANE_VIOLATION,
+        SCHOOL_ZONE_SPEED_CAMERA_VIOLATION,
+      ].includes(violation.humanized_description)
+  )
+  const redLightCameraViolations = violations.filter(
+    (violation) =>
+      violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
+  )
+  const speedCameraViolations = violations.filter(
+    (violation) =>
+      violation.humanized_description === SCHOOL_ZONE_SPEED_CAMERA_VIOLATION
+  )
+
+  const busLaneCameraStreakData = {
+    ...findMaxCameraViolationsStreak(
+      busLaneCameraViolations.map(
+        (violation) => violation.formatted_time_eastern
+      )
+    ),
+    total: busLaneCameraViolations.length,
+  }
+  const mixedCameraStreakData = {
+    ...findMaxCameraViolationsStreak(
+      cameraViolations.map((violation) => violation.formatted_time_eastern)
+    ),
+    total: cameraViolations.length,
+  }
+  const mixedCameraWithBusLaneCameraStreakData = {
+    ...findMaxCameraViolationsStreak(
+      cameraViolationsWithBusCameraViolations.map(
+        (violation) => violation.formatted_time_eastern
+      )
+    ),
+    total: cameraViolationsWithBusCameraViolations.length,
+  }
+  const redLightCameraStreakData = {
+    ...findMaxCameraViolationsStreak(
+      redLightCameraViolations.map(
+        (violation) => violation.formatted_time_eastern
+      )
+    ),
+    total: redLightCameraViolations.length,
+  }
+  const speedCameraStreakData = {
+    ...findMaxCameraViolationsStreak(
+      speedCameraViolations.map((violation) => violation.formatted_time_eastern)
+    ),
+    total: speedCameraViolations.length,
+  }
+
+  return {
+    ...(busLaneCameraStreakData && {
+      bus_lane_camera_violations: busLaneCameraStreakData,
+    }),
+    ...(mixedCameraWithBusLaneCameraStreakData && {
+      camera_violations_with_bus_lane_camera_violations:
+        mixedCameraWithBusLaneCameraStreakData,
+    }),
+    ...(mixedCameraStreakData && { camera_violations: mixedCameraStreakData }),
+    ...(redLightCameraStreakData && {
+      red_light_camera_violations: redLightCameraStreakData,
+    }),
+    ...(speedCameraStreakData && {
+      school_zone_speed_camera_violations: speedCameraStreakData,
+    }),
+  }
+}
+
+const getPreviousQueryResult = async (identifier) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?",
+      [identifier],
+      (error, results, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          throw error
+        }
+        return resolve(results[0])
+      }
+    )
+  })
+}
+
 const getReadableViolationDescription = (violation) => {
   const fiscalYearViolationDescriptionKey =
     violation.violation_code || violation.violation_description
@@ -755,52 +937,58 @@ const getReadableViolationDescription = (violation) => {
   return null
 }
 
-const obtainUniqueIdentifier = async () => {
-  const identifierAlreadyExists = (identifier) => {
-    return new Promise((resolve, reject) => {
-      connection.query(
-        "select count(*) as count from plate_lookups where unique_identifier = ?",
-        [identifier],
-        (error, results, fields) => {
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
-          }
-          return resolve(
-            !!(results && results[0] && results[0] && results[0].count !== 0)
-          )
-        }
-      )
-    })
+const getSearchQueryStringAndArgs = (
+  plate,
+  state,
+  plateTypes,
+  lookupSource,
+  existingIdentifier,
+  previousLookupCreatedAt
+) => {
+  let baseFrequencyQueryString =
+    "select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
+  let baseNumTicketsQueryString =
+    "select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
+
+  let baseFrequencyQueryArgs = [plate, state]
+  let baseNumTicketsQueryArgs = [plate, state]
+
+  if (plateTypes) {
+    baseFrequencyQueryString += " and plate_types = ?"
+    baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, plateTypes.join()]
+
+    baseNumTicketsQueryString += " and plate_types = ?"
+    baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+  }
+  if (lookupSource === EXISTING_LOOKUP_SOURCE) {
+    baseFrequencyQueryString += " and unique_identifier <> ? and created_at < ?"
+    baseFrequencyQueryArgs = [
+      ...baseFrequencyQueryArgs,
+      existingIdentifier,
+      previousLookupCreatedAt,
+    ]
+
+    baseNumTicketsQueryString +=
+      " and unique_identifier <> ? and created_at < ?"
+    baseNumTicketsQueryArgs = [
+      ...baseFrequencyQueryArgs,
+      existingIdentifier,
+      previousLookupCreatedAt,
+    ]
   }
 
-  const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
-  let uniqueIdentifier = getUniqueIdentifier()
+  baseNumTicketsQueryString += " ORDER BY created_at DESC LIMIT 1"
 
-  while (
-    await identifierAlreadyExists(uniqueIdentifier).catch((error) => {
-      throw error
-    })
-  ) {
-    uniqueIdentifier = getUniqueIdentifier()
+  const searchQueryArgs = [
+    ...baseFrequencyQueryArgs,
+    ...baseNumTicketsQueryArgs,
+  ]
+  const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
+
+  return {
+    query_args: searchQueryArgs,
+    query_string: searchQueryString,
   }
-  return uniqueIdentifier
-}
-
-const getPreviousQueryResult = async (identifier) => {
-  return new Promise((resolve, reject) => {
-    connection.query(
-      "select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?",
-      [identifier],
-      (error, results, fields) => {
-        if (error) {
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
-        return resolve(results[0])
-      }
-    )
-  })
 }
 
 const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
@@ -849,117 +1037,21 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       rectifiedPlate = violations[0].plate_id
     }
 
-    let totalFined = 0
-    let totalPaid = 0
-    let totalReduced = 0
-    let totalOutstanding = 0
-    let totalInJudgment = 0
+    const cameraStreakData = getCameraStreakData(violations)
 
-    violations.forEach((obj) => {
-      totalFined += obj.fined ?? 0
-      totalPaid += obj.paid ?? 0
-      totalReduced += obj.reduced ?? 0
-      totalOutstanding += obj.outstanding ?? 0
-      totalInJudgment +=
-        obj.judgment_entry_date && obj.outstanding ? obj.outstanding : 0
-    })
-
-    const fines = {
-      total_fined: totalFined,
-      total_paid: totalPaid,
-      total_reduced: totalReduced,
-      total_outstanding: totalOutstanding,
-      total_in_judgment: totalInJudgment,
-    }
-
-    const busLaneCameraViolations = violations.filter(
-      (violation) =>
-        violation.humanized_description === BUS_LANE_VIOLATION ||
-        violation.humanized_description === MOBILE_BUS_LANE_VIOLATION
+    const searchQueryData = getSearchQueryStringAndArgs(
+      plate,
+      state,
+      plateTypes,
+      lookupSource,
+      existingIdentifier,
+      previousLookupCreatedAt
     )
-    const cameraViolations = violations.filter(
-      (violation) =>
-        violation.humanized_description ===
-          SCHOOL_ZONE_SPEED_CAMERA_VIOLATION ||
-        violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
-    )
-    const redLightCameraViolations = violations.filter(
-      (violation) =>
-        violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
-    )
-    const speedCameraViolations = violations.filter(
-      (violation) =>
-        violation.humanized_description === SCHOOL_ZONE_SPEED_CAMERA_VIOLATION
-    )
-
-    const mixedCameraStreakData = findMaxCameraViolationsStreak(
-      cameraViolations.map((violation) => violation.formatted_time_eastern)
-    )
-    const redLightCameraStreakData = findMaxCameraViolationsStreak(
-      redLightCameraViolations.map(
-        (violation) => violation.formatted_time_eastern
-      )
-    )
-    const speedCameraStreakData = findMaxCameraViolationsStreak(
-      speedCameraViolations.map((violation) => violation.formatted_time_eastern)
-    )
-
-    const streakData = {}
-    if (mixedCameraStreakData) {
-      streakData.camera_violations = mixedCameraStreakData
-    }
-    if (redLightCameraStreakData) {
-      streakData.red_light_camera_violations = redLightCameraStreakData
-    }
-    if (speedCameraStreakData) {
-      streakData.school_zone_speed_camera_violations = speedCameraStreakData
-    }
-
-    let baseFrequencyQueryString =
-      "select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
-    let baseNumTicketsQueryString =
-      "select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
-
-    let baseFrequencyQueryArgs = [plate, state]
-    let baseNumTicketsQueryArgs = [plate, state]
-
-    if (plateTypes) {
-      baseFrequencyQueryString += " and plate_types = ?"
-      baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, plateTypes.join()]
-
-      baseNumTicketsQueryString += " and plate_types = ?"
-      baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
-    }
-    if (lookupSource === "existing_lookup") {
-      baseFrequencyQueryString +=
-        " and unique_identifier <> ? and created_at < ?"
-      baseFrequencyQueryArgs = [
-        ...baseFrequencyQueryArgs,
-        existingIdentifier,
-        previousLookupCreatedAt,
-      ]
-
-      baseNumTicketsQueryString +=
-        " and unique_identifier <> ? and created_at < ?"
-      baseNumTicketsQueryArgs = [
-        ...baseFrequencyQueryArgs,
-        existingIdentifier,
-        previousLookupCreatedAt,
-      ]
-    }
-
-    baseNumTicketsQueryString += " ORDER BY created_at DESC LIMIT 1"
-
-    const searchQueryArgs = [
-      ...baseFrequencyQueryArgs,
-      ...baseNumTicketsQueryArgs,
-    ]
-    const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
 
     return await new Promise((resolve, reject) => {
-      queryForLookups(
-        searchQueryString,
-        searchQueryArgs,
+      queryDatabaseForLookups(
+        searchQueryData.query_string,
+        searchQueryData.query_args,
         async (error, results, fields) => {
           if (error) {
             console.log(`error thrown at: ${new Date()}`)
@@ -971,63 +1063,35 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
           let previousCount = null
           let previousDate = null
 
-          if (
-            results &&
-            results[0] &&
-            results[0][0] &&
-            results[1] &&
-            results[1][0]
-          ) {
-            frequency = results[0][0].frequency + frequency
-            previousCount = results[1][0].num_tickets
-            previousDate = results[1][0].created_at
+          const frequencyResult = results?.[0]?.[0]
+          const previousLookupResult = results?.[1]?.[0]
+
+          if (frequencyResult && previousLookupResult) {
+            frequency = frequencyResult.frequency + frequency
+            previousCount = previousLookupResult.num_tickets
+            previousDate = previousLookupResult.created_at
           }
 
           const uniqueIdentifier =
             existingIdentifier || (await obtainUniqueIdentifier())
 
-          if (lookupSource !== "existing_lookup") {
-            const newLookup = {
-              boot_eligible_under_rdaa_threshold:
-                (mixedCameraStreakData &&
-                  mixedCameraStreakData.max_streak >= 5) ||
-                0,
-              boot_eligible_under_dvaa_threshold:
-                (redLightCameraStreakData &&
-                  redLightCameraStreakData.max_streak >= 5) ||
-                (speedCameraStreakData &&
-                  speedCameraStreakData.max_streak >= 15) ||
-                0,
-              bus_lane_camera_violations: busLaneCameraViolations.length,
-              count_towards_frequency: !!countTowardsFrequency,
-              created_at: new Date(),
-              external_username: null,
-              fingerprint_id: fingerprintID,
-              lookup_source: lookupSource,
-              message_id: null,
-              mixpanel_id: mixpanelID,
-              num_tickets: violations.length,
-              observed: null,
+          if (lookupSource !== EXISTING_LOOKUP_SOURCE) {
+            createNewLookup(
               plate,
-              plate_types: plateTypes ? plateTypes.join() : null,
-              responded_to: true,
-              red_light_camera_violations: redLightCameraViolations.length,
-              speed_camera_violations: speedCameraViolations.length,
               state,
-              unique_identifier: uniqueIdentifier,
-            }
-
-            insertNewLookup(newLookup, (error, results, fields) => {
-              if (error) {
-                console.log(`error thrown at: ${new Date()}`)
-                throw error
-              }
-            })
+              plateTypes,
+              violations.length,
+              lookupSource,
+              uniqueIdentifier,
+              cameraStreakData,
+              fingerprintID,
+              mixpanelID
+            )
           }
 
           const fullVehicleLookup = {
-            camera_streak_data: streakData,
-            fines,
+            camera_streak_data: cameraStreakData,
+            fines: getAggregateFineDataForVehicle(violations),
             plate,
             plate_types: plateTypes,
             previous_lookup_date: previousDate,
@@ -1629,73 +1693,74 @@ const getViolationWithFormattedTime = (violation) => {
   const violationDate = violation.issue_date
   const violationTime = violation.violation_time
 
-  let date
-  let formattedTime
-
   if (violationDate) {
     const dateMatch = violationDate.match("T")
-    if (dateMatch) {
-      date = violationDate.split("T")[0]
-    }
-  }
+    let date = dateMatch ? violationDate.split("T")[0] : violationDate
 
-  if (violationTime) {
-    const isAM = violationTime.includes("A")
-    const isPM = violationTime.includes("P")
+    let formattedTime
 
-    const fourDigitTimeMatch = violationTime.match(/\d{4}/)
-    const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
+    if (violationTime) {
+      const isAM = violationTime.includes("A")
+      const isPM = violationTime.includes("P")
 
-    let hour
-    let minute
+      const fourDigitTimeMatch = violationTime.match(/\d{4}/)
+      const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
 
-    if (fourDigitTimeMatch) {
-      // e.g. value is '0521P'
-      hour = fourDigitTimeMatch[0].substring(0, 2)
-      minute = fourDigitTimeMatch[0].substring(2, 4)
-    } else if (fourDigitWithColonTimeMatch) {
-      // e.g. value is '05:21P'
-      hour = fourDigitWithColonTimeMatch[0].split(":")[0]
-      minute = fourDigitWithColonTimeMatch[0].split(":")[1]
-    }
+      let hour
+      let minute
 
-    // Change 12-hour PM format to 24-hour format
-    if (isPM && parseInt(hour) < 12) {
-      // e.g. hour is '05' and time is PM
-      hour = (parseInt(hour) + 12).toString()
-    } else if (isAM && parseInt(hour) === 12) {
-      // e.g. hour is '12' and time is AM
-      hour = "00"
-    }
+      if (fourDigitTimeMatch) {
+        // e.g. value is '0521P'
+        hour = fourDigitTimeMatch[0].substring(0, 2)
+        minute = fourDigitTimeMatch[0].substring(2, 4)
+      } else if (fourDigitWithColonTimeMatch) {
+        // e.g. value is '05:21P'
+        hour = fourDigitWithColonTimeMatch[0].split(":")[0]
+        minute = fourDigitWithColonTimeMatch[0].split(":")[1]
+      }
 
-    // If violation date in MM/DD/YYYY format
-    if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
+      // Change 12-hour PM format to 24-hour format
+      if (isPM && parseInt(hour) < 12) {
+        // e.g. hour is '05' and time is PM
+        hour = (parseInt(hour) + 12).toString()
+      } else if (isAM && parseInt(hour) === 12) {
+        // e.g. hour is '12' and time is AM
+        hour = "00"
+      }
+
+      // If violation date in MM/DD/YYYY format
+      if (date?.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        // replace slashes with dashes
+        const [month, day, year] = date.split("/")
+
+        formattedTime = `${year}-${month}-${day}T${hour}:${minute}`
+      } else {
+        formattedTime = `${date}T${hour}:${minute}`
+      }
+    } else {
+      // If no time data, just assume midnight (Eastern).
+
       // replace slashes with dashes
       date = date.replace(/\//g, "-")
 
-      formattedTime = `${date} ${hour}:${minute}`
-    } else {
-      formattedTime = `${date}T${hour}:${minute}`
+      formattedTime = `${date} 00:00`
     }
-  } else {
-    // If no time data, just assume midnight (Eastern).
 
-    // replace slashes with dashes
-    date = date.replace(/\//g, "-")
+    const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
+      zone: "America/New_York",
+    })
 
-    formattedTime = `${date} 00:00`
+    return {
+      ...violation,
+      formatted_time: violationTimeInEasternTime,
+      formatted_time_eastern: violationTimeInEasternTime,
+      formatted_time_utc: violationTimeInEasternTime.toUTC(),
+    }
   }
 
-  const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
-    zone: "America/New_York",
-  })
+  console.log("no violation date")
 
-  return {
-    ...violation,
-    formatted_time: violationTimeInEasternTime,
-    formatted_time_eastern: violationTimeInEasternTime,
-    formatted_time_utc: violationTimeInEasternTime.toUTC(),
-  }
+  return violation
 }
 
 const modifyViolationsForResponse = (violations, selectedFields) =>
@@ -1799,7 +1864,39 @@ const normalizeViolations = async (violations) => {
   return Promise.all(returnViolations)
 }
 
-const queryForLookups = (queryString, queryArgs, callback) => {
+const obtainUniqueIdentifier = async () => {
+  const identifierAlreadyExists = (identifier) => {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        "select count(*) as count from plate_lookups where unique_identifier = ?",
+        [identifier],
+        (error, results, fields) => {
+          if (error) {
+            console.log(`error thrown at: ${new Date()}`)
+            throw error
+          }
+          return resolve(
+            !!(results && results[0] && results[0] && results[0].count !== 0)
+          )
+        }
+      )
+    })
+  }
+
+  const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
+  let uniqueIdentifier = getUniqueIdentifier()
+
+  while (
+    await identifierAlreadyExists(uniqueIdentifier).catch((error) => {
+      throw error
+    })
+  ) {
+    uniqueIdentifier = getUniqueIdentifier()
+  }
+  return uniqueIdentifier
+}
+
+const queryDatabaseForLookups = (queryString, queryArgs, callback) => {
   connection.query(queryString, queryArgs, callback)
 }
 
@@ -2133,7 +2230,7 @@ const server = http.createServer(async (req, res) => {
       const vehicles = detectVehicles(potentialVehicle)
 
       const externalData = {
-        lookup_source: "existing_lookup",
+        lookup_source: EXISTING_LOOKUP_SOURCE,
         fingerprint_id: null,
         mixpanel_id: null,
         unique_identifier: identifier,
