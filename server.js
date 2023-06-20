@@ -1708,6 +1708,12 @@ const normalizeViolations = async (violations) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
 
+    const standardizedJudgmentEntryDate = violation.judgment_entry_date
+      ? DateTime.fromFormat(violation.judgment_entry_date, "MM/dd/yyyy", {
+          locale: "en-US",
+        }).toISODate()
+      : null
+
     const newViolation = {
       amount_due: isNaN(parseFloat(violation.amount_due))
         ? null
@@ -1731,7 +1737,7 @@ const normalizeViolations = async (violations) => {
         ? null
         : parseInt(violation.issuer_precinct),
       issuing_agency: issuingAgencies[violation.issuing_agency] || null,
-      judgment_entry_date: violation.judgment_entry_date || null,
+      judgment_entry_date: standardizedJudgmentEntryDate,
       law_section: violation.law_section || null,
       payment_amount: isNaN(parseFloat(violation.payment_amount))
         ? null
