@@ -1,490 +1,496 @@
 #!/usr/bin/env node
-const axios = require('axios')
-const crypto = require('crypto')
-const http = require('http')
-const mysql = require('mysql')
+const axios = require("axios")
+const crypto = require("crypto")
+const { DateTime } = require("luxon")
+const http = require("http")
+const mysql = require("mysql")
 
-const googleMapsClient = require('@google/maps').createClient({
+const googleMapsClient = require("@google/maps").createClient({
   key: process.env.GOOGLE_PLACES_API_KEY,
-  Promise
+  Promise,
 })
 
-const API_LOOKUP_PATH = '/api/v1'
-const EXISTING_LOOKUP_PATH = '/api/v1/lookup'
+const API_LOOKUP_PATH = "/api/v1"
+const EXISTING_LOOKUP_PATH = "/api/v1/lookup"
 
 const SERVER_PORT = 8080
 const LOCAL_SERVER_LOCATION = `localhost:${SERVER_PORT}`
 
+const BUS_LANE_VIOLATION = "Bus Lane Violation"
+const FAILURE_TO_STOP_AT_RED_LIGHT = "Failure to Stop at Red Light"
+const MOBILE_BUS_LANE_VIOLATION = "Mobile Bus Lane Violation"
+const SCHOOL_ZONE_SPEED_CAMERA_VIOLATION = "School Zone Speed Camera Violation"
+
 // humanized names for violations
 const openParkingAndCameraViolationsReadableViolationDescriptions = {
-  '': 'No Description Given',
-  'ALTERING INTERCITY BUS PERMIT': 'Altered Intercity Bus Permit',
-  'ANGLE PARKING': 'No Angle Parking',
-  'ANGLE PARKING-COMM VEHICLE': 'No Angle Parking',
-  'BEYOND MARKED SPACE': 'No Parking Beyond Marked Space',
-  'BIKE LANE': 'Blocking Bike Lane',
-  'BLUE ZONE': 'No Parking - Blue Zone',
-  'BUS LANE VIOLATION': 'Bus Lane Violation',
-  'BUS PARKING IN LOWER MANHATTAN': 'Bus Parking in Lower Manhattan',
-  'COMML PLATES-UNALTERED VEHICLE': 'Commercial Plates on Unaltered Vehicle',
-  CROSSWALK: 'Blocking Crosswalk',
-  'DETACHED TRAILER': 'Detached Trailer',
-  'DIVIDED HIGHWAY': 'No Stopping - Divided Highway',
-  'DOUBLE PARKING': 'Double Parking',
-  'DOUBLE PARKING-MIDTOWN COMML': 'Double Parking - Midtown Commercial Zone',
-  'ELEVATED/DIVIDED HIGHWAY/TUNNL':
-    'No Stopping in Tunnel or on Elevated Highway',
-  'EXCAVATION-VEHICLE OBSTR TRAFF':
-    'No Stopping - Adjacent to Street Construction',
-  'EXPIRED METER': 'Expired Meter',
-  'EXPIRED METER-COMM METER ZONE': 'Expired Meter - Commercial Meter Zone',
-  'EXPIRED MUNI METER': 'Expired Meter',
-  'EXPIRED MUNI MTR-COMM MTR ZN': 'Expired Meter - Commercial Meter Zone',
-  'FAIL TO DISP. MUNI METER RECPT': 'Failure to Display Meter Receipt',
-  'FAIL TO DSPLY MUNI METER RECPT': 'Failure to Display Meter Receipt',
-  'FAILURE TO DISPLAY BUS PERMIT': 'Failure to Display Bus Permit',
-  'FAILURE TO STOP AT RED LIGHT': 'Failure to Stop at Red Light',
-  'FEEDING METER': 'Feeding Meter',
-  'FIRE HYDRANT': 'Fire Hydrant',
-  'FRONT OR BACK PLATE MISSING': 'Front or Back Plate Missing',
-  IDLING: 'Idling',
-  'IMPROPER REGISTRATION': 'Improper Registration',
+  "": "No Description Given",
+  "ALTERING INTERCITY BUS PERMIT": "Altered Intercity Bus Permit",
+  "ANGLE PARKING": "No Angle Parking",
+  "ANGLE PARKING-COMM VEHICLE": "No Angle Parking",
+  "BEYOND MARKED SPACE": "No Parking Beyond Marked Space",
+  "BIKE LANE": "Blocking Bike Lane",
+  "BLUE ZONE": "No Parking - Blue Zone",
+  "BUS LANE VIOLATION": BUS_LANE_VIOLATION,
+  "BUS PARKING IN LOWER MANHATTAN": "Bus Parking in Lower Manhattan",
+  "COMML PLATES-UNALTERED VEHICLE": "Commercial Plates on Unaltered Vehicle",
+  CROSSWALK: "Blocking Crosswalk",
+  "DETACHED TRAILER": "Detached Trailer",
+  "DIVIDED HIGHWAY": "No Stopping - Divided Highway",
+  "DOUBLE PARKING": "Double Parking",
+  "DOUBLE PARKING-MIDTOWN COMML": "Double Parking - Midtown Commercial Zone",
+  "ELEVATED/DIVIDED HIGHWAY/TUNNL":
+    "No Stopping in Tunnel or on Elevated Highway",
+  "EXCAVATION-VEHICLE OBSTR TRAFF":
+    "No Stopping - Adjacent to Street Construction",
+  "EXPIRED METER": "Expired Meter",
+  "EXPIRED METER-COMM METER ZONE": "Expired Meter - Commercial Meter Zone",
+  "EXPIRED MUNI METER": "Expired Meter",
+  "EXPIRED MUNI MTR-COMM MTR ZN": "Expired Meter - Commercial Meter Zone",
+  "FAIL TO DISP. MUNI METER RECPT": "Failure to Display Meter Receipt",
+  "FAIL TO DSPLY MUNI METER RECPT": "Failure to Display Meter Receipt",
+  "FAILURE TO DISPLAY BUS PERMIT": "Failure to Display Bus Permit",
+  "FAILURE TO STOP AT RED LIGHT": FAILURE_TO_STOP_AT_RED_LIGHT,
+  "FEEDING METER": "Feeding Meter",
+  "FIRE HYDRANT": "Fire Hydrant",
+  "FRONT OR BACK PLATE MISSING": "Front or Back Plate Missing",
+  IDLING: "Idling",
+  "IMPROPER REGISTRATION": "Improper Registration",
   "INSP STICKER-MUTILATED/C'FEIT":
-    'Inspection Sticker Mutilated or Counterfeit',
-  'INSP. STICKER-EXPIRED/MISSING': 'Inspection Sticker Expired or Missing',
-  INTERSECTION: 'No Stopping - Intersection',
-  'MARGINAL STREET/WATER FRONT': 'No Parking on Marginal Street or Waterfront',
-  'MIDTOWN PKG OR STD-3HR LIMIT': 'Midtown Parking or Standing - 3 Hour Limit',
-  MISCELLANEOUS: 'Miscellaneous',
-  'MISSING EQUIPMENT': 'Missing Required Equipment',
-  'NGHT PKG ON RESID STR-COMM VEH':
-    'No Nighttime Parking on Residential Street - Commercial Vehicle',
-  'NIGHTTIME STD/ PKG IN A PARK': 'No Nighttime Standing or Parking in a Park',
-  'NO MATCH-PLATE/STICKER': 'Plate and Sticker Do Not Match',
-  'NO OPERATOR NAM/ADD/PH DISPLAY': 'Failure to Display Operator Information',
-  'NO PARKING-DAY/TIME LIMITS': 'No Parking - Day/Time Limits',
-  'NO PARKING-EXC. AUTH. VEHICLE': 'No Parking - Except Authorized Vehicles',
-  'NO PARKING-EXC. HNDICAP PERMIT': 'No Parking - Except Disability Permit',
-  'NO PARKING-EXC. HOTEL LOADING': 'No Parking - Except Hotel Loading',
-  'NO PARKING-STREET CLEANING': 'No Parking - Street Cleaning',
-  'NO PARKING-TAXI STAND': 'No Parking - Taxi Stand',
-  'NO STANDING EXCP D/S': 'No Standing - Except Department of State',
-  'NO STANDING EXCP DP': 'No Standing - Except Diplomat',
-  'NO STANDING-BUS LANE': 'No Standing - Bus Lane',
-  'NO STANDING-BUS STOP': 'No Standing - Bus Stop',
-  'NO STANDING-COMM METER ZONE': 'No Standing - Commercial Meter Zone',
-  'NO STANDING-COMMUTER VAN STOP': 'No Standing - Commuter Van Stop',
-  'NO STANDING-DAY/TIME LIMITS': 'No Standing - Day/Time Limits',
-  'NO STANDING-EXC. AUTH. VEHICLE': 'No Standing - Except Authorized Vehicle',
-  'NO STANDING-EXC. TRUCK LOADING': 'No Standing - Except Truck Loading',
-  'NO STANDING-FOR HIRE VEH STOP': 'No Standing - For Hire Vehicle Stop',
-  'NO STANDING-HOTEL LOADING': 'No Standing - Hotel Loading',
-  'NO STANDING-OFF-STREET LOT': 'No Standing - Off-Street Lot',
-  'NO STANDING-SNOW EMERGENCY': 'No Standing - Snow Emergency',
-  'NO STANDING-TAXI STAND': 'No Standing - Taxi Stand',
-  'NO STD(EXC TRKS/GMTDST NO-TRK)':
-    'No Standing - Except Trucks in Garment District',
-  'NO STOP/STANDNG EXCEPT PAS P/U':
-    'No Stopping or Standing Except for Passenger Pick-Up',
-  'NO STOPPING-DAY/TIME LIMITS': 'No Stopping - Day/Time Limits',
-  'NON-COMPLIANCE W/ POSTED SIGN': 'Non-Compliance with Posted Sign',
-  'OBSTRUCTING DRIVEWAY': 'Obstructing Driveway',
-  'OBSTRUCTING TRAFFIC/INTERSECT': 'Obstructing Traffic or Intersection',
-  'OT PARKING-MISSING/BROKEN METR':
-    'Overtime Parking at Missing or Broken Meter',
-  OTHER: 'Other',
-  'OVERNIGHT TRACTOR TRAILER PKG': 'Overnight Parking of Tractor Trailer',
-  'OVERTIME PKG-TIME LIMIT POSTED': 'Overtime Parking - Time Limit Posted',
-  'OVERTIME STANDING DP': 'Overtime Standing - Diplomat',
-  'OVERTIME STDG D/S': 'Overtime Standing - Department of State',
-  'PARKED BUS-EXC. DESIG. AREA': 'Bus Parking Outside of Designated Area',
-  'PEDESTRIAN RAMP': 'Blocking Pedestrian Ramp',
-  'PHTO SCHOOL ZN SPEED VIOLATION': 'School Zone Speed Camera Violation',
-  'PKG IN EXC. OF LIM-COMM MTR ZN':
-    'Parking in Excess of Limits - Commercial Meter Zone',
-  'PLTFRM LFTS LWRD POS COMM VEH':
-    'Commercial Vehicle Platform Lifts in Lowered Position',
-  'RAILROAD CROSSING': 'No Stopping - Railroad Crossing',
+    "Inspection Sticker Mutilated or Counterfeit",
+  "INSP. STICKER-EXPIRED/MISSING": "Inspection Sticker Expired or Missing",
+  INTERSECTION: "No Stopping - Intersection",
+  "MARGINAL STREET/WATER FRONT": "No Parking on Marginal Street or Waterfront",
+  "MIDTOWN PKG OR STD-3HR LIMIT": "Midtown Parking or Standing - 3 Hour Limit",
+  MISCELLANEOUS: "Miscellaneous",
+  "MISSING EQUIPMENT": "Missing Required Equipment",
+  "NGHT PKG ON RESID STR-COMM VEH":
+    "No Nighttime Parking on Residential Street - Commercial Vehicle",
+  "NIGHTTIME STD/ PKG IN A PARK": "No Nighttime Standing or Parking in a Park",
+  "NO MATCH-PLATE/STICKER": "Plate and Sticker Do Not Match",
+  "NO OPERATOR NAM/ADD/PH DISPLAY": "Failure to Display Operator Information",
+  "NO PARKING-DAY/TIME LIMITS": "No Parking - Day/Time Limits",
+  "NO PARKING-EXC. AUTH. VEHICLE": "No Parking - Except Authorized Vehicles",
+  "NO PARKING-EXC. HNDICAP PERMIT": "No Parking - Except Disability Permit",
+  "NO PARKING-EXC. HOTEL LOADING": "No Parking - Except Hotel Loading",
+  "NO PARKING-STREET CLEANING": "No Parking - Street Cleaning",
+  "NO PARKING-TAXI STAND": "No Parking - Taxi Stand",
+  "NO STANDING EXCP D/S": "No Standing - Except Department of State",
+  "NO STANDING EXCP DP": "No Standing - Except Diplomat",
+  "NO STANDING-BUS LANE": "No Standing - Bus Lane",
+  "NO STANDING-BUS STOP": "No Standing - Bus Stop",
+  "NO STANDING-COMM METER ZONE": "No Standing - Commercial Meter Zone",
+  "NO STANDING-COMMUTER VAN STOP": "No Standing - Commuter Van Stop",
+  "NO STANDING-DAY/TIME LIMITS": "No Standing - Day/Time Limits",
+  "NO STANDING-EXC. AUTH. VEHICLE": "No Standing - Except Authorized Vehicle",
+  "NO STANDING-EXC. TRUCK LOADING": "No Standing - Except Truck Loading",
+  "NO STANDING-FOR HIRE VEH STOP": "No Standing - For Hire Vehicle Stop",
+  "NO STANDING-HOTEL LOADING": "No Standing - Hotel Loading",
+  "NO STANDING-OFF-STREET LOT": "No Standing - Off-Street Lot",
+  "NO STANDING-SNOW EMERGENCY": "No Standing - Snow Emergency",
+  "NO STANDING-TAXI STAND": "No Standing - Taxi Stand",
+  "NO STD(EXC TRKS/GMTDST NO-TRK)":
+    "No Standing - Except Trucks in Garment District",
+  "NO STOP/STANDNG EXCEPT PAS P/U":
+    "No Stopping or Standing Except for Passenger Pick-Up",
+  "NO STOPPING-DAY/TIME LIMITS": "No Stopping - Day/Time Limits",
+  "NON-COMPLIANCE W/ POSTED SIGN": "Non-Compliance with Posted Sign",
+  "OBSTRUCTING DRIVEWAY": "Obstructing Driveway",
+  "OBSTRUCTING TRAFFIC/INTERSECT": "Obstructing Traffic or Intersection",
+  "OT PARKING-MISSING/BROKEN METR":
+    "Overtime Parking at Missing or Broken Meter",
+  OTHER: "Other",
+  "OVERNIGHT TRACTOR TRAILER PKG": "Overnight Parking of Tractor Trailer",
+  "OVERTIME PKG-TIME LIMIT POSTED": "Overtime Parking - Time Limit Posted",
+  "OVERTIME STANDING DP": "Overtime Standing - Diplomat",
+  "OVERTIME STDG D/S": "Overtime Standing - Department of State",
+  "PARKED BUS-EXC. DESIG. AREA": "Bus Parking Outside of Designated Area",
+  "PEDESTRIAN RAMP": "Blocking Pedestrian Ramp",
+  "PHTO SCHOOL ZN SPEED VIOLATION": SCHOOL_ZONE_SPEED_CAMERA_VIOLATION,
+  "PKG IN EXC. OF LIM-COMM MTR ZN":
+    "Parking in Excess of Limits - Commercial Meter Zone",
+  "PLTFRM LFTS LWRD POS COMM VEH":
+    "Commercial Vehicle Platform Lifts in Lowered Position",
+  "RAILROAD CROSSING": "No Stopping - Railroad Crossing",
   "REG STICKER-MUTILATED/C'FEIT":
-    'Registration Sticker Mutilated or Counterfeit',
-  'REG. STICKER-EXPIRED/MISSING': 'Registration Sticker Expired or Missing',
-  'REMOVE/REPLACE FLAT TIRE': 'Replacing Flat Tire on Major Roadway',
-  'SAFETY ZONE': 'No Standing - Safety Zone',
-  'SELLING/OFFERING MCHNDSE-METER':
-    'Selling or Offering Merchandise From Metered Parking',
-  SIDEWALK: 'Parked on Sidewalk',
-  'STORAGE-3HR COMMERCIAL': 'Street Storage of Commercial Vehicle Over 3 Hours',
-  'TRAFFIC LANE': 'No Stopping - Traffic Lane',
-  'TUNNEL/ELEVATED/ROADWAY': 'No Stopping in Tunnel or on Elevated Highway',
-  'UNALTERED COMM VEH-NME/ADDRESS': 'Commercial Plates on Unaltered Vehicle',
-  'UNALTERED COMM VEHICLE': 'Commercial Plates on Unaltered Vehicle',
-  'UNAUTHORIZED BUS LAYOVER': 'Bus Layover in Unauthorized Location',
-  'UNAUTHORIZED PASSENGER PICK-UP': 'Unauthorized Passenger Pick-Up',
-  'VACANT LOT': 'No Parking - Vacant Lot',
-  'VEH-SALE/WSHNG/RPRNG/DRIVEWAY':
-    'No Parking on Street to Wash or Repair Vehicle',
-  'VEHICLE FOR SALE(DEALERS ONLY)':
-    'No Parking on Street to Display Vehicle for Sale',
-  'VIN OBSCURED': 'Vehicle Identification Number Obscured',
-  'WASH/REPAIR VEHCL-REPAIR ONLY':
-    'No Parking on Street to Wash or Repair Vehicle',
-  'WRONG WAY': 'No Parking Opposite Street Direction'
+    "Registration Sticker Mutilated or Counterfeit",
+  "REG. STICKER-EXPIRED/MISSING": "Registration Sticker Expired or Missing",
+  "REMOVE/REPLACE FLAT TIRE": "Replacing Flat Tire on Major Roadway",
+  "SAFETY ZONE": "No Standing - Safety Zone",
+  "SELLING/OFFERING MCHNDSE-METER":
+    "Selling or Offering Merchandise From Metered Parking",
+  SIDEWALK: "Parked on Sidewalk",
+  "STORAGE-3HR COMMERCIAL": "Street Storage of Commercial Vehicle Over 3 Hours",
+  "TRAFFIC LANE": "No Stopping - Traffic Lane",
+  "TUNNEL/ELEVATED/ROADWAY": "No Stopping in Tunnel or on Elevated Highway",
+  "UNALTERED COMM VEH-NME/ADDRESS": "Commercial Plates on Unaltered Vehicle",
+  "UNALTERED COMM VEHICLE": "Commercial Plates on Unaltered Vehicle",
+  "UNAUTHORIZED BUS LAYOVER": "Bus Layover in Unauthorized Location",
+  "UNAUTHORIZED PASSENGER PICK-UP": "Unauthorized Passenger Pick-Up",
+  "VACANT LOT": "No Parking - Vacant Lot",
+  "VEH-SALE/WSHNG/RPRNG/DRIVEWAY":
+    "No Parking on Street to Wash or Repair Vehicle",
+  "VEHICLE FOR SALE(DEALERS ONLY)":
+    "No Parking on Street to Display Vehicle for Sale",
+  "VIN OBSCURED": "Vehicle Identification Number Obscured",
+  "WASH/REPAIR VEHCL-REPAIR ONLY":
+    "No Parking on Street to Wash or Repair Vehicle",
+  "WRONG WAY": "No Parking Opposite Street Direction",
 }
 
 // humanized names for violations
 const fiscalYearReadableViolationDescriptions = {
-  '01': 'Failure to Display Bus Permit',
-  '02': 'Failure to Display Operator Information',
-  '03': 'Unauthorized Passenger Pick-Up',
-  '04': 'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit',
-  '04A': 'Bus Parking in Lower Manhattan - Non-Bus',
-  '04B': 'Bus Parking in Lower Manhattan - No Permit',
-  5: 'Bus Lane Violation',
-  '05': 'Bus Lane Violation',
-  '06': 'Overnight Parking of Tractor Trailer',
-  7: 'Failure to Stop at Red Light',
-  '07': 'Failure to Stop at Red Light',
-  '08': 'Idling',
-  '09': 'Obstructing Traffic or Intersection',
-  10: 'No Stopping or Standing Except for Passenger Pick-Up',
-  11: 'No Parking - Except Hotel Loading',
+  "01": "Failure to Display Bus Permit",
+  "02": "Failure to Display Operator Information",
+  "03": "Unauthorized Passenger Pick-Up",
+  "04": "Bus Parking in Lower Manhattan - Exceeded 3-Hour limit",
+  "04A": "Bus Parking in Lower Manhattan - Non-Bus",
+  "04B": "Bus Parking in Lower Manhattan - No Permit",
+  5: BUS_LANE_VIOLATION,
+  "05": BUS_LANE_VIOLATION,
+  "06": "Overnight Parking of Tractor Trailer",
+  7: FAILURE_TO_STOP_AT_RED_LIGHT,
+  "07": FAILURE_TO_STOP_AT_RED_LIGHT,
+  "08": "Idling",
+  "09": "Obstructing Traffic or Intersection",
+  10: "No Stopping or Standing Except for Passenger Pick-Up",
+  11: "No Parking - Except Hotel Loading",
   12: [
     {
-      description: 'No Standing - Snow Emergency',
-      startDate: new Date(1970, 0, 1)
+      description: "No Standing - Snow Emergency",
+      startDate: new Date(1970, 0, 1),
     },
     {
-      description: 'Mobile Bus Lane Violation',
-      startDate: new Date(2019, 11, 6)
-    }
+      description: MOBILE_BUS_LANE_VIOLATION,
+      startDate: new Date(2019, 11, 6),
+    },
   ],
-  13: 'No Standing - Taxi Stand',
-  14: 'No Standing - Day/Time Limits',
-  16: 'No Standing - Except Truck Loading/Unloading',
-  '16A': 'No Standing - Except Truck Loading/Unloading',
-  17: 'No Parking - Except Authorized Vehicles',
-  18: 'No Standing - Bus Lane',
-  19: 'No Standing - Bus Stop',
-  20: 'No Parking - Day/Time Limits',
-  '20A': 'No Parking - Day/Time Limits',
-  21: 'No Parking - Street Cleaning',
-  22: 'No Parking - Except Hotel Loading',
-  23: 'No Parking - Taxi Stand',
-  24: 'No Parking - Except Authorized Vehicles',
-  25: 'No Standing - Commuter Van Stop',
-  26: 'No Standing - For Hire Vehicle Stop',
-  27: 'No Parking - Except Disability Permit',
-  28: 'Overtime Standing - Diplomat',
-  29: 'Altered Intercity Bus Permit',
-  30: 'No Stopping/Standing',
-  31: 'No Standing - Commercial Meter Zone',
-  32: 'Overtime Parking at Missing or Broken Meter',
-  '32A': 'Overtime Parking at Missing or Broken Meter',
+  13: "No Standing - Taxi Stand",
+  14: "No Standing - Day/Time Limits",
+  16: "No Standing - Except Truck Loading/Unloading",
+  "16A": "No Standing - Except Truck Loading/Unloading",
+  17: "No Parking - Except Authorized Vehicles",
+  18: "No Standing - Bus Lane",
+  19: "No Standing - Bus Stop",
+  20: "No Parking - Day/Time Limits",
+  "20A": "No Parking - Day/Time Limits",
+  21: "No Parking - Street Cleaning",
+  22: "No Parking - Except Hotel Loading",
+  23: "No Parking - Taxi Stand",
+  24: "No Parking - Except Authorized Vehicles",
+  25: "No Standing - Commuter Van Stop",
+  26: "No Standing - For Hire Vehicle Stop",
+  27: "No Parking - Except Disability Permit",
+  28: "Overtime Standing - Diplomat",
+  29: "Altered Intercity Bus Permit",
+  30: "No Stopping/Standing",
+  31: "No Standing - Commercial Meter Zone",
+  32: "Overtime Parking at Missing or Broken Meter",
+  "32A": "Overtime Parking at Missing or Broken Meter",
   33: [
     {
-      description: 'Feeding Meter',
-      startDate: new Date(1970, 0, 1)
+      description: "Feeding Meter",
+      startDate: new Date(1970, 0, 1),
     },
     {
-      description: 'Misuse of Parking Permit',
-      startDate: new Date(2019, 5, 11)
-    }
+      description: "Misuse of Parking Permit",
+      startDate: new Date(2019, 5, 11),
+    },
   ],
-  35: 'Selling or Offering Merchandise From Metered Parking',
-  36: 'School Zone Speed Camera Violation',
-  37: 'Expired Meter',
-  38: 'Failure to Display Meter Receipt',
-  39: 'Overtime Parking - Time Limit Posted',
-  40: 'Fire Hydrant',
-  42: 'Expired Meter - Commercial Meter Zone',
-  43: 'Expired Meter - Commercial Meter Zone',
-  44: 'Overtime Parking - Commercial Meter Zone',
-  45: 'No Stopping - Traffic Lane',
-  46: 'Double Parking',
-  '46A': 'Double Parking',
-  '46B': 'Double Parking - Within 100 ft. of Loading Zone',
-  47: 'Double Parking - Midtown Commercial Zone',
-  '47A': 'Double Parking - Angle Parking',
-  48: 'Blocking Bike Lane',
-  49: 'No Stopping - Adjacent to Street Construction',
-  50: 'Blocking Crosswalk',
-  51: 'Parked on Sidewalk',
-  52: 'No Stopping - Intersection',
-  53: 'No Standing - Safety Zone',
-  55: 'No Stopping in Tunnel or on Elevated Highway',
-  56: 'No Stopping - Divided Highway',
-  57: 'No Parking - Blue Zone',
-  58: 'No Parking on Marginal Street or Waterfront',
-  59: 'No Angle Parking',
-  60: 'No Angle Parking',
-  61: 'No Parking Opposite Street Direction',
-  62: 'No Parking Beyond Marked Space',
-  63: 'No Nighttime Standing or Parking in a Park',
-  64: 'No Standing - Consul or Diplomat',
-  65: 'Overtime Standing - Consul or Diplomat Over 30 Minutes',
-  66: 'Detached Trailer',
-  67: 'Blocking Pedestrian Ramp',
-  68: 'Non-Compliance with Posted Sign',
-  69: 'Failure to Display Meter Receipt',
-  70: 'Registration Sticker Expired or Missing',
-  '70A': 'Registration Sticker Expired or Missing',
-  '70B': 'Improper Display of Registration',
-  71: 'Inspection Sticker Expired or Missing',
-  '71A': 'Inspection Sticker Expired or Missing',
-  '71B': 'Improper Safety Sticker',
-  72: 'Inspection Sticker Mutilated or Counterfeit',
-  '72A': 'Inspection Sticker Mutilated or Counterfeit',
-  73: 'Registration Sticker Mutilated or Counterfeit',
-  '73A': 'Registration Sticker Mutilated or Counterfeit',
-  74: 'Front or Back Plate Missing',
-  '74A': 'Improperly Displayed Plate',
-  '74B': 'Covered Plate',
-  75: 'Plate and Sticker Do Not Match',
-  77: 'Bus Parking Outside of Designated Area',
-  78: 'Nighttime Parking on Residential Street - Commercial Vehicle',
-  79: 'Bus Layover in Unauthorized Location',
-  80: 'Missing Required Equipment',
-  81: 'No Standing - Except Diplomat',
-  82: 'Commercial Plates on Unaltered Vehicle',
-  83: 'Improper Registration',
-  84: 'Commercial Vehicle Platform Lifts in Lowered Position',
-  85: 'Street Storage of Commercial Vehicle Over 3 Hours',
-  86: 'Midtown Parking or Standing - 3 Hour Limit',
-  87: 'Fraudulent Use of Agency Parking Permit',
-  89: 'No Standing - Except Trucks in Garment District',
-  91: 'No Parking on Street to Display Vehicle for Sale',
-  92: 'No Parking on Street to Wash or Repair Vehicle',
-  93: 'Replacing Flat Tire on Major Roadway',
-  94: 'NYPD Tow Pound Release Fine',
-  96: 'No Stopping - Railroad Crossing',
-  97: 'Parking in a Vacant Lot',
-  98: 'Obstructing Driveway',
-  '01-No Intercity Pmt Displ': 'Failure to Display Bus Permit',
-  '02-No operator N/A/PH': 'Failure to Display Operator Information',
-  '03-Unauth passenger pick-up': 'Unauthorized Passenger Pick-Up',
-  '04-Downtown Bus Area,3 Hr Lim':
-    'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit',
-  '04A-Downtown Bus Area,Non-Bus': 'Bus Parking in Lower Manhattan - Non-Bus',
-  '04A-Downtown Bus Area, Non-Bus': 'Bus Parking in Lower Manhattan - Non-Bus',
-  '04B-Downtown Bus Area,No Prmt': 'Bus Parking in Lower Manhattan - No Permit',
-  '06-Nighttime PKG (Trailer)': 'Overnight Parking of Tractor Trailer',
-  '08-Engine Idling': 'Idling',
-  '09-Blocking the Box': 'Obstructing Traffic or Intersection',
-  '10-No Stopping': 'No Stopping or Standing Except for Passenger Pick-Up',
-  '11-No Stand (exc hotel load)': 'No Parking - Except Hotel Loading',
-  '12-No Stand (snow emergency)': 'No Standing - Snow Emergency',
-  '13-No Stand (taxi stand)': 'No Standing - Taxi Stand',
-  '14-No Standing': 'No Standing - Day/Time Limits',
-  '16-No Std (Com Veh) Com Plate':
-    'No Standing - Except Truck Loading/Unloading',
-  '16A-No Std (Com Veh) Non-COM':
-    'No Standing - Except Truck Loading/Unloading',
-  '17-No Stand (exc auth veh)': 'No Parking - Except Authorized Vehicles',
-  '18-No Stand (bus lane)': 'No Standing - Bus Lane',
-  '19-No Stand (bus stop)': 'No Standing - Bus Stop',
-  '20-No Parking (Com Plate)': 'No Parking - Day/Time Limits',
-  '20A-No Parking (Non-COM)': 'No Parking - Day/Time Limits',
-  '21-No Parking (street clean)': 'No Parking - Street Cleaning',
-  '22-No Parking (exc hotel load)': 'No Parking - Except Hotel Loading',
-  '23-No Parking (taxi stand)': 'No Parking - Taxi Stand',
-  '24-No Parking (exc auth veh)': 'No Parking - Except Authorized Vehicles',
-  '25-No Stand (commutr van stop)': 'No Standing - Commuter Van Stop',
-  '26-No Stnd (for-hire veh only)': 'No Standing - For Hire Vehicle Stop',
-  '27-No Parking (exc handicap)': 'No Parking - Except Disability Permit',
-  '28-O/T STD,PL/Con,0 Mn, Dec': 'Overtime Standing - Diplomat',
-  '29-Altered Intercity bus pmt': 'Altered Intercity Bus Permit',
-  '30-No stopping/standing': 'No Stopping/Standing',
-  '31-No Stand (Com. Mtr. Zone)': 'No Standing - Commercial Meter Zone',
-  '32-Overtime PKG-Missing Meter':
-    'Overtime Parking at Missing or Broken Meter',
-  '32A Overtime PKG-Broken Meter':
-    'Overtime Parking at Missing or Broken Meter',
-  '33-Feeding Meter': 'Feeding Meter',
-  '35-Selling/Offer Merchandise':
-    'Selling or Offering Merchandise From Metered Parking',
-  '37-Expired Muni Meter': 'Expired Meter',
-  '37-Expired Parking Meter': 'Expired Meter',
-  '38-Failure to Display Muni Rec': 'Failure to Display Meter Receipt',
-  '38-Failure to Dsplay Meter Rec': 'Failure to Display Meter Receipt',
-  '39-Overtime PKG-Time Limt Post': 'Overtime Parking - Time Limit Posted',
-  '40-Fire Hydrant': 'Fire Hydrant',
-  '42-Exp. Muni-Mtr (Com. Mtr. Z)': 'Expired Meter - Commercial Meter Zone',
-  '42-Exp Meter (Com Zone)': 'Expired Meter - Commercial Meter Zone',
-  '43-Exp. Mtr. (Com. Mtr. Zone)': 'Expired Meter - Commercial Meter Zone',
-  '44-Exc Limit (Com. Mtr. Zone)': 'Overtime Parking - Commercial Meter Zone',
-  '45-Traffic Lane': 'No Stopping - Traffic Lane',
-  '46-Double Parking (Com Plate)': 'Double Parking',
-  '46A-Double Parking (Non-COM)': 'Double Parking',
-  '46B-Double Parking (Com-100Ft)':
-    'Double Parking - Within 100 ft. of Loading Zone',
-  '47-Double PKG-Midtown': 'Double Parking - Midtown Commercial Zone',
-  '47A-Angle PKG - Midtown': 'Double Parking - Angle Parking',
-  '48-Bike Lane': 'Blocking Bike Lane',
-  '49-Excavation (obstruct traff)':
-    'No Stopping - Adjacent to Street Construction',
-  '50-Crosswalk': 'Blocking Crosswalk',
-  '51-Sidewalk': 'Parked on Sidewalk',
-  '52-Intersection': 'No Stopping - Intersection',
-  '53-Safety Zone': 'No Standing - Safety Zone',
-  '55-Tunnel/Elevated Roadway': 'No Stopping in Tunnel or on Elevated Highway',
-  '56-Divided Highway': 'No Stopping - Divided Highway',
-  '57-Blue Zone': 'No Parking - Blue Zone',
-  '58-Marginal Street/Water Front':
-    'No Parking on Marginal Street or Waterfront',
-  '59-Angle PKG-Commer. Vehicle': 'No Angle Parking',
-  '60-Angle Parking': 'No Angle Parking',
-  '61-Wrong Way': 'No Parking Opposite Street Direction',
-  '62-Beyond Marked Space': 'No Parking Beyond Marked Space',
-  '63-Nighttime STD/PKG in a Park':
-    'No Nighttime Standing or Parking in a Park',
-  '64-No STD Ex Con/DPL,D/S Dec': 'No Standing - Consul or Diplomat',
-  '65-O/T STD,pl/Con,0 Mn,/S':
-    'Overtime Standing - Consul or Diplomat Over 30 Minutes',
-  '66-Detached Trailer': 'Detached Trailer',
-  '67-Blocking Ped. Ramp': 'Blocking Pedestrian Ramp',
-  '68-Not Pkg. Comp. w Psted Sign': 'Non-Compliance with Posted Sign',
-  '69-Failure to Disp Muni Recpt': 'Failure to Display Meter Receipt',
-  '69-Fail to Dsp Prking Mtr Rcpt': 'Failure to Display Meter Receipt',
-  '70-Reg. Sticker Missing (NYS)': 'Registration Sticker Expired or Missing',
-  '70A-Reg. Sticker Expired (NYS)': 'Registration Sticker Expired or Missing',
-  '70B-Impropr Dsply of Reg (NYS)': 'Improper Display of Registration',
-  '71-Insp. Sticker Missing (NYS': 'Inspection Sticker Expired or Missing',
-  '71A-Insp Sticker Expired (NYS)': 'Inspection Sticker Expired or Missing',
-  '71B-Improp Safety Stkr (NYS)': 'Improper Safety Sticker',
-  '72-Insp Stkr Mutilated': 'Inspection Sticker Mutilated or Counterfeit',
-  '72A-Insp Stkr Counterfeit': 'Inspection Sticker Mutilated or Counterfeit',
-  '73-Reg Stkr Mutilated': 'Registration Sticker Mutilated or Counterfeit',
-  '73A-Reg Stkr Counterfeit': 'Registration Sticker Mutilated or Counterfeit',
-  '74-Missing Display Plate': 'Front or Back Plate Missing',
-  '74A-Improperly Displayed Plate': 'Improperly Displayed Plate',
-  '74B-Covered Plate': 'Covered Plate',
-  '75-No Match-Plate/Reg. Sticker': 'Plate and Sticker Do Not Match',
-  '77-Parked Bus (exc desig area)': 'Bus Parking Outside of Designated Area',
-  '78-Nighttime PKG on Res Street':
-    'Nighttime Parking on Residential Street - Commercial Vehicle',
-  '79-Bus Layover': 'Bus Layover in Unauthorized Location',
-  '80-Missing Equipment (specify)': 'Missing Required Equipment',
-  '81-No STD Ex C,&D Dec,30 Mn': 'No Standing - Except Diplomat',
-  '82-Unaltered Commerc Vehicle': 'Commercial Plates on Unaltered Vehicle',
-  '83-Improper Registration': 'Improper Registration',
-  '84-Platform lifts in low posit':
-    'Commercial Vehicle Platform Lifts in Lowered Position',
-  '85-Storage-3 hour Commercial':
-    'Street Storage of Commercial Vehicle Over 3 Hours',
-  '86-Midtown PKG or STD-3 hr lim':
-    'Midtown Parking or Standing - 3 Hour Limit',
-  '89-No Stand Exc Com Plate':
-    'No Standing - Except Trucks in Garment District',
-  '91-Veh for Sale (Dealer Only)':
-    'No Parking on Street to Display Vehicle for Sale',
-  '92-Washing/Repairing Vehicle':
-    'No Parking on Street to Wash or Repair Vehicle',
-  '93-Repair Flat Tire (Maj Road)': 'Replacing Flat Tire on Major Roadway',
-  '96-Railroad Crossing': 'No Stopping - Railroad Crossing',
-  '98-Obstructing Driveway': 'Obstructing Driveway',
-  'BUS LANE VIOLATION': 'Bus Lane Violation',
-  'FAILURE TO STOP AT RED LIGHT': 'Failure to Stop at Red Light',
-  'Field Release Agreement': 'Field Release Agreement',
-  'PHTO SCHOOL ZN SPEED VIOLATION': 'School Zone Speed Camera Violation'
+  35: "Selling or Offering Merchandise From Metered Parking",
+  36: SCHOOL_ZONE_SPEED_CAMERA_VIOLATION,
+  37: "Expired Meter",
+  38: "Failure to Display Meter Receipt",
+  39: "Overtime Parking - Time Limit Posted",
+  40: "Fire Hydrant",
+  42: "Expired Meter - Commercial Meter Zone",
+  43: "Expired Meter - Commercial Meter Zone",
+  44: "Overtime Parking - Commercial Meter Zone",
+  45: "No Stopping - Traffic Lane",
+  46: "Double Parking",
+  "46A": "Double Parking",
+  "46B": "Double Parking - Within 100 ft. of Loading Zone",
+  47: "Double Parking - Midtown Commercial Zone",
+  "47A": "Double Parking - Angle Parking",
+  48: "Blocking Bike Lane",
+  49: "No Stopping - Adjacent to Street Construction",
+  50: "Blocking Crosswalk",
+  51: "Parked on Sidewalk",
+  52: "No Stopping - Intersection",
+  53: "No Standing - Safety Zone",
+  55: "No Stopping in Tunnel or on Elevated Highway",
+  56: "No Stopping - Divided Highway",
+  57: "No Parking - Blue Zone",
+  58: "No Parking on Marginal Street or Waterfront",
+  59: "No Angle Parking",
+  60: "No Angle Parking",
+  61: "No Parking Opposite Street Direction",
+  62: "No Parking Beyond Marked Space",
+  63: "No Nighttime Standing or Parking in a Park",
+  64: "No Standing - Consul or Diplomat",
+  65: "Overtime Standing - Consul or Diplomat Over 30 Minutes",
+  66: "Detached Trailer",
+  67: "Blocking Pedestrian Ramp",
+  68: "Non-Compliance with Posted Sign",
+  69: "Failure to Display Meter Receipt",
+  70: "Registration Sticker Expired or Missing",
+  "70A": "Registration Sticker Expired or Missing",
+  "70B": "Improper Display of Registration",
+  71: "Inspection Sticker Expired or Missing",
+  "71A": "Inspection Sticker Expired or Missing",
+  "71B": "Improper Safety Sticker",
+  72: "Inspection Sticker Mutilated or Counterfeit",
+  "72A": "Inspection Sticker Mutilated or Counterfeit",
+  73: "Registration Sticker Mutilated or Counterfeit",
+  "73A": "Registration Sticker Mutilated or Counterfeit",
+  74: "Front or Back Plate Missing",
+  "74A": "Improperly Displayed Plate",
+  "74B": "Covered Plate",
+  75: "Plate and Sticker Do Not Match",
+  77: "Bus Parking Outside of Designated Area",
+  78: "Nighttime Parking on Residential Street - Commercial Vehicle",
+  79: "Bus Layover in Unauthorized Location",
+  80: "Missing Required Equipment",
+  81: "No Standing - Except Diplomat",
+  82: "Commercial Plates on Unaltered Vehicle",
+  83: "Improper Registration",
+  84: "Commercial Vehicle Platform Lifts in Lowered Position",
+  85: "Street Storage of Commercial Vehicle Over 3 Hours",
+  86: "Midtown Parking or Standing - 3 Hour Limit",
+  87: "Fraudulent Use of Agency Parking Permit",
+  89: "No Standing - Except Trucks in Garment District",
+  91: "No Parking on Street to Display Vehicle for Sale",
+  92: "No Parking on Street to Wash or Repair Vehicle",
+  93: "Replacing Flat Tire on Major Roadway",
+  94: "NYPD Tow Pound Release Fine",
+  96: "No Stopping - Railroad Crossing",
+  97: "Parking in a Vacant Lot",
+  98: "Obstructing Driveway",
+  "01-No Intercity Pmt Displ": "Failure to Display Bus Permit",
+  "02-No operator N/A/PH": "Failure to Display Operator Information",
+  "03-Unauth passenger pick-up": "Unauthorized Passenger Pick-Up",
+  "04-Downtown Bus Area,3 Hr Lim":
+    "Bus Parking in Lower Manhattan - Exceeded 3-Hour limit",
+  "04A-Downtown Bus Area,Non-Bus": "Bus Parking in Lower Manhattan - Non-Bus",
+  "04A-Downtown Bus Area, Non-Bus": "Bus Parking in Lower Manhattan - Non-Bus",
+  "04B-Downtown Bus Area,No Prmt": "Bus Parking in Lower Manhattan - No Permit",
+  "06-Nighttime PKG (Trailer)": "Overnight Parking of Tractor Trailer",
+  "08-Engine Idling": "Idling",
+  "09-Blocking the Box": "Obstructing Traffic or Intersection",
+  "10-No Stopping": "No Stopping or Standing Except for Passenger Pick-Up",
+  "11-No Stand (exc hotel load)": "No Parking - Except Hotel Loading",
+  "12-No Stand (snow emergency)": "No Standing - Snow Emergency",
+  "13-No Stand (taxi stand)": "No Standing - Taxi Stand",
+  "14-No Standing": "No Standing - Day/Time Limits",
+  "16-No Std (Com Veh) Com Plate":
+    "No Standing - Except Truck Loading/Unloading",
+  "16A-No Std (Com Veh) Non-COM":
+    "No Standing - Except Truck Loading/Unloading",
+  "17-No Stand (exc auth veh)": "No Parking - Except Authorized Vehicles",
+  "18-No Stand (bus lane)": "No Standing - Bus Lane",
+  "19-No Stand (bus stop)": "No Standing - Bus Stop",
+  "20-No Parking (Com Plate)": "No Parking - Day/Time Limits",
+  "20A-No Parking (Non-COM)": "No Parking - Day/Time Limits",
+  "21-No Parking (street clean)": "No Parking - Street Cleaning",
+  "22-No Parking (exc hotel load)": "No Parking - Except Hotel Loading",
+  "23-No Parking (taxi stand)": "No Parking - Taxi Stand",
+  "24-No Parking (exc auth veh)": "No Parking - Except Authorized Vehicles",
+  "25-No Stand (commutr van stop)": "No Standing - Commuter Van Stop",
+  "26-No Stnd (for-hire veh only)": "No Standing - For Hire Vehicle Stop",
+  "27-No Parking (exc handicap)": "No Parking - Except Disability Permit",
+  "28-O/T STD,PL/Con,0 Mn, Dec": "Overtime Standing - Diplomat",
+  "29-Altered Intercity bus pmt": "Altered Intercity Bus Permit",
+  "30-No stopping/standing": "No Stopping/Standing",
+  "31-No Stand (Com. Mtr. Zone)": "No Standing - Commercial Meter Zone",
+  "32-Overtime PKG-Missing Meter":
+    "Overtime Parking at Missing or Broken Meter",
+  "32A Overtime PKG-Broken Meter":
+    "Overtime Parking at Missing or Broken Meter",
+  "33-Feeding Meter": "Feeding Meter",
+  "35-Selling/Offer Merchandise":
+    "Selling or Offering Merchandise From Metered Parking",
+  "37-Expired Muni Meter": "Expired Meter",
+  "37-Expired Parking Meter": "Expired Meter",
+  "38-Failure to Display Muni Rec": "Failure to Display Meter Receipt",
+  "38-Failure to Dsplay Meter Rec": "Failure to Display Meter Receipt",
+  "39-Overtime PKG-Time Limt Post": "Overtime Parking - Time Limit Posted",
+  "40-Fire Hydrant": "Fire Hydrant",
+  "42-Exp. Muni-Mtr (Com. Mtr. Z)": "Expired Meter - Commercial Meter Zone",
+  "42-Exp Meter (Com Zone)": "Expired Meter - Commercial Meter Zone",
+  "43-Exp. Mtr. (Com. Mtr. Zone)": "Expired Meter - Commercial Meter Zone",
+  "44-Exc Limit (Com. Mtr. Zone)": "Overtime Parking - Commercial Meter Zone",
+  "45-Traffic Lane": "No Stopping - Traffic Lane",
+  "46-Double Parking (Com Plate)": "Double Parking",
+  "46A-Double Parking (Non-COM)": "Double Parking",
+  "46B-Double Parking (Com-100Ft)":
+    "Double Parking - Within 100 ft. of Loading Zone",
+  "47-Double PKG-Midtown": "Double Parking - Midtown Commercial Zone",
+  "47A-Angle PKG - Midtown": "Double Parking - Angle Parking",
+  "48-Bike Lane": "Blocking Bike Lane",
+  "49-Excavation (obstruct traff)":
+    "No Stopping - Adjacent to Street Construction",
+  "50-Crosswalk": "Blocking Crosswalk",
+  "51-Sidewalk": "Parked on Sidewalk",
+  "52-Intersection": "No Stopping - Intersection",
+  "53-Safety Zone": "No Standing - Safety Zone",
+  "55-Tunnel/Elevated Roadway": "No Stopping in Tunnel or on Elevated Highway",
+  "56-Divided Highway": "No Stopping - Divided Highway",
+  "57-Blue Zone": "No Parking - Blue Zone",
+  "58-Marginal Street/Water Front":
+    "No Parking on Marginal Street or Waterfront",
+  "59-Angle PKG-Commer. Vehicle": "No Angle Parking",
+  "60-Angle Parking": "No Angle Parking",
+  "61-Wrong Way": "No Parking Opposite Street Direction",
+  "62-Beyond Marked Space": "No Parking Beyond Marked Space",
+  "63-Nighttime STD/PKG in a Park":
+    "No Nighttime Standing or Parking in a Park",
+  "64-No STD Ex Con/DPL,D/S Dec": "No Standing - Consul or Diplomat",
+  "65-O/T STD,pl/Con,0 Mn,/S":
+    "Overtime Standing - Consul or Diplomat Over 30 Minutes",
+  "66-Detached Trailer": "Detached Trailer",
+  "67-Blocking Ped. Ramp": "Blocking Pedestrian Ramp",
+  "68-Not Pkg. Comp. w Psted Sign": "Non-Compliance with Posted Sign",
+  "69-Failure to Disp Muni Recpt": "Failure to Display Meter Receipt",
+  "69-Fail to Dsp Prking Mtr Rcpt": "Failure to Display Meter Receipt",
+  "70-Reg. Sticker Missing (NYS)": "Registration Sticker Expired or Missing",
+  "70A-Reg. Sticker Expired (NYS)": "Registration Sticker Expired or Missing",
+  "70B-Impropr Dsply of Reg (NYS)": "Improper Display of Registration",
+  "71-Insp. Sticker Missing (NYS": "Inspection Sticker Expired or Missing",
+  "71A-Insp Sticker Expired (NYS)": "Inspection Sticker Expired or Missing",
+  "71B-Improp Safety Stkr (NYS)": "Improper Safety Sticker",
+  "72-Insp Stkr Mutilated": "Inspection Sticker Mutilated or Counterfeit",
+  "72A-Insp Stkr Counterfeit": "Inspection Sticker Mutilated or Counterfeit",
+  "73-Reg Stkr Mutilated": "Registration Sticker Mutilated or Counterfeit",
+  "73A-Reg Stkr Counterfeit": "Registration Sticker Mutilated or Counterfeit",
+  "74-Missing Display Plate": "Front or Back Plate Missing",
+  "74A-Improperly Displayed Plate": "Improperly Displayed Plate",
+  "74B-Covered Plate": "Covered Plate",
+  "75-No Match-Plate/Reg. Sticker": "Plate and Sticker Do Not Match",
+  "77-Parked Bus (exc desig area)": "Bus Parking Outside of Designated Area",
+  "78-Nighttime PKG on Res Street":
+    "Nighttime Parking on Residential Street - Commercial Vehicle",
+  "79-Bus Layover": "Bus Layover in Unauthorized Location",
+  "80-Missing Equipment (specify)": "Missing Required Equipment",
+  "81-No STD Ex C,&D Dec,30 Mn": "No Standing - Except Diplomat",
+  "82-Unaltered Commerc Vehicle": "Commercial Plates on Unaltered Vehicle",
+  "83-Improper Registration": "Improper Registration",
+  "84-Platform lifts in low posit":
+    "Commercial Vehicle Platform Lifts in Lowered Position",
+  "85-Storage-3 hour Commercial":
+    "Street Storage of Commercial Vehicle Over 3 Hours",
+  "86-Midtown PKG or STD-3 hr lim":
+    "Midtown Parking or Standing - 3 Hour Limit",
+  "89-No Stand Exc Com Plate":
+    "No Standing - Except Trucks in Garment District",
+  "91-Veh for Sale (Dealer Only)":
+    "No Parking on Street to Display Vehicle for Sale",
+  "92-Washing/Repairing Vehicle":
+    "No Parking on Street to Wash or Repair Vehicle",
+  "93-Repair Flat Tire (Maj Road)": "Replacing Flat Tire on Major Roadway",
+  "96-Railroad Crossing": "No Stopping - Railroad Crossing",
+  "98-Obstructing Driveway": "Obstructing Driveway",
+  "BUS LANE VIOLATION": BUS_LANE_VIOLATION,
+  "FAILURE TO STOP AT RED LIGHT": FAILURE_TO_STOP_AT_RED_LIGHT,
+  "Field Release Agreement": "Field Release Agreement",
+  "PHTO SCHOOL ZN SPEED VIOLATION": SCHOOL_ZONE_SPEED_CAMERA_VIOLATION,
 }
 
 // mapping humanized naes to violation codes
 const namesToCodes = {
-  'Failure to Display Bus Permit': '01',
-  'Failure to Display Operator Information': '02',
-  'Unauthorized Passenger Pick-Up': '03',
-  'Bus Parking in Lower Manhattan - Exceeded 3-Hour limit': '04',
-  'Bus Parking in Lower Manhattan - Non-Bus': '04A',
-  'Bus Parking in Lower Manhattan - No Permit': '04B',
-  'Bus Lane Violation': '05',
-  'Overnight Parking of Tractor Trailer': '06',
-  'Failure to Stop at Red Light': '07',
-  Idling: '08',
-  'Obstructing Traffic or Intersection': '09',
-  'No Stopping or Standing Except for Passenger Pick-Up': '10',
-  'Mobile Bus Lane Violation': '12',
-  'No Standing - Snow Emergency': '12',
-  'No Standing - Taxi Stand': '13',
-  'No Standing - Day/Time Limits': '14',
-  'No Standing - Except Truck Loading/Unloading': '16',
-  'No Parking - Except Authorized Vehicles': '24',
-  'No Standing - Bus Lane': '18',
-  'No Standing - Bus Stop': '19',
-  'No Parking - Day/Time Limits': '20',
-  'No Parking - Street Cleaning': '21',
-  'No Parking - Except Hotel Loading': '22',
-  'No Parking - Taxi Stand': '23',
-  'No Standing - Commuter Van Stop': '25',
-  'No Standing - For Hire Vehicle Stop': '26',
-  'No Parking - Except Disability Permit': '27',
-  'Overtime Standing - Diplomat': '28',
-  'Altered Intercity Bus Permit': '29',
-  'No Stopping/Standing': '30',
-  'No Standing - Commercial Meter Zone': '31',
-  'Overtime Parking at Missing or Broken Meter': '32',
-  'Feeding Meter': '33',
-  'Misuse of Parking Permit': '33',
-  'Selling or Offering Merchandise From Metered Parking': '35',
-  'School Zone Speed Camera Violation': '36',
-  'Expired Meter': '37',
-  'Failure to Display Meter Receipt': '69',
-  'Overtime Parking - Time Limit Posted': '39',
-  'Fire Hydrant': '40',
-  'Expired Meter - Commercial Meter Zone': '43',
-  'Overtime Parking - Commercial Meter Zone': '44',
-  'No Stopping - Traffic Lane': '45',
-  'Double Parking': '46',
-  'Double Parking - Within 100 ft. of Loading Zone': '46B',
-  'Double Parking - Midtown Commercial Zone': '47',
-  'Double Parking - Angle Parking': '47A',
-  'Blocking Bike Lane': '48',
-  'No Stopping - Adjacent to Street Construction': '49',
-  'Blocking Crosswalk': '50',
-  'Parked on Sidewalk': '51',
-  'No Stopping - Intersection': '52',
-  'No Standing - Safety Zone': '53',
-  'No Stopping in Tunnel or on Elevated Highway': '55',
-  'No Stopping - Divided Highway': '56',
-  'No Parking - Blue Zone': '57',
-  'No Parking on Marginal Street or Waterfront': '58',
-  'No Angle Parking': '60',
-  'No Parking Opposite Street Direction': '61',
-  'No Parking Beyond Marked Space': '62',
-  'No Nighttime Standing or Parking in a Park': '63',
-  'No Standing - Consul or Diplomat': '64',
-  'Overtime Standing - Consul or Diplomat Over 30 Minutes': '65',
-  'Detached Trailer': '66',
-  'Blocking Pedestrian Ramp': '67',
-  'Non-Compliance with Posted Sign': '68',
-  'Registration Sticker Expired or Missing': '70',
-  'Improper Display of Registration': '70B',
-  'Inspection Sticker Expired or Missing': '71',
-  'Improper Safety Sticker': '71B',
-  'Inspection Sticker Mutilated or Counterfeit': '72',
-  'Registration Sticker Mutilated or Counterfeit': '73',
-  'Front or Back Plate Missing': '74',
-  'Improperly Displayed Plate': '74A',
-  'Covered Plate': '74B',
-  'Plate and Sticker Do Not Match': '75',
-  'Bus Parking Outside of Designated Area': '77',
-  'Nighttime Parking on Residential Street - Commercial Vehicle': '78',
-  'Bus Layover in Unauthorized Location': '79',
-  'Missing Required Equipment': '80',
-  'No Standing - Except Diplomat': '81',
-  'Commercial Plates on Unaltered Vehicle': '82',
-  'Improper Registration': '83',
-  'Commercial Vehicle Platform Lifts in Lowered Position': '84',
-  'Street Storage of Commercial Vehicle Over 3 Hours': '85',
-  'Midtown Parking or Standing - 3 Hour Limit': '86',
-  'Fraudulent Use of Agency Parking Permit': '87',
-  'No Standing - Except Trucks in Garment District': '89',
-  'No Parking on Street to Display Vehicle for Sale': '91',
-  'No Parking on Street to Wash or Repair Vehicle': '92',
-  'Replacing Flat Tire on Major Roadway': '93',
-  'NYPD Tow Pound Release Fine': '94',
-  'No Stopping - Railroad Crossing': '96',
-  'Parking in a Vacant Lot': '97',
-  'Obstructing Driveway': '98'
+  "Failure to Display Bus Permit": "01",
+  "Failure to Display Operator Information": "02",
+  "Unauthorized Passenger Pick-Up": "03",
+  "Bus Parking in Lower Manhattan - Exceeded 3-Hour limit": "04",
+  "Bus Parking in Lower Manhattan - Non-Bus": "04A",
+  "Bus Parking in Lower Manhattan - No Permit": "04B",
+  [BUS_LANE_VIOLATION]: "05",
+  "Overnight Parking of Tractor Trailer": "06",
+  [FAILURE_TO_STOP_AT_RED_LIGHT]: "07",
+  Idling: "08",
+  "Obstructing Traffic or Intersection": "09",
+  "No Stopping or Standing Except for Passenger Pick-Up": "10",
+  [MOBILE_BUS_LANE_VIOLATION]: "12",
+  "No Standing - Snow Emergency": "12",
+  "No Standing - Taxi Stand": "13",
+  "No Standing - Day/Time Limits": "14",
+  "No Standing - Except Truck Loading/Unloading": "16",
+  "No Parking - Except Authorized Vehicles": "24",
+  "No Standing - Bus Lane": "18",
+  "No Standing - Bus Stop": "19",
+  "No Parking - Day/Time Limits": "20",
+  "No Parking - Street Cleaning": "21",
+  "No Parking - Except Hotel Loading": "22",
+  "No Parking - Taxi Stand": "23",
+  "No Standing - Commuter Van Stop": "25",
+  "No Standing - For Hire Vehicle Stop": "26",
+  "No Parking - Except Disability Permit": "27",
+  "Overtime Standing - Diplomat": "28",
+  "Altered Intercity Bus Permit": "29",
+  "No Stopping/Standing": "30",
+  "No Standing - Commercial Meter Zone": "31",
+  "Overtime Parking at Missing or Broken Meter": "32",
+  "Feeding Meter": "33",
+  "Misuse of Parking Permit": "33",
+  "Selling or Offering Merchandise From Metered Parking": "35",
+  [SCHOOL_ZONE_SPEED_CAMERA_VIOLATION]: "36",
+  "Expired Meter": "37",
+  "Failure to Display Meter Receipt": "69",
+  "Overtime Parking - Time Limit Posted": "39",
+  "Fire Hydrant": "40",
+  "Expired Meter - Commercial Meter Zone": "43",
+  "Overtime Parking - Commercial Meter Zone": "44",
+  "No Stopping - Traffic Lane": "45",
+  "Double Parking": "46",
+  "Double Parking - Within 100 ft. of Loading Zone": "46B",
+  "Double Parking - Midtown Commercial Zone": "47",
+  "Double Parking - Angle Parking": "47A",
+  "Blocking Bike Lane": "48",
+  "No Stopping - Adjacent to Street Construction": "49",
+  "Blocking Crosswalk": "50",
+  "Parked on Sidewalk": "51",
+  "No Stopping - Intersection": "52",
+  "No Standing - Safety Zone": "53",
+  "No Stopping in Tunnel or on Elevated Highway": "55",
+  "No Stopping - Divided Highway": "56",
+  "No Parking - Blue Zone": "57",
+  "No Parking on Marginal Street or Waterfront": "58",
+  "No Angle Parking": "60",
+  "No Parking Opposite Street Direction": "61",
+  "No Parking Beyond Marked Space": "62",
+  "No Nighttime Standing or Parking in a Park": "63",
+  "No Standing - Consul or Diplomat": "64",
+  "Overtime Standing - Consul or Diplomat Over 30 Minutes": "65",
+  "Detached Trailer": "66",
+  "Blocking Pedestrian Ramp": "67",
+  "Non-Compliance with Posted Sign": "68",
+  "Registration Sticker Expired or Missing": "70",
+  "Improper Display of Registration": "70B",
+  "Inspection Sticker Expired or Missing": "71",
+  "Improper Safety Sticker": "71B",
+  "Inspection Sticker Mutilated or Counterfeit": "72",
+  "Registration Sticker Mutilated or Counterfeit": "73",
+  "Front or Back Plate Missing": "74",
+  "Improperly Displayed Plate": "74A",
+  "Covered Plate": "74B",
+  "Plate and Sticker Do Not Match": "75",
+  "Bus Parking Outside of Designated Area": "77",
+  "Nighttime Parking on Residential Street - Commercial Vehicle": "78",
+  "Bus Layover in Unauthorized Location": "79",
+  "Missing Required Equipment": "80",
+  "No Standing - Except Diplomat": "81",
+  "Commercial Plates on Unaltered Vehicle": "82",
+  "Improper Registration": "83",
+  "Commercial Vehicle Platform Lifts in Lowered Position": "84",
+  "Street Storage of Commercial Vehicle Over 3 Hours": "85",
+  "Midtown Parking or Standing - 3 Hour Limit": "86",
+  "Fraudulent Use of Agency Parking Permit": "87",
+  "No Standing - Except Trucks in Garment District": "89",
+  "No Parking on Street to Display Vehicle for Sale": "91",
+  "No Parking on Street to Wash or Repair Vehicle": "92",
+  "Replacing Flat Tire on Major Roadway": "93",
+  "NYPD Tow Pound Release Fine": "94",
+  "No Stopping - Railroad Crossing": "96",
+  "Parking in a Vacant Lot": "97",
+  "Obstructing Driveway": "98",
 }
 
 const stateAbbrRegex =
@@ -493,63 +499,63 @@ const registrationTypesRegex =
   /^(AGC|AGR|AMB|APP|ARG|ATD|ATV|AYG|BOB|BOT|CBS|CCK|CHC|CLG|CMB|CME|CMH|COM|CSP|DLR|FAR|FPW|GAC|GSM|HAC|HAM|HIR|HIS|HOU|HSM|IRP|ITP|JCA|JCL|JSC|JWV|LMA|LMB|LMC|LOC|LTR|LUA|MCD|MCL|MED|MOT|NLM|NYA|NYC|NYS|OMF|OML|OMO|OMR|OMS|OMT|OMV|ORC|ORG|ORM|PAS|PHS|PPH|PSD|RGC|RGL|SCL|SEM|SNO|SOS|SPC|SPO|SRF|SRN|STA|STG|SUP|THC|TOW|TRA|TRC|TRL|USC|USS|VAS|VPL|WUG)$/
 
 const counties = {
-  Bronx: 'Bronx',
-  Brook: 'Brooklyn',
-  BX: 'Bronx',
-  Bx: 'Bronx',
-  BK: 'Brooklyn',
-  Bk: 'Brooklyn',
-  K: 'Brooklyn',
-  KINGS: 'Brooklyn',
-  MAH: 'Manhattan',
-  MANHA: 'Manhattan',
-  MN: 'Manhattan',
-  NEUY: 'Manhattan',
-  NY: 'Manhattan',
-  PBX: 'Bronx',
-  PK: 'Brooklyn',
-  PNY: 'Manhattan',
-  Q: 'Queens',
-  QN: 'Queens',
-  QNS: 'Queens',
-  Queen: 'Queens',
-  R: 'Staten Island',
-  Rich: 'Staten Island',
-  ST: 'Staten Island'
+  Bronx: "Bronx",
+  Brook: "Brooklyn",
+  BX: "Bronx",
+  Bx: "Bronx",
+  BK: "Brooklyn",
+  Bk: "Brooklyn",
+  K: "Brooklyn",
+  KINGS: "Brooklyn",
+  MAH: "Manhattan",
+  MANHA: "Manhattan",
+  MN: "Manhattan",
+  NEUY: "Manhattan",
+  NY: "Manhattan",
+  PBX: "Bronx",
+  PK: "Brooklyn",
+  PNY: "Manhattan",
+  Q: "Queens",
+  QN: "Queens",
+  QNS: "Queens",
+  Queen: "Queens",
+  R: "Staten Island",
+  Rich: "Staten Island",
+  ST: "Staten Island",
 }
 
 const issuingAgencies = {
-  'DEPARTMENT OF BUSINESS SERVICES': 'NYC SBS',
-  'DEPARTMENT OF SANITATION': 'DSNY',
-  'DEPARTMENT OF TRANSPORTATION': 'NYC DOT',
-  'Fire Department': 'FDNY',
-  'HOUSING AUTHORITY': 'NYCHA',
-  'LONG ISLAND RAILROAD': 'LIRR',
-  'METRO NORTH RAILROAD POLICE': 'MNRR',
-  'NYC OFFICE OF THE SHERIFF': 'NYC Sheriff',
-  'NYC TRANSIT AUTHORITY MANAGERS': 'NYCTA',
-  'NYS COURT OFFICERS': 'NYS Courts',
-  'NYS PARKS POLICE': 'NYS Parks',
-  'OTHER/UNKNOWN AGENCIES': 'other',
-  'PARKING CONTROL UNIT': 'NYC DOT',
-  'PARKS DEPARTMENT': 'NYC Parks',
-  'POLICE DEPARTMENT': 'NYPD',
-  'PORT AUTHORITY': 'PANYNJ',
-  'TAXI AND LIMOUSINE COMMISSION': 'TLC',
-  TRAFFIC: 'NYPD Traffic',
-  'TRANSIT AUTHORITY': 'NYCTA',
-  'TRIBOROUGH BRIDGE AND TUNNEL POLICE': 'TBTA',
-  T: 'NYPD Traffic',
-  V: 'NYC DOT'
+  "DEPARTMENT OF BUSINESS SERVICES": "NYC SBS",
+  "DEPARTMENT OF SANITATION": "DSNY",
+  "DEPARTMENT OF TRANSPORTATION": "NYC DOT",
+  "Fire Department": "FDNY",
+  "HOUSING AUTHORITY": "NYCHA",
+  "LONG ISLAND RAILROAD": "LIRR",
+  "METRO NORTH RAILROAD POLICE": "MNRR",
+  "NYC OFFICE OF THE SHERIFF": "NYC Sheriff",
+  "NYC TRANSIT AUTHORITY MANAGERS": "NYCTA",
+  "NYS COURT OFFICERS": "NYS Courts",
+  "NYS PARKS POLICE": "NYS Parks",
+  "OTHER/UNKNOWN AGENCIES": "other",
+  "PARKING CONTROL UNIT": "NYC DOT",
+  "PARKS DEPARTMENT": "NYC Parks",
+  "POLICE DEPARTMENT": "NYPD",
+  "PORT AUTHORITY": "PANYNJ",
+  "TAXI AND LIMOUSINE COMMISSION": "TLC",
+  TRAFFIC: "NYPD Traffic",
+  "TRANSIT AUTHORITY": "NYCTA",
+  "TRIBOROUGH BRIDGE AND TUNNEL POLICE": "TBTA",
+  T: "NYPD Traffic",
+  V: "NYC DOT",
 }
 
 const initializeConnection = (config) => {
   const addDisconnectHandler = (connection) => {
-    connection.on('error', (error) => {
+    connection.on("error", (error) => {
       if (error instanceof Error) {
-        if (error.code === 'PROTOCOL_CONNECTION_LOST') {
+        if (error.code === "PROTOCOL_CONNECTION_LOST") {
           console.error(error.stack)
-          console.log('Lost connection. Reconnecting...')
+          console.log("Lost connection. Reconnecting...")
 
           initializeConnection(connection.config)
         } else if (error.fatal) {
@@ -578,8 +584,9 @@ const initializeConnection = (config) => {
 }
 
 const detectPlateTypes = (potentialPlateTypeString) => {
-  if (potentialPlateTypeString.indexOf(',') !== -1) {
-    const parts = potentialPlateTypeString.split(',')
+  if (potentialPlateTypeString.indexOf(",") !== -1) {
+    // If the potential plate type string has a comma, split it on the comma
+    const parts = potentialPlateTypeString.split(",")
     const bools = parts.map((part) => !!part.match(registrationTypesRegex))
     return bools.some(Boolean)
   } else {
@@ -595,7 +602,7 @@ const detectVehicles = (potentialVehicles) => {
   return potentialVehicles.map((plate) => {
     const vehicle = { original_string: plate }
 
-    const parts = plate.toUpperCase().trim().split(':')
+    const parts = plate.toUpperCase().trim().split(":")
 
     if ([2, 3].includes(parts.length)) {
       const stateBools = parts.map((part) => detectState(part))
@@ -632,7 +639,9 @@ const filterOutViolationsAfterSearchDate = (
   violations,
   previousLookupCreatedAt
 ) =>
-  violations.filter((item) => item.formatted_time <= previousLookupCreatedAt)
+  violations.filter(
+    (item) => item.formatted_time_eastern <= previousLookupCreatedAt
+  )
 
 const findFilterFields = (fieldsString) => {
   const returnFields = {}
@@ -641,20 +650,20 @@ const findFilterFields = (fieldsString) => {
     return returnFields
   }
 
-  const fields = fieldsString.replace(/(\([^)]*\))/g, '').split(',')
+  const fields = fieldsString.replace(/(\([^)]*\))/g, "").split(",")
 
   fields.forEach((field) => {
-    if (fieldsString[fieldsString.indexOf(field) + field.length] === '(') {
-      const re = new RegExp(field + '\\([\\w|,]*\\)', 'g')
+    if (fieldsString[fieldsString.indexOf(field) + field.length] === "(") {
+      const re = new RegExp(field + "\\([\\w|,]*\\)", "g")
 
       let subfields = fieldsString.match(re)
-        ? fieldsString.match(re)[0].replace(field, '')
+        ? fieldsString.match(re)[0].replace(field, "")
         : null
       subfields = subfields.substring(1, subfields.length - 1)
 
       if (subfields) {
-        returnFields[field] = findFilterFields(subfields.replace(/[(|)]/g, ''))
-      } else if (subfields === '') {
+        returnFields[field] = findFilterFields(subfields.replace(/[(|)]/g, ""))
+      } else if (subfields === "") {
         returnFields[field] = {}
       }
     } else {
@@ -671,7 +680,7 @@ const findMaxCameraViolationsStreak = (violationTimes) => {
   let streakStart = null
 
   violationTimes.forEach((date) => {
-    const yearLater = new Date(date).setYear(date.getFullYear() + 1)
+    const yearLater = date.set({ year: date.year + 1 })
 
     const yearLongTickets = violationTimes.filter(
       (otherDate) => otherDate >= date && otherDate < yearLater
@@ -699,7 +708,7 @@ const findMaxCameraViolationsStreak = (violationTimes) => {
   return {
     max_streak: maxStreak,
     streak_end: streakEnd,
-    streak_start: streakStart
+    streak_start: streakStart,
   }
 }
 
@@ -709,13 +718,11 @@ const getReadableViolationDescription = (violation) => {
 
   if (fiscalYearViolationDescriptionKey) {
     const violationDescriptionDefinition =
-      fiscalYearReadableViolationDescriptions[
-        fiscalYearViolationDescriptionKey
-      ]
+      fiscalYearReadableViolationDescriptions[fiscalYearViolationDescriptionKey]
 
     if (violationDescriptionDefinition) {
       if (
-        typeof violationDescriptionDefinition === 'object' &&
+        typeof violationDescriptionDefinition === "object" &&
         violation.issue_date
       ) {
         let fiscalYearReadableDescription
@@ -752,7 +759,7 @@ const obtainUniqueIdentifier = async () => {
   const identifierAlreadyExists = (identifier) => {
     return new Promise((resolve, reject) => {
       connection.query(
-        'select count(*) as count from plate_lookups where unique_identifier = ?',
+        "select count(*) as count from plate_lookups where unique_identifier = ?",
         [identifier],
         (error, results, fields) => {
           if (error) {
@@ -783,7 +790,7 @@ const obtainUniqueIdentifier = async () => {
 const getPreviousQueryResult = async (identifier) => {
   return new Promise((resolve, reject) => {
     connection.query(
-      'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
+      "select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?",
       [identifier],
       (error, results, fields) => {
         if (error) {
@@ -800,10 +807,10 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   const plate = vehicle.plate
   const state = vehicle.state
   const plateTypes = vehicle.types
-    ? vehicle.types.split(',').map((part) => part.trim())
+    ? vehicle.types.split(",").map((part) => part.trim())
     : null
 
-  const lookupSource = externalData.lookup_source || 'api'
+  const lookupSource = externalData.lookup_source || "api"
   const fingerprintID = externalData.fingerprint_id
   const mixpanelID = externalData.mixpanel_id
   const existingIdentifier = externalData.unique_identifier
@@ -828,8 +835,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     })
 
     let violations = mergeDuplicateViolationRecords(flattenedResponses)
-
-    modifyViolationsForResponse(violations)
+    violations = modifyViolationsForResponse(violations)
 
     if (previousLookupCreatedAt) {
       violations = filterOutViolationsAfterSearchDate(
@@ -863,43 +869,39 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       total_paid: totalPaid,
       total_reduced: totalReduced,
       total_outstanding: totalOutstanding,
-      total_in_judgment: totalInJudgment
+      total_in_judgment: totalInJudgment,
     }
 
     const busLaneCameraViolations = violations.filter(
       (violation) =>
-        violation.humanized_description === 'Bus Lane Violation' ||
-        violation.humanized_description === 'Mobile Bus Lane Violation'
+        violation.humanized_description === BUS_LANE_VIOLATION ||
+        violation.humanized_description === MOBILE_BUS_LANE_VIOLATION
     )
     const cameraViolations = violations.filter(
       (violation) =>
         violation.humanized_description ===
-          'School Zone Speed Camera Violation' ||
-        violation.humanized_description === 'Failure to Stop at Red Light'
+          SCHOOL_ZONE_SPEED_CAMERA_VIOLATION ||
+        violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
     )
     const redLightCameraViolations = violations.filter(
       (violation) =>
-        violation.humanized_description === 'Failure to Stop at Red Light'
+        violation.humanized_description === FAILURE_TO_STOP_AT_RED_LIGHT
     )
     const speedCameraViolations = violations.filter(
       (violation) =>
-        violation.humanized_description === 'School Zone Speed Camera Violation'
+        violation.humanized_description === SCHOOL_ZONE_SPEED_CAMERA_VIOLATION
     )
 
     const mixedCameraStreakData = findMaxCameraViolationsStreak(
-      cameraViolations.map(function (violation) {
-        return violation.formatted_time
-      })
+      cameraViolations.map((violation) => violation.formatted_time_eastern)
     )
     const redLightCameraStreakData = findMaxCameraViolationsStreak(
-      redLightCameraViolations.map(function (violation) {
-        return violation.formatted_time
-      })
+      redLightCameraViolations.map(
+        (violation) => violation.formatted_time_eastern
+      )
     )
     const speedCameraStreakData = findMaxCameraViolationsStreak(
-      speedCameraViolations.map(function (violation) {
-        return violation.formatted_time
-      })
+      speedCameraViolations.map((violation) => violation.formatted_time_eastern)
     )
 
     const streakData = {}
@@ -914,43 +916,43 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     }
 
     let baseFrequencyQueryString =
-      'select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+      "select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
     let baseNumTicketsQueryString =
-      'select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1'
+      "select num_tickets, created_at from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
 
     let baseFrequencyQueryArgs = [plate, state]
     let baseNumTicketsQueryArgs = [plate, state]
 
     if (plateTypes) {
-      baseFrequencyQueryString += ' and plate_types = ?'
+      baseFrequencyQueryString += " and plate_types = ?"
       baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, plateTypes.join()]
 
-      baseNumTicketsQueryString += ' and plate_types = ?'
+      baseNumTicketsQueryString += " and plate_types = ?"
       baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
     }
-    if (lookupSource === 'existing_lookup') {
+    if (lookupSource === "existing_lookup") {
       baseFrequencyQueryString +=
-        ' and unique_identifier <> ? and created_at < ?'
+        " and unique_identifier <> ? and created_at < ?"
       baseFrequencyQueryArgs = [
         ...baseFrequencyQueryArgs,
         existingIdentifier,
-        previousLookupCreatedAt
+        previousLookupCreatedAt,
       ]
 
       baseNumTicketsQueryString +=
-        ' and unique_identifier <> ? and created_at < ?'
+        " and unique_identifier <> ? and created_at < ?"
       baseNumTicketsQueryArgs = [
         ...baseFrequencyQueryArgs,
         existingIdentifier,
-        previousLookupCreatedAt
+        previousLookupCreatedAt,
       ]
     }
 
-    baseNumTicketsQueryString += ' ORDER BY created_at DESC LIMIT 1'
+    baseNumTicketsQueryString += " ORDER BY created_at DESC LIMIT 1"
 
     const searchQueryArgs = [
       ...baseFrequencyQueryArgs,
-      ...baseNumTicketsQueryArgs
+      ...baseNumTicketsQueryArgs,
     ]
     const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
 
@@ -964,7 +966,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             throw error
           }
 
-          const countTowardsFrequency = !['api'].includes(lookupSource)
+          const countTowardsFrequency = !["api"].includes(lookupSource)
           let frequency = countTowardsFrequency ? 1 : 0
           let previousCount = null
           let previousDate = null
@@ -984,7 +986,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
           const uniqueIdentifier =
             existingIdentifier || (await obtainUniqueIdentifier())
 
-          if (lookupSource !== 'existing_lookup') {
+          if (lookupSource !== "existing_lookup") {
             const newLookup = {
               boot_eligible_under_rdaa_threshold:
                 (mixedCameraStreakData &&
@@ -1012,7 +1014,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
               red_light_camera_violations: redLightCameraViolations.length,
               speed_camera_violations: speedCameraViolations.length,
               state,
-              unique_identifier: uniqueIdentifier
+              unique_identifier: uniqueIdentifier,
             }
 
             insertNewLookup(newLookup, (error, results, fields) => {
@@ -1035,12 +1037,12 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             times_queried: frequency,
             unique_identifier: uniqueIdentifier,
             violations,
-            violations_count: violations.length
+            violations_count: violations.length,
           }
 
           const returnObject = {
             successful_lookup: true,
-            vehicle: stripReturnData(fullVehicleLookup, selectedFields)
+            vehicle: stripReturnData(fullVehicleLookup, selectedFields),
           }
 
           resolve(returnObject)
@@ -1051,9 +1053,9 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     return {
       vehicle: {},
       error_string:
-        'Sorry, a plate and state could not be inferred from ' +
+        "Sorry, a plate and state could not be inferred from " +
         vehicle.original_string,
-      successful_lookup: false
+      successful_lookup: false,
     }
   }
 }
@@ -1063,11 +1065,11 @@ const getViolationBorough = async (violation, index) => {
     return Promise.resolve(violation.violation_county)
   }
   if (!violation.location) {
-    return Promise.resolve('No Borough Available')
+    return Promise.resolve("No Borough Available")
   }
   const boroughFromLocation = await connection
-    .promiseQuery('select borough from geocodes WHERE lookup_string = ?', [
-      violation.location + ' New York NY'
+    .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
+      violation.location + " New York NY",
     ])
     .then(async (results) => {
       if (results.length) {
@@ -1088,19 +1090,19 @@ const getViolationLocation = (violation) => {
   const street2 = violation.intersecting_street
 
   if (street1 && street2) {
-    if (street1.length === 20 && street1.charAt(street1.length - 1) !== ' ') {
+    if (street1.length === 20 && street1.charAt(street1.length - 1) !== " ") {
       fullStreetName = street1 + street2
     } else {
-      fullStreetName = street1 + ' ' + street2
+      fullStreetName = street1 + " " + street2
     }
   } else if (street1 && houseNumber) {
     if (
       houseNumber.length === 20 &&
-      houseNumber.charAt(houseNumber.length - 1) !== ' '
+      houseNumber.charAt(houseNumber.length - 1) !== " "
     ) {
       fullStreetName = houseNumber + street1
     } else {
-      fullStreetName = houseNumber + ' ' + street1
+      fullStreetName = houseNumber + " " + street1
     }
   } else if (street1) {
     fullStreetName = street1
@@ -1108,15 +1110,15 @@ const getViolationLocation = (violation) => {
 
   if (fullStreetName) {
     if (fullStreetName.match(/@\w/)) {
-      fullStreetName = fullStreetName.replace(/@(\w)/, '@ $1')
+      fullStreetName = fullStreetName.replace(/@(\w)/, "@ $1")
     }
 
     fullStreetName = fullStreetName
       .split(/\s/)
-      .filter((strPart) => strPart.replace(/\(?[ENSW]\/?B\)?/i, '') !== '')
+      .filter((strPart) => strPart.replace(/\(?[ENSW]\/?B\)?/i, "") !== "")
       .map((strPart) => strPart.toLowerCase())
       .map((strPart) => strPart.charAt(0).toUpperCase() + strPart.substr(1))
-      .join(' ')
+      .join(" ")
 
     return fullStreetName
   }
@@ -1129,13 +1131,13 @@ const handleBlockEvent = (event) => {
 }
 
 const handleDirectMessageEvent = (event, users) => {
-  if (event.type === 'message_create') {
+  if (event.type === "message_create") {
     const messageCreateData = event.message_create
     let photoURL = null
 
-    console.log('\n\n')
+    console.log("\n\n")
     console.log(`message create data: ${JSON.stringify(messageCreateData)}`)
-    console.log('\n\n')
+    console.log("\n\n")
 
     const senderId = messageCreateData.sender_id
 
@@ -1151,7 +1153,7 @@ const handleDirectMessageEvent = (event, users) => {
         if (att.media) {
           const media = att.media
 
-          if (media.type === 'photo') {
+          if (media.type === "photo") {
             photoURL = media.media_url_https
           }
         }
@@ -1160,10 +1162,10 @@ const handleDirectMessageEvent = (event, users) => {
 
     if (
       sender &&
-      event.message_create.target.recipient_id === '976593574732222465'
+      event.message_create.target.recipient_id === "976593574732222465"
     ) {
       const newEvent = {
-        event_type: 'direct_message',
+        event_type: "direct_message",
         event_id: event.id,
         user_handle: sender.screen_name,
         user_id: sender.id,
@@ -1171,13 +1173,13 @@ const handleDirectMessageEvent = (event, users) => {
         created_at: event.created_timestamp,
         in_reply_to_message_id: null,
         location: null,
-        responded_to: false
+        responded_to: false,
       }
 
       console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
       connection.query(
-        'insert into twitter_events set ?',
+        "insert into twitter_events set ?",
         newEvent,
         (error, results, fields) => {
           if (error) {
@@ -1190,12 +1192,12 @@ const handleDirectMessageEvent = (event, users) => {
 
             const mediaObject = {
               url: photoURL,
-              type: 'photo',
-              twitter_event_id: insertID
+              type: "photo",
+              twitter_event_id: insertID,
             }
 
             connection.query(
-              'insert into twitter_media_objects set ?',
+              "insert into twitter_media_objects set ?",
               mediaObject,
               (error, results, fields) => {
                 if (error) {
@@ -1232,7 +1234,7 @@ const handleFavoriteEvent = (event) => {
 
   if (favoritedStatusId && userId) {
     connection.query(
-      'select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false',
+      "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false",
       [favoritedStatusId, userId],
       (error, results, fields) => {
         if (error) {
@@ -1251,7 +1253,7 @@ const handleFavoriteEvent = (event) => {
             userId
           )
         } else {
-          console.log('No message matches.')
+          console.log("No message matches.")
           console.log(`favorited status id: ${favoritedStatusId}`)
           console.log(`favoriting user id: ${userId}`)
         }
@@ -1267,7 +1269,7 @@ const handleFollowEvent = (event) => {
 
   if (userId) {
     connection.query(
-      'select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false',
+      "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false",
       [userId],
       (error, results, fields) => {
         if (error) {
@@ -1281,7 +1283,7 @@ const handleFollowEvent = (event) => {
             respondToReplyForNewFollower(inReplyToMessageId, userId)
           })
         } else {
-          console.log('No messages match.')
+          console.log("No messages match.")
           console.log(`following user id: ${userId}`)
         }
       }
@@ -1297,7 +1299,7 @@ const handleTweetCreateEvent = (event) => {
   if (
     !event.retweeted_status &&
     event.user &&
-    event.user.screen_name !== 'HowsMyDrivingNY'
+    event.user.screen_name !== "HowsMyDrivingNY"
   ) {
     let text
     let userMentions = null
@@ -1312,13 +1314,13 @@ const handleTweetCreateEvent = (event) => {
       if (et.entities.user_mentions) {
         userMentions = et.entities.user_mentions
           .map((mention) =>
-            text.includes(mention.screen_name) ? mention.screen_name : ''
+            text.includes(mention.screen_name) ? mention.screen_name : ""
           )
-          .join(' ')
+          .join(" ")
           .trim()
         userMentionIDs = et.entities.user_mentions
           .map((mention) => mention.id_str)
-          .join(',')
+          .join(",")
           .trim()
       }
 
@@ -1329,7 +1331,7 @@ const handleTweetCreateEvent = (event) => {
           const media = ee.media
 
           media.forEach((med) => {
-            if (med.type === 'photo') {
+            if (med.type === "photo") {
               photoURLs.push(med.media_url_https)
             }
           })
@@ -1344,13 +1346,13 @@ const handleTweetCreateEvent = (event) => {
         if (entities.user_mentions) {
           userMentions = entities.user_mentions
             .map((mention) =>
-              text.includes(mention.screen_name) ? mention.screen_name : ''
+              text.includes(mention.screen_name) ? mention.screen_name : ""
             )
-            .join(' ')
+            .join(" ")
             .trim()
           userMentionIDs = entities.user_mentions
             .map((mention) => mention.id_str)
-            .join(',')
+            .join(",")
             .trim()
         }
       }
@@ -1362,7 +1364,7 @@ const handleTweetCreateEvent = (event) => {
           const media = ee.media
 
           media.forEach((med) => {
-            if (med.type === 'photo') {
+            if (med.type === "photo") {
               photoURLs.push(med.media_url_https)
             }
           })
@@ -1371,7 +1373,7 @@ const handleTweetCreateEvent = (event) => {
     }
 
     const newEvent = {
-      event_type: 'status',
+      event_type: "status",
       event_id: event.id_str,
       user_handle: event.user.screen_name,
       user_id: event.user.id_str,
@@ -1384,15 +1386,15 @@ const handleTweetCreateEvent = (event) => {
       in_reply_to_message_id: event.in_reply_to_status_id_str,
       location:
         event.place && event.place.full_name ? event.place.full_name : null,
-      responded_to: false
+      responded_to: false,
     }
 
-    console.log('\n\n')
+    console.log("\n\n")
     console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
-    console.log('\n\n')
+    console.log("\n\n")
 
     connection.query(
-      'insert into twitter_events set ?',
+      "insert into twitter_events set ?",
       newEvent,
       (error, results, fields) => {
         if (error) {
@@ -1406,13 +1408,13 @@ const handleTweetCreateEvent = (event) => {
           const mediaObjects = photoURLs.map((photoURL) => {
             return {
               url: photoURL,
-              type: 'photo',
-              twitter_event_id: insertID
+              type: "photo",
+              twitter_event_id: insertID,
             }
           })
 
           connection.query(
-            'insert into twitter_media_objects set ?',
+            "insert into twitter_media_objects set ?",
             mediaObjects,
             (error, results, fields) => {
               if (error) {
@@ -1446,7 +1448,7 @@ const handleUserEvent = (event) => {
 }
 
 const insertNewLookup = (newLookup, callback) => {
-  connection.query('insert into plate_lookups set ?', newLookup, callback)
+  connection.query("insert into plate_lookups set ?", newLookup, callback)
 }
 
 const makeOpenDataRequests = async (plate, state, plateTypes) => {
@@ -1459,29 +1461,29 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   }
 
   const fiscalYearEndpoints = [
-    'https://data.cityofnewyork.us/resource/j7ig-zgkq.json',
-    'https://data.cityofnewyork.us/resource/aagd-wyjz.json',
-    'https://data.cityofnewyork.us/resource/avxe-2nrn.json',
-    'https://data.cityofnewyork.us/resource/2bnn-yakx.json',
-    'https://data.cityofnewyork.us/resource/9wgk-ev5c.json',
-    'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
-    'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
-    'https://data.cityofnewyork.us/resource/kvfd-bves.json',
-    'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
-    'https://data.cityofnewyork.us/resource/pvqr-7yc4.json'
+    "https://data.cityofnewyork.us/resource/j7ig-zgkq.json",
+    "https://data.cityofnewyork.us/resource/aagd-wyjz.json",
+    "https://data.cityofnewyork.us/resource/avxe-2nrn.json",
+    "https://data.cityofnewyork.us/resource/2bnn-yakx.json",
+    "https://data.cityofnewyork.us/resource/9wgk-ev5c.json",
+    "https://data.cityofnewyork.us/resource/faiq-9dfq.json",
+    "https://data.cityofnewyork.us/resource/p7t3-5i9s.json",
+    "https://data.cityofnewyork.us/resource/kvfd-bves.json",
+    "https://data.cityofnewyork.us/resource/7mxj-7a6y.json",
+    "https://data.cityofnewyork.us/resource/pvqr-7yc4.json",
   ]
 
-  console.log('\n\n')
-  console.log('in makeOpenDataRequests')
+  console.log("\n\n")
+  console.log("in makeOpenDataRequests")
   console.log(`rectifiedPlate: ${rectifiedPlate}`)
   console.log(`state: ${state.toUpperCase()}`)
-  console.log('\n\n')
+  console.log("\n\n")
 
   const fiscalYearSearchParams = new URLSearchParams({
-    $$app_token: 'q198HrEaAdCJZD4XCLDl2Uq0G',
+    $$app_token: "q198HrEaAdCJZD4XCLDl2Uq0G",
     $limit: 10000,
     plate_id: encodeURIComponent(rectifiedPlate.toUpperCase()),
-    registration_state: state.toUpperCase()
+    registration_state: state.toUpperCase(),
   })
 
   if (plateTypes) {
@@ -1491,7 +1493,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
 
     const plateTypesQueryValue = `plate_type in(${plateTypesArray.join()})`
 
-    fiscalYearSearchParams.append('$where', plateTypesQueryValue)
+    fiscalYearSearchParams.append("$where", plateTypesQueryValue)
   }
 
   // if (fieldsForExternalRequests) {
@@ -1510,10 +1512,10 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
 
   // Open Parking & Camera Violations Database
   const openParkingAndCameraViolationsSearchParams = new URLSearchParams({
-    $$app_token: 'q198HrEaAdCJZD4XCLDl2Uq0G',
+    $$app_token: "q198HrEaAdCJZD4XCLDl2Uq0G",
     $limit: 10000,
     plate: encodeURIComponent(rectifiedPlate.toUpperCase()),
-    state: state.toUpperCase()
+    state: state.toUpperCase(),
   })
 
   if (plateTypes) {
@@ -1524,7 +1526,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
     const plateTypesQueryValue = `license_type in(${plateTypesArray.join()})`
 
     openParkingAndCameraViolationsSearchParams.append(
-      '$where',
+      "$where",
       plateTypesQueryValue
     )
   }
@@ -1535,7 +1537,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
 
   const urlObject = new URL(
     `?${openParkingAndCameraViolationsSearchParams}`,
-    'https://data.cityofnewyork.us/resource/uvbq-3m68.json'
+    "https://data.cityofnewyork.us/resource/uvbq-3m68.json"
   )
 
   promises.push(axios.get(urlObject.toString()))
@@ -1575,92 +1577,131 @@ const mergeDuplicateViolationRecords = (violations) => {
   return accum
 }
 
-const modifyViolationsForResponse = (violations, selectedFields) => {
-  return violations.forEach((violation) => {
-    const violationDate = violation.issue_date
-    const violationTime = violation.violation_time
+const getViolationWithFineData = (violation) => {
+  let fined = null
 
-    let date
-    let dateMatch
+  if (violation.fine_amount) {
+    fined = parseFloat(violation.fine_amount)
+  }
+  if (violation.penalty_amount) {
+    fined += parseFloat(violation.penalty_amount)
+  }
+  if (violation.interest_amount) {
+    fined += parseFloat(violation.interest_amount)
+  }
+  if (fined) {
+    violation.fined = fined
+  }
 
-    if (violationDate) {
-      dateMatch = violationDate.split('T')
-      if (dateMatch) {
-        date = dateMatch[0]
-      }
-    }
+  if (violation.payment_amount) {
+    violation.paid = parseFloat(violation.payment_amount)
+  }
 
-    if (violationTime) {
-      const isAM = violationTime.includes('A')
-      const isPM = violationTime.includes('P')
+  if (violation.reduction_amount) {
+    violation.reduced = parseFloat(violation.reduction_amount)
+  }
 
-      const fourDigitTimeMatch = violationTime.match(/\d{4}/)
-      const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
+  if (violation.amount_due) {
+    violation.outstanding = parseFloat(violation.amount_due)
+  }
 
-      let hour
-      let minute
-
-      if (fourDigitTimeMatch) {
-        hour = fourDigitTimeMatch[0].substring(0, 2)
-        minute = fourDigitTimeMatch[0].substring(2, 4)
-
-        if (isPM && parseInt(hour) < 12) {
-          hour = (parseInt(hour) + 12).toString()
-        } else if (isAM && hour === 12) {
-          hour = '00'
-        }
-      } else if (fourDigitWithColonTimeMatch) {
-        hour = fourDigitWithColonTimeMatch[0].split(':')[0]
-        minute = fourDigitWithColonTimeMatch[0].split(':')[1]
-      }
-
-      if (hour) {
-        if (isPM && parseInt(hour) < 12) {
-          hour = (parseInt(hour) + 12).toString()
-        } else if (isAM && hour === 12) {
-          hour = (parseInt(hour) - 12).toString()
-        }
-      }
-
-      if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
-        date = date.replace(/\//g, '-')
-        violation.formatted_time = new Date(date + ' ' + hour + ':' + minute)
-      } else {
-        violation.formatted_time = new Date(date + 'T' + hour + ':' + minute)
-      }
-    } else {
-      date = date.replace(/\//g, '-')
-      violation.formatted_time = new Date(date + ' 00:00')
-    }
-
-    let fined = null
-
-    if (violation.fine_amount) {
-      fined = parseFloat(violation.fine_amount)
-    }
-    if (violation.penalty_amount) {
-      fined += parseFloat(violation.penalty_amount)
-    }
-    if (violation.interest_amount) {
-      fined += parseFloat(violation.interest_amount)
-    }
-    if (fined) {
-      violation.fined = fined
-    }
-
-    if (violation.payment_amount) {
-      violation.paid = parseFloat(violation.payment_amount)
-    }
-
-    if (violation.reduction_amount) {
-      violation.reduced = parseFloat(violation.reduction_amount)
-    }
-
-    if (violation.amount_due) {
-      violation.outstanding = parseFloat(violation.amount_due)
-    }
-  })
+  return {
+    ...violation,
+    ...(fined && { fined }),
+    ...(violation.payment_amount && {
+      paid: parseFloat(violation.payment_amount),
+    }),
+    ...(violation.reduction_amount && {
+      reduced: parseFloat(violation.reduction_amount),
+    }),
+    ...(violation.amount_due && {
+      outstanding: parseFloat(violation.amount_due),
+    }),
+  }
 }
+
+const getViolationWithFormattedTime = (violation) => {
+  // Violations have their date and time in two separate fields
+  // that need to be combined into a single datetime.
+  //
+  // violation.issue_date is a timezone-naive value that
+  // is always midnight for a particular date.
+  const violationDate = violation.issue_date
+  const violationTime = violation.violation_time
+
+  let date
+  let formattedTime
+
+  if (violationDate) {
+    const dateMatch = violationDate.match("T")
+    if (dateMatch) {
+      date = violationDate.split("T")[0]
+    }
+  }
+
+  if (violationTime) {
+    const isAM = violationTime.includes("A")
+    const isPM = violationTime.includes("P")
+
+    const fourDigitTimeMatch = violationTime.match(/\d{4}/)
+    const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
+
+    let hour
+    let minute
+
+    if (fourDigitTimeMatch) {
+      // e.g. value is '0521P'
+      hour = fourDigitTimeMatch[0].substring(0, 2)
+      minute = fourDigitTimeMatch[0].substring(2, 4)
+    } else if (fourDigitWithColonTimeMatch) {
+      // e.g. value is '05:21P'
+      hour = fourDigitWithColonTimeMatch[0].split(":")[0]
+      minute = fourDigitWithColonTimeMatch[0].split(":")[1]
+    }
+
+    // Change 12-hour PM format to 24-hour format
+    if (isPM && parseInt(hour) < 12) {
+      // e.g. hour is '05' and time is PM
+      hour = (parseInt(hour) + 12).toString()
+    } else if (isAM && parseInt(hour) === 12) {
+      // e.g. hour is '12' and time is AM
+      hour = "00"
+    }
+
+    // If violation date in MM/DD/YYYY format
+    if (violationDate.match(/\d{2}\/\d{2}\/\d{4}/)) {
+      // replace slashes with dashes
+      date = date.replace(/\//g, "-")
+
+      formattedTime = `${date} ${hour}:${minute}`
+    } else {
+      formattedTime = `${date}T${hour}:${minute}`
+    }
+  } else {
+    // If no time data, just assume midnight (Eastern).
+
+    // replace slashes with dashes
+    date = date.replace(/\//g, "-")
+
+    formattedTime = `${date} 00:00`
+  }
+
+  const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
+    zone: "America/New_York",
+  })
+
+  return {
+    ...violation,
+    formatted_time: violationTimeInEasternTime,
+    formatted_time_eastern: violationTimeInEasternTime,
+    formatted_time_utc: violationTimeInEasternTime.toUTC(),
+  }
+}
+
+const modifyViolationsForResponse = (violations, selectedFields) =>
+  violations.map((violation) =>
+    getViolationWithFineData(getViolationWithFormattedTime(violation))
+  )
 
 const normalizeViolations = async (violations) => {
   const returnViolations = await violations.map(async (violation, index) => {
@@ -1733,7 +1774,7 @@ const normalizeViolations = async (violations) => {
       )
         ? null
         : parseInt(violation.violation_precinct || violation.precinct),
-      violation_time: violation.violation_time || null
+      violation_time: violation.violation_time || null,
     }
 
     const determinedViolationLocation = getViolationLocation(newViolation)
@@ -1806,27 +1847,27 @@ const retrieveBoroughFromGeocode = (location) => {
       (response) => {
         const geocodeResult = response?.json?.results[0]
         if (!geocodeResult?.address_components?.length) {
-          return 'No Borough Available'
+          return "No Borough Available"
         }
 
         // Get latidude & longitude from address.
         // const { lat, lng } = geocodeResult.geometry.location
         const borough = geocodeResult.address_components.find(
-          (elem) => elem.types[2] === 'sublocality_level_1'
+          (elem) => elem.types[2] === "sublocality_level_1"
         )
 
         if (!borough?.long_name) {
-          return 'No Borough Available'
+          return "No Borough Available"
         }
 
         const newGeocode = {
           lookup_string: `${location.trim()} New York NY`,
           borough: borough.long_name,
-          geocoding_service: 'google'
+          geocoding_service: "google",
         }
 
         connection.query(
-          'insert into geocodes set ?',
+          "insert into geocodes set ?",
           newGeocode,
           (error, results, fields) => {
             if (error) {
@@ -1839,26 +1880,24 @@ const retrieveBoroughFromGeocode = (location) => {
         return borough.long_name
       },
       (error) => {
-        console.log('\n\n')
-        console.log(
-          `There was an error requesting the geocode for ${location}`
-        )
+        console.log("\n\n")
+        console.log(`There was an error requesting the geocode for ${location}`)
         console.error(error)
-        console.log('\n\n')
+        console.log("\n\n")
       }
     )
 }
 
 const retrievePossibleMedallionVehiclePlate = async (plate) => {
   const medallionEndpoint =
-    'https://data.cityofnewyork.us/resource/rhe8-mgbb.json'
+    "https://data.cityofnewyork.us/resource/rhe8-mgbb.json"
 
   const medallionEndpointSearchParams = new URLSearchParams({
-    $$app_token: 'q198HrEaAdCJZD4XCLDl2Uq0G',
-    $group: 'dmv_license_plate_number',
+    $$app_token: "q198HrEaAdCJZD4XCLDl2Uq0G",
+    $group: "dmv_license_plate_number",
     $limit: 10000,
-    $select: 'dmv_license_plate_number, max(last_updated_date)',
-    $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`
+    $select: "dmv_license_plate_number, max(last_updated_date)",
+    $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`,
   })
 
   const medallionUrlObject = new URL(
@@ -1905,144 +1944,142 @@ const stripReturnData = (obj, selectedFields) => {
 }
 
 const connection = initializeConnection({
-  host: 'localhost',
+  host: "localhost",
   user: process.env.MYSQL_DATABASE_USER,
   password: process.env.MYSQL_DATABASE_PASSWORD,
-  database: 'traffic_violations',
-  multipleStatements: true
+  database: "traffic_violations",
+  multipleStatements: true,
 })
 
 const server = http.createServer(async (req, res) => {
   // Set response headers
-  res.setHeader('Content-Type', 'application/json;charset=utf-8')
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader("Content-Type", "application/json;charset=utf-8")
+  res.setHeader("Access-Control-Allow-Origin", "*")
 
   const receivedAtDate = new Date()
 
-  console.log('----------------------------------------------------')
+  console.log("----------------------------------------------------")
   console.log(`request received at: ${receivedAtDate}`)
   console.log(`request url: ${req.url}`)
-  console.log('\n\n')
+  console.log("\n\n")
 
-  if (req.url.match('/webhook/twitter')) {
-    if (req.method === 'POST') {
+  if (req.url.match("/webhook/twitter")) {
+    if (req.method === "POST") {
       let body = []
       req
-        .on('data', (chunk) => {
+        .on("data", (chunk) => {
           body.push(chunk)
         })
-        .on('end', () => {
+        .on("end", () => {
           body = Buffer.concat(body).toString()
           // at this point, `body` has the entire request body stored in it as a string
 
-          console.log('\n\n')
+          console.log("\n\n")
           console.log(body)
-          console.log('\n\n')
+          console.log("\n\n")
 
           const hmac = crypto.createHmac(
-            'sha256',
+            "sha256",
             process.env.TWITTER_CONSUMER_SECRET
           )
-          const expectedSHA = 'sha256=' + hmac.update(body).digest('base64')
+          const expectedSHA = "sha256=" + hmac.update(body).digest("base64")
 
-          if (req.headers['x-twitter-webhooks-signature'] === expectedSHA) {
+          if (req.headers["x-twitter-webhooks-signature"] === expectedSHA) {
             const json = JSON.parse(body)
-            console.log('received event')
+            console.log("received event")
             console.log(json)
 
             if (json.block_events) {
-              console.log('event type: block(s)')
+              console.log("event type: block(s)")
               json.block_events.forEach((event) => {
                 handleBlockEvent(event)
               })
             } else if (json.direct_message_events) {
-              console.log('event type: direct message(s)')
+              console.log("event type: direct message(s)")
               json.direct_message_events.forEach((event) => {
                 handleDirectMessageEvent(event, json.users)
               })
             } else if (json.direct_message_indicate_typing_events) {
-              console.log(
-                'event type: direct message indicate typing event(s)'
-              )
+              console.log("event type: direct message indicate typing event(s)")
               json.direct_message_indicate_typing_events.forEach((event) => {
                 handleDirectMessageIndicateTypingEvent(event)
               })
             } else if (json.direct_message_mark_read_events) {
-              console.log('event type: direct message mark read event(s)')
+              console.log("event type: direct message mark read event(s)")
               json.direct_message_mark_read_events.forEach((event) => {
                 handleDirectMessageMarkReadEvent(event)
               })
             } else if (json.favorite_events) {
-              console.log('event type: favorite(s)')
+              console.log("event type: favorite(s)")
               json.favorite_events.forEach((event) => {
                 handleFavoriteEvent(event)
               })
             } else if (json.follow_events) {
-              console.log('event type: follow(s)')
+              console.log("event type: follow(s)")
               json.follow_events.forEach((event) => {
                 handleFollowEvent(event)
               })
             } else if (json.mute_events) {
-              console.log('event type: mute(s)')
+              console.log("event type: mute(s)")
               json.mute_events.forEach((event) => {
                 handleMuteEvent(event)
               })
             } else if (json.tweet_create_events) {
-              console.log('event type: tweet create event(s)')
+              console.log("event type: tweet create event(s)")
               json.tweet_create_events.forEach((event) => {
                 handleTweetCreateEvent(event)
               })
             } else if (json.tweet_delete_events) {
-              console.log('event type: tweet delete event(s)')
+              console.log("event type: tweet delete event(s)")
               json.tweet_delete_events.forEach((event) => {
                 handleTweetDeleteEvent(event)
               })
             } else if (json.unblock_events) {
-              console.log('event type: unblock(s)')
+              console.log("event type: unblock(s)")
               json.unblock_events.forEach((event) => {
                 handleUnblockEvent(event)
               })
             } else if (json.unfollow_events) {
-              console.log('event type: follow(s)')
+              console.log("event type: follow(s)")
               json.unfollow_events.forEach((event) => {
                 handleUnfollowEvent(event)
               })
             } else if (json.unmute_events) {
-              console.log('event type: unmute(s)')
+              console.log("event type: unmute(s)")
               json.unmute_events.forEach((event) => {
                 handleUnmuteEvent(event)
               })
             } else if (json.user_event) {
-              console.log('events type: user(s)')
+              console.log("events type: user(s)")
               handleUserEvent(json.user_event)
             } else {
-              console.log('Not sure how to process the following payload: ')
+              console.log("Not sure how to process the following payload: ")
               console.log(json)
             }
           }
         })
-    } else if (req.method === 'GET') {
-      console.log('getting a challenge request')
+    } else if (req.method === "GET") {
+      console.log("getting a challenge request")
 
       const host = req.headers.host
-      const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+      const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
       const parser = new URL(req.url, `${protocol}://${host}`)
       const searchParams = parser.searchParams
 
       console.log(parser.searchParams)
 
-      const crcToken = searchParams.get('crc_token') || ''
+      const crcToken = searchParams.get("crc_token") || ""
       console.log(crcToken)
 
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
       const hmac = crypto.createHmac(
-        'sha256',
+        "sha256",
         process.env.TWITTER_CONSUMER_SECRET
       )
 
       const response = {
-        response_token: `sha256=${hmac.update(crcToken).digest('base64')}`
+        response_token: `sha256=${hmac.update(crcToken).digest("base64")}`,
       }
 
       // # returns properly formatted json response
@@ -2053,19 +2090,19 @@ const server = http.createServer(async (req, res) => {
     }
   } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
     const host = req.headers.host
-    const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+    const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
 
     const pathname = parser.pathname
     const regexString = `${EXISTING_LOOKUP_PATH}[/]*`
-    const identifier = pathname.replace(new RegExp(regexString), '')
+    const identifier = pathname.replace(new RegExp(regexString), "")
     const searchParams = parser.searchParams
 
     const fields = findFilterFields(searchParams.fields)
 
     if (!identifier) {
       const body = {
-        error: "You must supply the identifier of a lookup, e.g. 'a1b2c3d4' "
+        error: "You must supply the identifier of a lookup, e.g. 'a1b2c3d4' ",
       }
       res.writeHead(400)
       res.end(JSON.stringify(body))
@@ -2083,18 +2120,18 @@ const server = http.createServer(async (req, res) => {
 
       const potentialVehicle = [
         `${previousLookup.plate}:${previousLookup.state}${
-          previousLookup.plate_types ? `:${previousLookup.plate_types}` : ''
-        }`
+          previousLookup.plate_types ? `:${previousLookup.plate_types}` : ""
+        }`,
       ]
 
       const vehicles = detectVehicles(potentialVehicle)
 
       const externalData = {
-        lookup_source: 'existing_lookup',
+        lookup_source: "existing_lookup",
         fingerprint_id: null,
         mixpanel_id: null,
         unique_identifier: identifier,
-        previous_lookup_created_at: previousLookup.created_at
+        previous_lookup_created_at: previousLookup.created_at,
       }
 
       Promise.all(
@@ -2135,20 +2172,20 @@ const server = http.createServer(async (req, res) => {
     // }
   } else if (req.url.match(API_LOOKUP_PATH)) {
     const host = req.headers.host
-    const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
+    const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
     const searchParams = parser.searchParams
 
     const fields = findFilterFields(searchParams.fields)
 
-    const plateFromQuery = searchParams.get('plate')
-    const plateIdFromQuery = searchParams.get('plate_id')
-    const plateTypesFromQuery = searchParams.get('plate_types')
-    const stateFromQuery = searchParams.get('state')
+    const plateFromQuery = searchParams.get("plate")
+    const plateIdFromQuery = searchParams.get("plate_id")
+    const plateTypesFromQuery = searchParams.get("plate_types")
+    const stateFromQuery = searchParams.get("state")
 
-    const fingerprintId = searchParams.get('fingerprint_id')
-    const lookupSource = searchParams.get('lookup_source')
-    const mixpanelId = searchParams.get('mixpanel_id')
+    const fingerprintId = searchParams.get("fingerprint_id")
+    const lookupSource = searchParams.get("lookup_source")
+    const mixpanelId = searchParams.get("mixpanel_id")
 
     let potentialVehicles
 
@@ -2163,7 +2200,7 @@ const server = http.createServer(async (req, res) => {
     if (plateIdFromQuery instanceof Array || stateFromQuery instanceof Array) {
       const errorObject = {
         error:
-          "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'"
+          "To look up multiple vehicles, use 'plate=<STATE>:<PLATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny'",
       }
 
       res.writeHead(422)
@@ -2172,16 +2209,16 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    const plate = (plateIdFromQuery || '').toUpperCase()
-    const state = (stateFromQuery || '').toUpperCase()
+    const plate = (plateIdFromQuery || "").toUpperCase()
+    const state = (stateFromQuery || "").toUpperCase()
     const plateTypes = plateTypesFromQuery
       ? plateTypesFromQuery
-        .split(',')
-        .map((item) => item.toUpperCase().trim())
-        .sort()
+          .split(",")
+          .map((item) => item.toUpperCase().trim())
+          .sort()
       : null
 
-    const plateTypesString = plateTypes ? `:${plateTypes}` : ''
+    const plateTypesString = plateTypes ? `:${plateTypes}` : ""
 
     if (plate && state) {
       potentialVehicles.push(`${plate}:${state}${plateTypesString}`)
@@ -2192,7 +2229,7 @@ const server = http.createServer(async (req, res) => {
     const externalData = {
       lookup_source: lookupSource,
       fingerprint_id: fingerprintId,
-      mixpanel_id: mixpanelId
+      mixpanel_id: mixpanelId,
     }
 
     Promise.all(
@@ -2208,7 +2245,7 @@ const server = http.createServer(async (req, res) => {
     // are required, ex: 'api.howsmydrivingny.nyc/api/v1?plate_id=abc1234&state=ny'"}))
   } else {
     res.writeHead(404)
-    res.end(JSON.stringify({ error: 'not found' }))
+    res.end(JSON.stringify({ error: "not found" }))
   }
 })
 
