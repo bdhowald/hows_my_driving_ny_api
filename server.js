@@ -1013,6 +1013,17 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       state,
       plateTypes
     )
+
+    if (endpointResponses.some((endpointResponse) => !endpointResponse)) {
+      return Promise.resolve({
+        vehicle: {},
+        error_string:
+          "Sorry, there was an error querying open data for " +
+          vehicle.original_string,
+        successful_lookup: false,
+      })
+    }
+
     const normalizedResponses = endpointResponses.map((response) =>
       normalizeViolations(response.data)
     )
@@ -1188,6 +1199,28 @@ const getViolationLocation = (violation) => {
   }
 
   return null
+}
+
+const handleAxiosErrors = (error) => {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    console.log("Non-2xx response")
+    console.log(error.response.data)
+    console.log(error.response.status)
+    console.log(error.response.headers)
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+    // http.ClientRequest in node.js
+    console.log(
+      `No response received for ${error.config?.method} request to ${error.config?.url}`
+    )
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    console.log("Error", error.message)
+  }
+  console.log(error.config)
 }
 
 const handleBlockEvent = (event) => {
@@ -1519,7 +1552,10 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   let rectifiedPlate = plate
 
   try {
-    rectifiedPlate = await retrievePossibleMedallionVehiclePlate(plate)
+    possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(plate)
+    if (possibleMedallionPlate) {
+      rectifiedPlate = possibleMedallionPlate
+    }
   } catch (error) {
     console.error(error)
   }
@@ -1571,7 +1607,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   // Fiscal Year Databases
   const promises = fiscalYearEndpoints.map((endpoint) => {
     const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
-    return axios.get(fiscalYearUrlObject.toString())
+    return axios.get(fiscalYearUrlObject.toString()).catch(handleAxiosErrors)
   })
 
   // Open Parking & Camera Violations Database
@@ -1604,7 +1640,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
     "https://data.cityofnewyork.us/resource/uvbq-3m68.json"
   )
 
-  promises.push(axios.get(urlObject.toString()))
+  promises.push(axios.get(urlObject.toString()).catch(handleAxiosErrors))
 
   const responses = await Promise.all(promises)
 
@@ -2009,7 +2045,10 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
   )
 
   try {
-    const medallionEndpointResponse = await axios.get(medallionUrlObject)
+    const medallionEndpointResponse = await axios
+      .get(medallionUrlObject)
+      .catch(handleAxiosErrors)
+
     const medallionResults = medallionEndpointResponse.data
 
     if (!medallionResults.length) {
@@ -2281,7 +2320,7 @@ const server = http.createServer(async (req, res) => {
 
     const fields = findFilterFields(searchParams.fields)
 
-    const plateFromQuery = searchParams.get("plate")
+    const plateFromQuery = searchParams.getAll("plate")
     const plateIdFromQuery = searchParams.get("plate_id")
     const plateTypesFromQuery = searchParams.get("plate_types")
     const stateFromQuery = searchParams.get("state")
