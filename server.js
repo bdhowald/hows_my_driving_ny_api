@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const axios = require("axios")
-const crypto = require("crypto")
+const { createHmac } = require("node:crypto")
 const { DateTime } = require("luxon")
 const http = require("http")
 const mysql = require("mysql")
@@ -9,6 +9,58 @@ const googleMapsClient = require("@google/maps").createClient({
   key: process.env.GOOGLE_PLACES_API_KEY,
   Promise,
 })
+
+const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
+
+const PARKING_VIOLATIONS_FISCAL_YEAR_2014_PATH = "/resource/jt7v-77mi.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2015_PATH = "/resource/c284-tqph.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2016_PATH = "/resource/kiv2-tbus.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2017_PATH = "/resource/2bnn-yakx.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2018_PATH = "/resource/a5td-mswe.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2019_PATH = "/resource/faiq-9dfq.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2020_PATH = "/resource/p7t3-5i9s.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2021_PATH = "/resource/kvfd-bves.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2022_PATH = "/resource/7mxj-7a6y.json"
+const PARKING_VIOLATIONS_FISCAL_YEAR_2023_PATH = "/resource/pvqr-7yc4.json"
+
+const FISCAL_YEAR_PATHS = [
+  PARKING_VIOLATIONS_FISCAL_YEAR_2014_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2015_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2016_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2017_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2018_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2019_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2020_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2021_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2022_PATH,
+  PARKING_VIOLATIONS_FISCAL_YEAR_2023_PATH,
+]
+const OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH = "/resource/uvbq-3m68.json"
+
+const FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP = {
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2014_PATH]:
+    "Parking Violations Issued - Fiscal Year 2014",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2015_PATH]:
+    "Parking Violations Issued - Fiscal Year 2015",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2016_PATH]:
+    "Parking Violations Issued - Fiscal Year 2016",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2017_PATH]:
+    "Parking Violations Issued - Fiscal Year 2017",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2018_PATH]:
+    "Parking Violations Issued - Fiscal Year 2018",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2019_PATH]:
+    "Parking Violations Issued - Fiscal Year 2019",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2020_PATH]:
+    "Parking Violations Issued - Fiscal Year 2020",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2021_PATH]:
+    "Parking Violations Issued - Fiscal Year 2021",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2022_PATH]:
+    "Parking Violations Issued - Fiscal Year 2022",
+  [PARKING_VIOLATIONS_FISCAL_YEAR_2023_PATH]:
+    "Parking Violations Issued - Fiscal Year 2023",
+  [OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH]:
+    "Open Parking and Camera Violations",
+}
 
 const API_LOOKUP_PATH = "/api/v1"
 const EXISTING_LOOKUP_PATH = "/api/v1/lookup"
@@ -1024,9 +1076,10 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       })
     }
 
-    const normalizedResponses = endpointResponses.map((response) =>
-      normalizeViolations(response.data)
-    )
+    const normalizedResponses = endpointResponses.map((response) => {
+      const requestUrlObject = new URL(response.config.url)
+      return normalizeViolations(requestUrlObject.pathname, response.data)
+    })
     await Promise.all(normalizedResponses).then((normalizedResponses) => {
       normalizedResponses.forEach((normalizedResponse) => {
         flattenedResponses = [...flattenedResponses, ...normalizedResponse]
@@ -1199,6 +1252,126 @@ const getViolationLocation = (violation) => {
   }
 
   return null
+}
+
+const getViolationWithFineData = (violation) => {
+  let fined = null
+
+  if (violation.fine_amount) {
+    fined = parseFloat(violation.fine_amount)
+  }
+  if (violation.penalty_amount) {
+    fined += parseFloat(violation.penalty_amount)
+  }
+  if (violation.interest_amount) {
+    fined += parseFloat(violation.interest_amount)
+  }
+  if (fined) {
+    violation.fined = fined
+  }
+
+  if (violation.payment_amount) {
+    violation.paid = parseFloat(violation.payment_amount)
+  }
+
+  if (violation.reduction_amount) {
+    violation.reduced = parseFloat(violation.reduction_amount)
+  }
+
+  if (violation.amount_due) {
+    violation.outstanding = parseFloat(violation.amount_due)
+  }
+
+  return {
+    ...violation,
+    ...(fined && { fined }),
+    ...(violation.payment_amount && {
+      paid: parseFloat(violation.payment_amount),
+    }),
+    ...(violation.reduction_amount && {
+      reduced: parseFloat(violation.reduction_amount),
+    }),
+    ...(violation.amount_due && {
+      outstanding: parseFloat(violation.amount_due),
+    }),
+  }
+}
+
+const getViolationWithFormattedTime = (violation) => {
+  // Violations have their date and time in two separate fields
+  // that need to be combined into a single datetime.
+  //
+  // violation.issue_date is a timezone-naive value that
+  // is always midnight for a particular date.
+  const violationDate = violation.issue_date
+  const violationTime = violation.violation_time
+
+  if (violationDate) {
+    const dateMatch = violationDate.match("T")
+    let date = dateMatch ? violationDate.split("T")[0] : violationDate
+
+    let formattedTime
+
+    if (violationTime) {
+      const isAM = violationTime.includes("A")
+      const isPM = violationTime.includes("P")
+
+      const fourDigitTimeMatch = violationTime.match(/\d{4}/)
+      const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
+
+      let hour
+      let minute
+
+      if (fourDigitTimeMatch) {
+        // e.g. value is '0521P'
+        hour = fourDigitTimeMatch[0].substring(0, 2)
+        minute = fourDigitTimeMatch[0].substring(2, 4)
+      } else if (fourDigitWithColonTimeMatch) {
+        // e.g. value is '05:21P'
+        hour = fourDigitWithColonTimeMatch[0].split(":")[0]
+        minute = fourDigitWithColonTimeMatch[0].split(":")[1]
+      }
+
+      // Change 12-hour PM format to 24-hour format
+      if (isPM && parseInt(hour) < 12) {
+        // e.g. hour is '05' and time is PM
+        hour = (parseInt(hour) + 12).toString()
+      } else if (isAM && parseInt(hour) === 12) {
+        // e.g. hour is '12' and time is AM
+        hour = "00"
+      }
+
+      // If violation date in MM/DD/YYYY format
+      if (date?.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        // replace slashes with dashes
+        const [month, day, year] = date.split("/")
+
+        formattedTime = `${year}-${month}-${day}T${hour}:${minute}`
+      } else {
+        formattedTime = `${date}T${hour}:${minute}`
+      }
+    } else {
+      // If no time data, just assume midnight (Eastern).
+
+      // replace slashes with dashes
+      date = date.replace(/\//g, "-")
+
+      formattedTime = `${date} 00:00`
+    }
+
+    const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
+      zone: "America/New_York",
+    })
+
+    return {
+      ...violation,
+      formatted_time: violationTimeInEasternTime,
+      formatted_time_eastern: violationTimeInEasternTime,
+      formatted_time_utc: violationTimeInEasternTime.toUTC(),
+    }
+  }
+
+  return violation
 }
 
 const handleAxiosErrors = (error) => {
@@ -1560,19 +1733,6 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
     console.error(error)
   }
 
-  const fiscalYearEndpoints = [
-    "https://data.cityofnewyork.us/resource/j7ig-zgkq.json",
-    "https://data.cityofnewyork.us/resource/aagd-wyjz.json",
-    "https://data.cityofnewyork.us/resource/avxe-2nrn.json",
-    "https://data.cityofnewyork.us/resource/2bnn-yakx.json",
-    "https://data.cityofnewyork.us/resource/9wgk-ev5c.json",
-    "https://data.cityofnewyork.us/resource/faiq-9dfq.json",
-    "https://data.cityofnewyork.us/resource/p7t3-5i9s.json",
-    "https://data.cityofnewyork.us/resource/kvfd-bves.json",
-    "https://data.cityofnewyork.us/resource/7mxj-7a6y.json",
-    "https://data.cityofnewyork.us/resource/pvqr-7yc4.json",
-  ]
-
   console.log("\n\n")
   console.log("in makeOpenDataRequests")
   console.log(`rectifiedPlate: ${rectifiedPlate}`)
@@ -1605,7 +1765,8 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
 
   // Fiscal Year Databases
-  const promises = fiscalYearEndpoints.map((endpoint) => {
+  const promises = FISCAL_YEAR_PATHS.map((path) => {
+    const endpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${path}`
     const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
     return axios.get(fiscalYearUrlObject.toString()).catch(handleAxiosErrors)
   })
@@ -1637,7 +1798,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
 
   const urlObject = new URL(
     `?${openParkingAndCameraViolationsSearchParams}`,
-    "https://data.cityofnewyork.us/resource/uvbq-3m68.json"
+    `${NYC_OPEN_DATA_PORTAL_HOST}${OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH}`
   )
 
   promises.push(axios.get(urlObject.toString()).catch(handleAxiosErrors))
@@ -1658,14 +1819,24 @@ const mergeDuplicateViolationRecords = (violations) => {
       const existingIndex = accum.indexOf(existing[0])
       const existingItem = accum[existingIndex]
 
-      const mergedObject = {}
+      // Handle database data differently, since it must be combined
+      const mergedObject = {
+        from_databases: [
+          ...existingItem["from_databases"],
+          ...object["from_databases"],
+        ],
+      }
 
       Object.keys(existingItem).forEach((key) => {
-        mergedObject[key] = existingItem[key] || object[key]
+        if (key !== "from_databases") {
+          mergedObject[key] = existingItem[key] || object[key]
+        }
       })
 
       Object.keys(object).forEach((key) => {
-        mergedObject[key] = existingItem[key] || object[key]
+        if (key !== "from_databases") {
+          mergedObject[key] = existingItem[key] || object[key]
+        }
       })
 
       accum[existingIndex] = mergedObject
@@ -1677,134 +1848,12 @@ const mergeDuplicateViolationRecords = (violations) => {
   return accum
 }
 
-const getViolationWithFineData = (violation) => {
-  let fined = null
-
-  if (violation.fine_amount) {
-    fined = parseFloat(violation.fine_amount)
-  }
-  if (violation.penalty_amount) {
-    fined += parseFloat(violation.penalty_amount)
-  }
-  if (violation.interest_amount) {
-    fined += parseFloat(violation.interest_amount)
-  }
-  if (fined) {
-    violation.fined = fined
-  }
-
-  if (violation.payment_amount) {
-    violation.paid = parseFloat(violation.payment_amount)
-  }
-
-  if (violation.reduction_amount) {
-    violation.reduced = parseFloat(violation.reduction_amount)
-  }
-
-  if (violation.amount_due) {
-    violation.outstanding = parseFloat(violation.amount_due)
-  }
-
-  return {
-    ...violation,
-    ...(fined && { fined }),
-    ...(violation.payment_amount && {
-      paid: parseFloat(violation.payment_amount),
-    }),
-    ...(violation.reduction_amount && {
-      reduced: parseFloat(violation.reduction_amount),
-    }),
-    ...(violation.amount_due && {
-      outstanding: parseFloat(violation.amount_due),
-    }),
-  }
-}
-
-const getViolationWithFormattedTime = (violation) => {
-  // Violations have their date and time in two separate fields
-  // that need to be combined into a single datetime.
-  //
-  // violation.issue_date is a timezone-naive value that
-  // is always midnight for a particular date.
-  const violationDate = violation.issue_date
-  const violationTime = violation.violation_time
-
-  if (violationDate) {
-    const dateMatch = violationDate.match("T")
-    let date = dateMatch ? violationDate.split("T")[0] : violationDate
-
-    let formattedTime
-
-    if (violationTime) {
-      const isAM = violationTime.includes("A")
-      const isPM = violationTime.includes("P")
-
-      const fourDigitTimeMatch = violationTime.match(/\d{4}/)
-      const fourDigitWithColonTimeMatch = violationTime.match(/\d{2}:\d{2}/)
-
-      let hour
-      let minute
-
-      if (fourDigitTimeMatch) {
-        // e.g. value is '0521P'
-        hour = fourDigitTimeMatch[0].substring(0, 2)
-        minute = fourDigitTimeMatch[0].substring(2, 4)
-      } else if (fourDigitWithColonTimeMatch) {
-        // e.g. value is '05:21P'
-        hour = fourDigitWithColonTimeMatch[0].split(":")[0]
-        minute = fourDigitWithColonTimeMatch[0].split(":")[1]
-      }
-
-      // Change 12-hour PM format to 24-hour format
-      if (isPM && parseInt(hour) < 12) {
-        // e.g. hour is '05' and time is PM
-        hour = (parseInt(hour) + 12).toString()
-      } else if (isAM && parseInt(hour) === 12) {
-        // e.g. hour is '12' and time is AM
-        hour = "00"
-      }
-
-      // If violation date in MM/DD/YYYY format
-      if (date?.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-        // replace slashes with dashes
-        const [month, day, year] = date.split("/")
-
-        formattedTime = `${year}-${month}-${day}T${hour}:${minute}`
-      } else {
-        formattedTime = `${date}T${hour}:${minute}`
-      }
-    } else {
-      // If no time data, just assume midnight (Eastern).
-
-      // replace slashes with dashes
-      date = date.replace(/\//g, "-")
-
-      formattedTime = `${date} 00:00`
-    }
-
-    const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
-      zone: "America/New_York",
-    })
-
-    return {
-      ...violation,
-      formatted_time: violationTimeInEasternTime,
-      formatted_time_eastern: violationTimeInEasternTime,
-      formatted_time_utc: violationTimeInEasternTime.toUTC(),
-    }
-  }
-
-  console.log("no violation date")
-
-  return violation
-}
-
 const modifyViolationsForResponse = (violations, selectedFields) =>
   violations.map((violation) =>
     getViolationWithFineData(getViolationWithFormattedTime(violation))
   )
 
-const normalizeViolations = async (violations) => {
+const normalizeViolations = async (requestPathname, violations) => {
   const returnViolations = await violations.map(async (violation, index) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
@@ -1824,6 +1873,12 @@ const normalizeViolations = async (violations) => {
       fine_amount: isNaN(parseFloat(violation.fine_amount))
         ? null
         : parseFloat(violation.fine_amount),
+      from_databases: [
+        {
+          endpoint: `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`,
+          name: FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP[requestPathname],
+        },
+      ],
       from_hours_in_effect: violation.from_hours_in_effect || null,
       house_number: violation.house_number || null,
       humanized_description: readableViolationDescription,
@@ -2120,10 +2175,7 @@ const server = http.createServer(async (req, res) => {
           console.log(body)
           console.log("\n\n")
 
-          const hmac = crypto.createHmac(
-            "sha256",
-            process.env.TWITTER_CONSUMER_SECRET
-          )
+          const hmac = createHmac("sha256", process.env.TWITTER_CONSUMER_SECRET)
           const expectedSHA = "sha256=" + hmac.update(body).digest("base64")
 
           if (req.headers["x-twitter-webhooks-signature"] === expectedSHA) {
@@ -2215,10 +2267,7 @@ const server = http.createServer(async (req, res) => {
 
       // creates HMAC SHA-256 hash from incomming token and your consumer secret
       // construct response data with base64 encoded hash
-      const hmac = crypto.createHmac(
-        "sha256",
-        process.env.TWITTER_CONSUMER_SECRET
-      )
+      const hmac = createHmac("sha256", process.env.TWITTER_CONSUMER_SECRET)
 
       const response = {
         response_token: `sha256=${hmac.update(crcToken).digest("base64")}`,
