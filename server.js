@@ -819,7 +819,7 @@ const createRepeatLookupString = (
       const fullPlateString = plateHashTagString + plateTypesString
 
       const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${
-        "" ? numNewViolations === 1 : "s"
+        numNewViolations === 1 ? "" : "s"
       }.\n\n`
 
       violationsString += newTicketsSinceString
@@ -1011,7 +1011,7 @@ const formPlateLookupTweets = (
   const plateHashTagString = getPlateHashTagString(plate, state)
   const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
   const lookupSummaryString = ` ${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
-    "" ? frequency === 1 : "s"
+    frequency === 1 ? "" : "s"
   }.\n\n`
 
   violationsString += lookupSummaryString
