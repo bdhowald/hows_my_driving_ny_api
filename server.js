@@ -818,7 +818,7 @@ const createRepeatLookupString = (
       const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
       const fullPlateString = plateHashTagString + plateTypesString
 
-      const newTicketsSinceString = ` Since then, ${fullPlateString} has received ${numNewViolations} new ticket${
+      const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${
         "" ? numNewViolations === 1 : "s"
       }.\n\n`
 
@@ -1010,7 +1010,7 @@ const formPlateLookupTweets = (
   // Append summary string.
   const plateHashTagString = getPlateHashTagString(plate, state)
   const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
-  const lookupSummaryString = `${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
+  const lookupSummaryString = ` ${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
     "" ? frequency === 1 : "s"
   }.\n\n`
 
@@ -1091,7 +1091,7 @@ const formPlateLookupTweets = (
       const leftJustifyAmount = spacesNeeded - countLength
 
       const humanReadableFineType = fineType
-        .replace("total", "")
+        .replace("total_", "")
         .replace("_", " ")
 
       // formulate next string part
