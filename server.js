@@ -75,6 +75,28 @@ const SCHOOL_ZONE_SPEED_CAMERA_VIOLATION = "School Zone Speed Camera Violation"
 
 const EXISTING_LOOKUP_SOURCE = "existing_lookup"
 
+const FINE_FIELDS = [
+  "total_fined",
+  "total_reduced",
+  "total_paid",
+  "total_outstanding",
+  "total_in_judgment",
+]
+const MAX_TWITTER_STATUS_LENGTH = 280
+
+const US_DOLLAR_FORMAT_OBJECT = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+})
+
+const CAMERA_THRESHOLDS = {
+  camera_violations: 5,
+  red_light_camera_violations: 5,
+  school_zone_speed_camera_violations: 15,
+}
+
+const HOWS_MY_DRIVING_NY_WEBSITE_URL = "https://howsmydrivingny.nyc"
+
 // humanized names for violations
 const openParkingAndCameraViolationsReadableViolationDescriptions = {
   "": "No Description Given",
@@ -603,6 +625,67 @@ const issuingAgencies = {
   V: "NYC DOT",
 }
 
+class CameraStreakData {
+  constructor(maxStreak, streakStart, streakEnd) {
+    this.max_streak = maxStreak
+    this.streak_end = streakEnd
+    this.streak_start = streakStart
+  }
+}
+
+class CameraData {
+  constructor(
+    busLaneCameraStreakData,
+    mixedCameraStreakData,
+    mixedCameraWithBusLaneCameraStreakData,
+    redLightCameraStreakData,
+    speedCameraStreakData
+  ) {
+    this.bus_lane_camera_violations = busLaneCameraStreakData
+    this.camera_violations = mixedCameraStreakData
+    this.camera_violations_with_bus_lane_camera_violations =
+      mixedCameraWithBusLaneCameraStreakData
+    this.red_light_camera_violations = redLightCameraStreakData
+    this.school_zone_speed_camera_violations = speedCameraStreakData
+  }
+}
+
+class FineData {
+  constructor(
+    totalFined,
+    totalInJudgment,
+    totalOutstanding,
+    totalPaid,
+    totalReduced
+  ) {
+    this.total_fined = totalFined
+    this.total_outstanding = totalOutstanding
+    this.total_paid = totalPaid
+    this.total_reduced = totalReduced
+    this.total_in_judgment = totalInJudgment
+  }
+
+  get areFinesAssessed() {
+    return this.total_fined > 0
+  }
+
+  get maxAmount() {
+    return Math.max(this.fined, this.outstanding, this.paid, this.reduced)
+  }
+}
+
+/**
+ * Creates a new PlateLookup with number of violations and the date it was created.
+ * @class
+ * @classdesc Encapsulates data from a previous lookup of the same plate.
+ */
+class PlateLookup {
+  constructor(createdAt, numViolations) {
+    this.createdAt = createdAt
+    this.numViolations = numViolations
+  }
+}
+
 const initializeConnection = (config) => {
   const addDisconnectHandler = (connection) => {
     connection.on("error", (error) => {
@@ -651,10 +734,13 @@ const createNewLookup = async (
   const countTowardsFrequency = !["api"].includes(lookupSource)
 
   const bootEligibleUnderRdaaThreshold =
-    cameraStreakData?.camera_violations?.max_streak >= 5 || false
+    cameraStreakData?.camera_violations?.max_streak >=
+      CAMERA_THRESHOLDS.camera_violations || false
   const bootEligibleUnderDvaaThreshold =
-    cameraStreakData?.red_light_camera_violations?.max_streak >= 5 ||
-    cameraStreakData?.school_zone_speed_camera_violations?.max_streak >= 15 ||
+    cameraStreakData?.red_light_camera_violations?.max_streak >=
+      CAMERA_THRESHOLDS.red_light_camera_violations ||
+    cameraStreakData?.school_zone_speed_camera_violations?.max_streak >=
+      CAMERA_THRESHOLDS.school_zone_speed_camera_violations ||
     false
 
   const newLookup = {
@@ -688,6 +774,59 @@ const createNewLookup = async (
       throw error
     }
   })
+}
+
+/**
+ * Creates a string summarizing a vehicle's previous lookup details
+ *
+ * @param {number}      numNewViolations - Frequency of violations for each borough
+ * @param {string}      plate            - The text on this license plate
+ * @param {string}      state            - The two-character abbreviation of the plate's state
+ *  @param {string}     plateTypes       - The possible type(s) of this plate
+ * @param {PlateLookup} previousLookup   - Number of violations and creation date of a previous lookup
+ */
+const createRepeatLookupString = (
+  numNewViolations,
+  plate,
+  state,
+  plateTypes,
+  previousLookup = undefined
+) => {
+  let violationsString = ""
+
+  if (previousLookup && numNewViolations > 0) {
+    // Determine when the last lookup was...
+    const previousLookupDateTime = previousLookup.createdAt
+    const previousLookupDateTimeInUTC = DateTime.fromJSDate(
+      previousLookupDateTime
+    ).toUTC()
+    const nowInUTC = DateTime.utc()
+
+    // If at least five minutes have passed...
+    if (nowInUTC.minus({ minutes: 5 }) > previousLookupDateTimeInUTC) {
+      // Add the new ticket info and previous lookup time to the string.
+
+      const previousLookupTimeInUTCString =
+        previousLookupDateTimeInUTC.toFormat("hh:mm:ss a ZZZZ")
+      const previousLookupDateInUTCString =
+        previousLookupDateTimeInUTC.toFormat("LLLL dd, y")
+
+      const lastQueriedString = `This vehicle was last queried on ${previousLookupDateInUTCString} at ${previousLookupTimeInUTCString}.`
+      violationsString += lastQueriedString
+
+      const plateHashTagString = getPlateHashTagString(plate, state)
+      const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+      const fullPlateString = plateHashTagString + plateTypesString
+
+      const newTicketsSinceString = ` Since then, ${fullPlateString} has received ${numNewViolations} new ticket${
+        "" ? numNewViolations === 1 : "s"
+      }.\n\n`
+
+      violationsString += newTicketsSinceString
+    }
+  }
+
+  return violationsString
 }
 
 const detectPlateTypes = (potentialPlateTypeString) => {
@@ -812,10 +951,210 @@ const findMaxCameraViolationsStreak = (violationTimes) => {
     }
   })
 
-  return {
-    max_streak: maxStreak,
-    streak_end: streakEnd,
-    streak_start: streakStart,
+  return new CameraStreakData(maxStreak, streakStart, streakEnd)
+}
+
+/**
+ * Forms a plate lookup response in multiple tweets.
+ *
+ * @param {Array<Object<string, number>>} boroughFrequencyData       - Frequency of violations for each borough
+ * @param {number}                        frequency                  - The number of times this plate has been queried
+ * @param {FineData}                      fineData                   - The individual sums of fines assessed,
+ *                                                                     reduced, paid, and outstanding
+ * @param {string}                        plate                      - The text on this license plate
+ * @param {string}                        plateTypes                 - The possible type(s) of this plate
+ * @param {string}                        state                      - The two-character abbreviation of the plate's state
+ * @param {string}                        uniqueIdentifier           - 8-digit alphanumeric code that uniquely
+ *                                                                     identifies this lookup
+ * @param {Array<Object<string, number>>} violationTypeFrequencyData - Frequency of individual violation types
+ * @param {Array<Object<string, number>>} yearFrequencyData          - Frequency of total violations in individual years
+ * @param {CameraData}                    cameraStreakData           - Totals and streak starts and ends for all
+ *                                                                     camera violations, including combinations
+ * @param {PlateLookup}                   previousLookup            - Number of violations and creation date of
+ *                                                                     a previous lookup
+ */
+const formPlateLookupTweets = (
+  boroughFrequencyData,
+  frequency,
+  fineData,
+  plate,
+  state,
+  plateTypes,
+  uniqueIdentifier,
+  violationTypeFrequencyData,
+  yearFrequencyData,
+  cameraStreakData = undefined,
+  previousLookup = undefined
+) => {
+  // response_chunks holds tweet-length-sized parts of the response
+  // to be tweeted out or appended into a single direct message.
+
+  const responseChunks = []
+  let violationsString = ""
+
+  // Get total violations
+  const totalViolations = Object.values(violationTypeFrequencyData).reduce(
+    (prev, next) => prev + next
+  )
+
+  const violationDateTimeInEasternTime =
+    DateTime.utc().setZone("America/New_York")
+  const violationTime =
+    violationDateTimeInEasternTime.toFormat("hh:mm:ss a ZZZZ")
+  const violationDate = violationDateTimeInEasternTime.toFormat("LLLL dd, y")
+  const timePrefix = `As of ${violationTime} on ${violationDate}:`
+
+  // Append time prefix to blank string to start to build tweet.
+  violationsString += timePrefix
+
+  // Append summary string.
+  const plateHashTagString = getPlateHashTagString(plate, state)
+  const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+  const lookupSummaryString = `${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
+    "" ? frequency === 1 : "s"
+  }.\n\n`
+
+  violationsString += lookupSummaryString
+
+  // If this vehicle has been queried before...
+  if (previousLookup) {
+    const previousNumViolations = previousLookup.numViolations
+    const numNewViolations = totalViolations - previousNumViolations
+
+    violationsString += createRepeatLookupString(
+      numNewViolations,
+      plate,
+      state,
+      plateTypes,
+      previousLookup
+    )
+  }
+
+  responseChunks.push(violationsString)
+
+  const totalViolationsPrefixFormatString = `Total parking and camera violation tickets for ${plateHashTagString}: ${totalViolations}\n\n`
+  const totalViolationsContinuedFormatString = `Total parking and camera violation tickets for ${plateHashTagString}, cont'd:\n\n`
+
+  responseChunks.push(
+    handleResponsePartFormation(
+      violationTypeFrequencyData,
+      totalViolationsPrefixFormatString,
+      totalViolationsContinuedFormatString,
+      "No Violation Description Available"
+    )
+  )
+
+  if (yearFrequencyData) {
+    const yearPrefixFormatString = `Violations by year for ${plateHashTagString}\n\n`
+    const yearContinuedFormatString = `Violations by year for ${plateHashTagString}, cont'd:\n\n`
+
+    responseChunks.push(
+      handleResponsePartFormation(
+        yearFrequencyData,
+        yearPrefixFormatString,
+        yearContinuedFormatString,
+        "No Year Available"
+      )
+    )
+  }
+
+  if (boroughFrequencyData) {
+    const boroughPrefixFormatString = `Violations by borough for ${plateHashTagString}\n\n`
+    const boroughContinuedFormatString = `Violations by borough for ${plateHashTagString}, cont'd:\n\n`
+
+    responseChunks.push(
+      handleResponsePartFormation(
+        yearFrequencyData,
+        boroughPrefixFormatString,
+        boroughContinuedFormatString,
+        "No Borough Available"
+      )
+    )
+  }
+
+  if (fineData && fineData.areFinesAssessed) {
+    let curString = ""
+    const maxCountLength = US_DOLLAR_FORMAT_OBJECT.format(
+      fineData.maxAmount
+    ).length
+
+    const spacesNeeded = maxCountLength * 2 + 1
+
+    FINE_FIELDS.forEach((fineType) => {
+      const fineTypeAmount = fineData[fineType]
+      const currencyString = US_DOLLAR_FORMAT_OBJECT.format(fineTypeAmount)
+
+      const countLength = currencyString.length
+
+      // e.g., if spaces_needed is 5, and count_length is 2, we need
+      // to pad to 3.
+      const leftJustifyAmount = spacesNeeded - countLength
+
+      const humanReadableFineType = fineType
+        .replace("total", "")
+        .replace("_", " ")
+
+      // formulate next string part
+      const nextPart = `${currencyString.padEnd(
+        leftJustifyAmount
+      )}| ${humanReadableFineType.replace(/\b[a-z]/g, (firstLetterOfWord) =>
+        firstLetterOfWord.toUpperCase()
+      )}\n`
+
+      // determine current string length if necessary
+      const potentialResponseLength = (curString + nextPart).length
+
+      // If violation string so far and new part are less or
+      // equal than 280 characters, append to existing tweet string.
+      if (potentialResponseLength <= MAX_TWITTER_STATUS_LENGTH) {
+        curString += nextPart
+      } else {
+        responseChunks.push(curString)
+
+        curString = `Known fines for ${plateHashTagString}, cont'd:\n\n`
+        curString += nextPart
+      }
+    })
+
+    // add to container
+    responseChunks.push(curString)
+  }
+
+  if (cameraStreakData) {
+    Object.entries(CAMERA_THRESHOLDS).forEach(
+      ([thresholdName, thresholdValue]) => {
+        if (thresholdName === "camera_violations") {
+          return
+        }
+
+        const thresholdData = cameraStreakData[thresholdName]
+        if (thresholdData) {
+          if (thresholdData.max_streak >= thresholdValue) {
+            const humanReadableCameraTypeName =
+              thresholdName === "red_light_camera_violations"
+                ? "red light"
+                : thresholdName === "school_zone_speed_camera_violations"
+                ? "school zone speed"
+                : "unknown camera type"
+
+            const formattedStreakStartDate =
+              thresholdData.streak_start.toFormat("LLLL dd, y")
+            const formattedStreakEndDate =
+              thresholdData.streak_end.toFormat("LLLL dd, y")
+            const dvaaString = `Under the Dangerous Vehicle Abatement Act, this vehicle could have been booted or impounded due to its ${thresholdData.max_streak} ${humanReadableCameraTypeName} camera violations (>= ${thresholdValue}/year) from ${formattedStreakStartDate} to ${formattedStreakEndDate}.\n`
+
+            responseChunks.push(dvaaString)
+          }
+        }
+      }
+    )
+
+    const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
+
+    const websiteLinkString = `View more details at ${uniqueLink}.`
+    responseChunks.push(websiteLinkString)
+
+    return responseChunks
   }
 }
 
@@ -837,12 +1176,57 @@ const getAggregateFineDataForVehicle = (violations) => {
         : 0
   })
 
+  return new FineData(
+    totalFined,
+    totalInJudgment,
+    totalOutstanding,
+    totalPaid,
+    totalReduced
+  )
+}
+
+/**
+ * Gets stats for a lookup on borough, year, violation type frequency
+ *
+ * @param {Array<string, any>>} violations - all the violations for a vehicle available in open data
+ */
+const getAggregateFrequencySummaryData = (violations) => {
+  const years = {}
+  const boroughs = {}
+  const violationTypes = {}
+
+  violations.forEach((violation) => {
+    const borough = violation.violation_county || "No Borough Available"
+
+    if (boroughs[borough]) {
+      boroughs[borough] += 1
+    } else {
+      boroughs[borough] = 1
+    }
+
+    const violationYear =
+      violation?.formatted_time_eastern.toFormat("y") || "No Year Available"
+
+    if (years[violationYear]) {
+      years[violationYear] += 1
+    } else {
+      years[violationYear] = 1
+    }
+
+    const humanReadableViolationDescription =
+      violation.humanized_description || "No Violation Description Available"
+
+    if (violationTypes[humanReadableViolationDescription]) {
+      violationTypes[humanReadableViolationDescription] += 1
+    } else {
+      violationTypes[humanReadableViolationDescription] = 1
+    }
+  })
+
   return {
-    total_fined: totalFined,
-    total_paid: totalPaid,
-    total_reduced: totalReduced,
-    total_outstanding: totalOutstanding,
-    total_in_judgment: totalInJudgment,
+    boroughs,
+    violation_types: violationTypes,
+    years,
   }
 }
 
@@ -912,22 +1296,44 @@ const getCameraStreakData = (violations) => {
     total: speedCameraViolations.length,
   }
 
-  return {
-    ...(busLaneCameraStreakData && {
-      bus_lane_camera_violations: busLaneCameraStreakData,
-    }),
-    ...(mixedCameraWithBusLaneCameraStreakData && {
-      camera_violations_with_bus_lane_camera_violations:
-        mixedCameraWithBusLaneCameraStreakData,
-    }),
-    ...(mixedCameraStreakData && { camera_violations: mixedCameraStreakData }),
-    ...(redLightCameraStreakData && {
-      red_light_camera_violations: redLightCameraStreakData,
-    }),
-    ...(speedCameraStreakData && {
-      school_zone_speed_camera_violations: speedCameraStreakData,
-    }),
-  }
+  return new CameraData(
+    busLaneCameraStreakData,
+    mixedCameraStreakData,
+    mixedCameraWithBusLaneCameraStreakData,
+    redLightCameraStreakData,
+    speedCameraStreakData
+  )
+}
+
+/**
+ * Return the key with the most violations in a collection
+ *
+ * @param {Object<string, any>>} collection - an object with any keys, where the values are always
+ *                                            a number of violations pertaining to that key
+ */
+const getCollectionKeyWithMostViolations = (collection) => {
+  const objectEntries = Object.entries(collection)
+  let keyWithMostViolations
+  let violationsMax = 0
+
+  objectEntries.forEach(([key, violationCountForKey]) => {
+    if (violationCountForKey > violationsMax) {
+      violationsMax = violationCountForKey
+      keyWithMostViolations = key
+    }
+  })
+
+  return keyWithMostViolations
+}
+
+/**
+ * Gets stats for a lookup on borough, year, violation type frequency
+ *
+ * @param {string}      plate            - The text on this license plate
+ * @param {string}      state            - The two-character abbreviation of the plate's state
+ */
+const getPlateHashTagString = (plate, state) => {
+  return `#${state.toUpperCase()}_${plate.toUpperCase()}`
 }
 
 const getPreviousQueryResult = async (identifier) => {
@@ -1060,7 +1466,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     let flattenedResponses = []
     let rectifiedPlate = plate
 
-    const endpointResponses = await makeOpenDataRequests(
+    const endpointResponses = await makeOpenDataVehicleRequests(
       plate,
       state,
       plateTypes
@@ -1101,6 +1507,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       rectifiedPlate = violations[0].plate_id
     }
 
+    const fineData = getAggregateFineDataForVehicle(violations)
+
     const cameraStreakData = getCameraStreakData(violations)
 
     const searchQueryData = getSearchQueryStringAndArgs(
@@ -1111,6 +1519,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       existingIdentifier,
       previousLookupCreatedAt
     )
+
+    const summaryData = getAggregateFrequencySummaryData(violations)
 
     return await new Promise((resolve, reject) => {
       queryDatabaseForLookups(
@@ -1126,6 +1536,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
           let frequency = countTowardsFrequency ? 1 : 0
           let previousCount = null
           let previousDate = null
+          let previousLookup
 
           const frequencyResult = results?.[0]?.[0]
           const previousLookupResult = results?.[1]?.[0]
@@ -1134,6 +1545,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             frequency = frequencyResult.frequency + frequency
             previousCount = previousLookupResult.num_tickets
             previousDate = previousLookupResult.created_at
+
+            previousLookup = new PlateLookup(previousDate, previousCount)
           }
 
           const uniqueIdentifier =
@@ -1153,16 +1566,32 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             )
           }
 
+          const tweetParts = formPlateLookupTweets(
+            summaryData.boroughs,
+            frequency,
+            fineData,
+            plate,
+            state,
+            plateTypes,
+            uniqueIdentifier,
+            summaryData.violation_types,
+            summaryData.years,
+            cameraStreakData,
+            previousLookup
+          )
+
           const fullVehicleLookup = {
             camera_streak_data: cameraStreakData,
-            fines: getAggregateFineDataForVehicle(violations),
+            fines: fineData,
             plate,
             plate_types: plateTypes,
             previous_lookup_date: previousDate,
             previous_violation_count: previousCount,
             rectified_plate: rectifiedPlate,
+            statistics: summaryData,
             state,
             times_queried: frequency,
+            tweet_parts: tweetParts.flat(),
             unique_identifier: uniqueIdentifier,
             violations,
             violations_count: violations.length,
@@ -1208,6 +1637,10 @@ const getViolationBorough = async (violation, index) => {
     })
 
   return boroughFromLocation
+}
+
+const getViolationCodesResponse = (violationCodes) => {
+  return "hello"
 }
 
 const getViolationLocation = (violation) => {
@@ -1265,21 +1698,6 @@ const getViolationWithFineData = (violation) => {
   }
   if (violation.interest_amount) {
     fined += parseFloat(violation.interest_amount)
-  }
-  if (fined) {
-    violation.fined = fined
-  }
-
-  if (violation.payment_amount) {
-    violation.paid = parseFloat(violation.payment_amount)
-  }
-
-  if (violation.reduction_amount) {
-    violation.reduced = parseFloat(violation.reduction_amount)
-  }
-
-  if (violation.amount_due) {
-    violation.outstanding = parseFloat(violation.amount_due)
   }
 
   return {
@@ -1373,6 +1791,14 @@ const getViolationWithFormattedTime = (violation) => {
 
   return violation
 }
+
+/**
+ * Returns unique link to howsmydrivingny.nyc website for lookup
+ *
+ * @param {string} uniqueIdentifier - 8-digit alphanumeric code that uniquely identifies this lookup
+ */
+const getWebsitePlateLookupLink = (uniqueIdentifier) =>
+  `${HOWS_MY_DRIVING_NY_WEBSITE_URL}/${uniqueIdentifier}`
 
 const handleAxiosErrors = (error) => {
   if (error.response) {
@@ -1565,6 +1991,86 @@ const handleMuteEvent = (event) => {
   console.log(`handleMuteEvent is a stub method: ${JSON.stringify(event)}`)
 }
 
+/**
+ * Creates tweets by parsing response text into chunks that fall below the maxt tweet length.
+ *
+ * @param {Object<string,any>} collection            - The summary data (e.g. years, boroughs, violation types)
+ *                                                     we are working with
+ * @param {string}             prefixFormatString    - The prefix string for the first tweet about this summary type
+ * @param {string}             continuedFormatString - The prefix string for every tweet about this summary type
+ *                                                     after the first tweet
+ * @param {string}             defaultDescription    - The placeholder to use when a summary data type field is missing
+ *                                                     e.g. 'No year available' when a violation has no datetime
+ */
+const handleResponsePartFormation = (
+  collection,
+  prefixFormatString,
+  continuedFormatString,
+  defaultDescription
+) => {
+  // collect the responses
+  responseContainer = []
+
+  // # Initialize current string to prefix
+  let curString = ""
+
+  if (prefixFormatString) {
+    curString += prefixFormatString
+  }
+
+  const keyWithMostViolations = getCollectionKeyWithMostViolations(collection)
+  const maxCountLength = collection[keyWithMostViolations].length
+  // const maxCountLength = len(str(max(item[count] for item in collection)))
+  const spacesNeeded = maxCountLength * 2 + 1
+
+  const objectEntries = Object.entries(collection)
+
+  // Grab item
+  objectEntries.forEach(([key, violationCountForKey]) => {
+    // Titleize for readability.
+    const description =
+      key.replace(/\b[a-z]/g, (firstLetterOfWord) =>
+        firstLetterOfWord.toUpperCase()
+      ) || defaultDescription
+
+    countLength = violationCountForKey.length
+
+    // # e.g., if spaces_needed is 5, and count_length is 2,
+    // we need to pad to 3.
+    const leftJustifyAmount = spacesNeeded - countLength
+
+    // formulate next string part
+    const nextPart = `${violationCountForKey
+      .toString()
+      .padEnd(leftJustifyAmount)}| ${description}\n`
+
+    // #etermine current string length
+    const potentialResponseLength = (curString + nextPart).length
+
+    // If violation string so far and new part are less or
+    // equal than 280 characters, append to existing tweet string.
+    if (potentialResponseLength <= MAX_TWITTER_STATUS_LENGTH) {
+      curString += nextPart
+    } else {
+      responseContainer.push(curString)
+      if (continuedFormatString) {
+        curString = continuedFormatString
+      }
+      curString += nextPart
+    }
+  })
+
+  // If we finish the list with a non-empty string,
+  // append that string to response parts
+  if (curString.length !== 0) {
+    // Append ready string into parts for response.
+    responseContainer.push(curString)
+  }
+
+  // Return parts
+  return responseContainer
+}
+
 const handleTweetCreateEvent = (event) => {
   if (
     !event.retweeted_status &&
@@ -1721,7 +2227,7 @@ const insertNewLookup = (newLookup, callback) => {
   connection.query("insert into plate_lookups set ?", newLookup, callback)
 }
 
-const makeOpenDataRequests = async (plate, state, plateTypes) => {
+const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   let rectifiedPlate = plate
 
   try {
@@ -1734,7 +2240,7 @@ const makeOpenDataRequests = async (plate, state, plateTypes) => {
   }
 
   console.log("\n\n")
-  console.log("in makeOpenDataRequests")
+  console.log("in makeOpenDataVehicleRequests")
   console.log(`rectifiedPlate: ${rectifiedPlate}`)
   console.log(`state: ${state.toUpperCase()}`)
   console.log("\n\n")
@@ -1850,7 +2356,11 @@ const mergeDuplicateViolationRecords = (violations) => {
 
 const modifyViolationsForResponse = (violations, selectedFields) =>
   violations.map((violation) =>
-    getViolationWithFineData(getViolationWithFormattedTime(violation))
+    Object.fromEntries(
+      Object.entries(
+        getViolationWithFineData(getViolationWithFormattedTime(violation))
+      ).sort()
+    )
   )
 
 const normalizeViolations = async (requestPathname, violations) => {
@@ -2369,6 +2879,17 @@ const server = http.createServer(async (req, res) => {
 
     const fields = findFilterFields(searchParams.fields)
 
+    const violationCodesAsArray = searchParams.getAll("violation_codes[]")
+    const violationCodesAsCommaSeparatedList =
+      searchParams.get("violation_codes")
+    const violationCodeAsSingleValue = searchParams.getAll("violation_code")
+
+    const potentialViolationCodes = violationCodesAsArray.length
+      ? violationCodesAsArray
+      : (violationCodesAsCommaSeparatedList
+          ? violationCodesAsCommaSeparatedList.split(",")
+          : null) || violationCodeAsSingleValue
+
     const plateFromQuery = searchParams.getAll("plate")
     const plateIdFromQuery = searchParams.get("plate_id")
     const plateTypesFromQuery = searchParams.get("plate_types")
@@ -2377,6 +2898,28 @@ const server = http.createServer(async (req, res) => {
     const fingerprintId = searchParams.get("fingerprint_id")
     const lookupSource = searchParams.get("lookup_source")
     const mixpanelId = searchParams.get("mixpanel_id")
+
+    if (potentialViolationCodes.length) {
+      const violationCodes = potentialViolationCodes.filter(
+        (potentialViolationCode, index) =>
+          // Is integer
+          Number.isInteger(Number.parseInt(potentialViolationCode)) &&
+          // Is not duplicate
+          potentialViolationCodes.indexOf(potentialViolationCode) === index
+      )
+
+      const externalData = {
+        lookup_source: lookupSource,
+        fingerprint_id: fingerprintId,
+        mixpanel_id: mixpanelId,
+      }
+
+      getViolationCodesResponse(violationCodes, fields, externalData)
+
+      res.writeHead(200)
+      res.end(JSON.stringify({ data: { violation_codes: violationCodes } }))
+      return
+    }
 
     let potentialVehicles
 
