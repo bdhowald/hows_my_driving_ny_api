@@ -994,7 +994,8 @@ const formPlateLookupTweets = (
 
   // Get total violations
   const totalViolations = Object.values(violationTypeFrequencyData).reduce(
-    (prev, next) => prev + next
+    (prev, next) => prev + next,
+    0
   )
 
   const violationDateTimeInEasternTime =
@@ -2019,7 +2020,9 @@ const handleResponsePartFormation = (
   }
 
   const keyWithMostViolations = getCollectionKeyWithMostViolations(collection)
-  const maxCountLength = collection[keyWithMostViolations].length
+  const maxCountLength = keyWithMostViolations
+    ? collection[keyWithMostViolations].length
+    : 0
   // const maxCountLength = len(str(max(item[count] for item in collection)))
   const spacesNeeded = maxCountLength * 2 + 1
 
