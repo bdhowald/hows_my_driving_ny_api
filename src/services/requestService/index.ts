@@ -52,7 +52,7 @@ export const handleApiLookup = async (
 
   const externalData: ExternalData = {
     ...queryParser.getAnalyticsData(),
-    lookupSource: LookupSource.ExistingLookup,
+    lookupSource: LookupSource.Api,
   }
 
   // const pathname: string | null = parser.pathname

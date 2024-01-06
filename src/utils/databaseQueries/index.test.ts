@@ -401,7 +401,7 @@ describe('databaseQueries', () => {
       expect(previousLookupResult).toEqual(expected)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
-        'select plate, state, plate_types, created_atfrom plate_lookups where unique_identifier = ?',
+        'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
         ['a1b2c3d4'],
         expect.anything()
       )

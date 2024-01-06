@@ -12,7 +12,10 @@ import { PreviousLookupAndFrequency, PreviousLookupResult } from 'types/query'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
 import { camelizeKeys, decamelizeKeys } from 'utils/camelize'
 
-const LOOKUP_SOURCES_THAT_SHOULD_NOT_INCREMENT_FREQUENCY = [LookupSource.Api]
+const LOOKUP_SOURCES_THAT_SHOULD_NOT_INCREMENT_FREQUENCY = [
+  LookupSource.Api,
+  LookupSource.ExistingLookup,
+]
 
 export type CreateNewLookupArguments = {
   cameraData: CameraData
@@ -129,6 +132,14 @@ export const createAndInsertNewLookup = async (
 
   return uniqueIdentifier
 }
+
+/**
+ * Reformats a query string from human-readable alignment to eliminate extra spaces.
+ *
+ * @param queryString query string to reformat
+ */
+const formatQueryString = (queryString: string): string =>
+  queryString.replace(/\s{2,},/g, ',').replace(/\s{2,}/g, ' ')
 
 /**
  * Get arguments to query the database for previous lookups for this vehicle
@@ -272,14 +283,14 @@ export const getPreviousLookupResult = async (
   new Promise((resolve, reject) => {
     const databaseConnection = instantiateConnection()
 
-    const queryString = (
+    const queryString = formatQueryString(
       'select plate' +
-      '     , state' +
-      '     , plate_types' +
-      '     , created_at' +
-      '  from plate_lookups' +
-      ' where unique_identifier = ?'
-    ).replace(/\s{2,}/g, '')
+        '     , state' +
+        '     , plate_types' +
+        '     , created_at' +
+        '  from plate_lookups' +
+        ' where unique_identifier = ?'
+    )
 
     const queryArgs = [identifier]
 
@@ -466,14 +477,14 @@ export const updateNonFollowerReplies = async (
   new Promise((resolve, reject) => {
     const databaseConnection = instantiateConnection()
 
-    const baseQueryString = (
+    const baseQueryString = formatQueryString(
       'select CAST(' +
-      '                in_reply_to_message_id as CHAR(20)' +
-      '           ) as in_reply_to_message_id ' +
-      '  from non_follower_replies ' +
-      ' where user_id = ?' +
-      '   and favorited = false'
-    ).replace(/\s{2,}/g, ' ')
+        '                in_reply_to_message_id as CHAR(20)' +
+        '           ) as in_reply_to_message_id ' +
+        '  from non_follower_replies ' +
+        ' where user_id = ?' +
+        '   and favorited = false'
+    )
 
     const selectQueryString = favoritedStatusId
       ? baseQueryString + ' and event_id = ?;'
