@@ -1,14 +1,10 @@
 #!/usr/bin/env node
-const axios = require("axios")
-const { createHmac } = require("node:crypto")
-const { DateTime } = require("luxon")
-const http = require("http")
-const mysql = require("mysql")
-
-const googleMapsClient = require("@google/maps").createClient({
-  key: process.env.GOOGLE_PLACES_API_KEY,
-  Promise,
-})
+import axios from 'axios'
+import { createHmac } from "crypto"
+import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
+import { DateTime } from 'luxon'
+import * as http from 'http'
+import mysql from "mysql"
 
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 
@@ -87,6 +83,8 @@ const FINE_FIELDS = [
   "total_in_judgment",
 ]
 const MAX_TWITTER_STATUS_LENGTH = 280
+
+const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
 
 const US_DOLLAR_FORMAT_OBJECT = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -674,7 +672,12 @@ class FineData {
   }
 
   get maxAmount() {
-    return Math.max(this.fined, this.outstanding, this.paid, this.reduced)
+    return Math.max(
+      this.total_fined,
+      this.total_outstanding,
+      this.total_paid,
+      this.total_reduced
+    )
   }
 }
 
@@ -722,6 +725,18 @@ const initializeConnection = (config) => {
 
   connection.connect()
   return connection
+}
+
+/**
+ * Creates a string summarizing a vehicle's previous lookup details
+ *
+ * @param {mysql.MysqlError} error - error raised by mysql
+ */
+const closeConnectionHandler = (error) => {
+  if (error) {
+    console.error(error)
+    return
+  }
 }
 
 const createNewLookup = async (
@@ -786,7 +801,7 @@ const createNewLookup = async (
  * @param {number}      numNewViolations - Frequency of violations for each borough
  * @param {string}      plate            - The text on this license plate
  * @param {string}      state            - The two-character abbreviation of the plate's state
- *  @param {string}     plateTypes       - The possible type(s) of this plate
+ * @param {string}      plateTypes       - The possible type(s) of this plate
  * @param {PlateLookup} previousLookup   - Number of violations and creation date of a previous lookup
  */
 const createRepeatLookupString = (
@@ -819,7 +834,7 @@ const createRepeatLookupString = (
       violationsString += lastQueriedString
 
       const plateHashTagString = getPlateHashTagString(plate, state)
-      const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+      const plateTypesString = plateTypes ? ` (types: ${plateTypes}) ` : " "
       const fullPlateString = plateHashTagString + plateTypesString
 
       const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${
@@ -887,10 +902,10 @@ const detectVehicles = (potentialVehicles) => {
 
 const filterOutViolationsAfterSearchDate = (
   violations,
-  previousLookupCreatedAt
+  existingLookupCreatedAt
 ) =>
   violations.filter(
-    (item) => item.formatted_time_eastern <= previousLookupCreatedAt
+    (item) => item.formatted_time_eastern <= existingLookupCreatedAt
   )
 
 const findFilterFields = (fieldsString) => {
@@ -988,6 +1003,7 @@ const formPlateLookupTweets = (
   violationTypeFrequencyData,
   yearFrequencyData,
   cameraStreakData = undefined,
+  existingLookupCreatedAt = undefined,
   previousLookup = undefined
 ) => {
   // response_chunks holds tweet-length-sized parts of the response
@@ -1002,19 +1018,21 @@ const formPlateLookupTweets = (
     0
   )
 
-  const violationDateTimeInEasternTime =
-    DateTime.utc().setZone("America/New_York")
-  const violationTime =
-    violationDateTimeInEasternTime.toFormat("hh:mm:ss a ZZZZ")
-  const violationDate = violationDateTimeInEasternTime.toFormat("LLLL dd, y")
-  const timePrefix = `As of ${violationTime} on ${violationDate}:`
+  const asOfDateTime = existingLookupCreatedAt
+    ? DateTime.fromJSDate(existingLookupCreatedAt)
+    : DateTime.utc()
+
+  const asOfDateTimeInEasternTime = asOfDateTime.setZone('America/New_York')
+  const asOfTime = asOfDateTimeInEasternTime.toFormat('hh:mm:ss a ZZZZ')
+  const asOfDate = asOfDateTimeInEasternTime.toFormat('LLLL dd, y')
+  const timePrefix = `As of ${asOfTime} on ${asOfDate}:`
 
   // Append time prefix to blank string to start to build tweet.
   violationsString += timePrefix
 
   // Append summary string.
   const plateHashTagString = getPlateHashTagString(plate, state)
-  const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+  const plateTypesString = plateTypes ? ` (types: ${plateTypes}) ` : " "
   const lookupSummaryString = ` ${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
     frequency === 1 ? "" : "s"
   }.\n\n`
@@ -1049,8 +1067,8 @@ const formPlateLookupTweets = (
     )
   )
 
-  if (yearFrequencyData) {
-    const yearPrefixFormatString = `Violations by year for ${plateHashTagString}\n\n`
+  if (Object.keys(yearFrequencyData).length) {
+    const yearPrefixFormatString = `Violations by year for ${plateHashTagString}:\n\n`
     const yearContinuedFormatString = `Violations by year for ${plateHashTagString}, cont'd:\n\n`
 
     responseChunks.push(
@@ -1063,13 +1081,13 @@ const formPlateLookupTweets = (
     )
   }
 
-  if (boroughFrequencyData) {
-    const boroughPrefixFormatString = `Violations by borough for ${plateHashTagString}\n\n`
+  if (Object.keys(boroughFrequencyData).length) {
+    const boroughPrefixFormatString = `Violations by borough for ${plateHashTagString}:\n\n`
     const boroughContinuedFormatString = `Violations by borough for ${plateHashTagString}, cont'd:\n\n`
 
     responseChunks.push(
       handleResponsePartFormation(
-        yearFrequencyData,
+        boroughFrequencyData,
         boroughPrefixFormatString,
         boroughContinuedFormatString,
         "No Borough Available"
@@ -1078,7 +1096,7 @@ const formPlateLookupTweets = (
   }
 
   if (fineData && fineData.areFinesAssessed) {
-    let curString = ""
+    let curString = `Known fines for ${plateHashTagString}:\n\n`
     const maxCountLength = US_DOLLAR_FORMAT_OBJECT.format(
       fineData.maxAmount
     ).length
@@ -1153,14 +1171,14 @@ const formPlateLookupTweets = (
         }
       }
     )
-
-    const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
-
-    const websiteLinkString = `View more details at ${uniqueLink}.`
-    responseChunks.push(websiteLinkString)
-
-    return responseChunks
   }
+
+  const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
+
+  const websiteLinkString = `View more details at ${uniqueLink}.`
+  responseChunks.push(websiteLinkString)
+
+  return responseChunks
 }
 
 const getAggregateFineDataForVehicle = (violations) => {
@@ -1193,7 +1211,7 @@ const getAggregateFineDataForVehicle = (violations) => {
 /**
  * Gets stats for a lookup on borough, year, violation type frequency
  *
- * @param {Array<string, any>>} violations - all the violations for a vehicle available in open data
+ * @param {Array<string, any>} violations - all the violations for a vehicle available in open data
  */
 const getAggregateFrequencySummaryData = (violations) => {
   const years = {}
@@ -1313,7 +1331,7 @@ const getCameraStreakData = (violations) => {
 /**
  * Return the key with the most violations in a collection
  *
- * @param {Object<string, any>>} collection - an object with any keys, where the values are always
+ * @param {Object<string, any>} collection - an object with any keys, where the values are always
  *                                            a number of violations pertaining to that key
  */
 const getCollectionKeyWithMostViolations = (collection) => {
@@ -1331,6 +1349,82 @@ const getCollectionKeyWithMostViolations = (collection) => {
   return keyWithMostViolations
 }
 
+
+/**
+ * Query our database for an existing record of that address
+ *
+ * @param {mysql.Connection} connection    - the connection to the database we are querying
+ * @param {string}           streetAddress - the address whose borough we are trying to find
+ */
+const getGeocodeFromDatabase = async (
+  connection,
+  streetAddress
+) => {
+  const geocodeSQLString =
+    'select borough from geocodes WHERE lookup_string = ?'
+
+  return new Promise((resolve, reject) => {
+    const callback = (error,results) => {
+      if (error) {
+        reject(error)
+      }
+      if (results) {
+        resolve(results)
+      }
+    }
+
+    const valuesString = [`${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`]
+
+    return connection.query(geocodeSQLString, valuesString, callback)
+  })
+}
+
+/**
+ * Query google for the borough of an address
+ *
+ * @param {string} streetAddress - the address whose borough we are trying to find
+ */
+const getGoogleGeocode = async (streetAddress) => {
+  const googleMapsClient = instantiateGoogleMapsClient()
+
+  const geocodingArguments = {
+    params: {
+      key: process.env.GOOGLE_PLACES_API_KEY ?? '',
+      address: `${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`,
+      components: {
+        country: 'U.S.',
+        locality: 'New York',
+      },
+    },
+  }
+
+  try {
+    const geocodeResponse = await googleMapsClient.geocode(
+      geocodingArguments
+    )
+
+    if (geocodeResponse.data.results?.length) {
+      const bestResponse = geocodeResponse.data.results[0]
+      const potentialBorough = bestResponse.address_components.find(
+        (addressComponent) =>
+          addressComponent.types.indexOf(AddressType.sublocality) !== -1
+      )
+
+      if (potentialBorough) {
+        return {
+          lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
+          borough: potentialBorough.long_name,
+          geocoding_service: 'google',
+        }
+      }
+    }
+    return
+  } catch (error) {
+    console.error(error)
+    return
+  }
+}
+
 /**
  * Gets stats for a lookup on borough, year, violation type frequency
  *
@@ -1342,11 +1436,16 @@ const getPlateHashTagString = (plate, state) => {
 }
 
 const getPreviousQueryResult = async (identifier) => {
+  const databaseConnection = instantiateConnection()
+
   return new Promise((resolve, reject) => {
-    connection.query(
+    databaseConnection.query(
       "select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?",
       [identifier],
-      (error, results, fields) => {
+      (error, results, _) => {
+        // Close database connection
+        databaseConnection.end(closeConnectionHandler)
+
         if (error) {
           console.log(`error thrown at: ${new Date()}`)
           throw error
@@ -1406,7 +1505,7 @@ const getSearchQueryStringAndArgs = (
   plateTypes,
   lookupSource,
   existingIdentifier,
-  previousLookupCreatedAt
+  existingLookupCreatedAt
 ) => {
   let baseFrequencyQueryString =
     "select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
@@ -1428,7 +1527,7 @@ const getSearchQueryStringAndArgs = (
     baseFrequencyQueryArgs = [
       ...baseFrequencyQueryArgs,
       existingIdentifier,
-      previousLookupCreatedAt,
+      existingLookupCreatedAt,
     ]
 
     baseNumTicketsQueryString +=
@@ -1436,7 +1535,7 @@ const getSearchQueryStringAndArgs = (
     baseNumTicketsQueryArgs = [
       ...baseFrequencyQueryArgs,
       existingIdentifier,
-      previousLookupCreatedAt,
+      existingLookupCreatedAt,
     ]
   }
 
@@ -1465,7 +1564,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   const fingerprintID = externalData.fingerprint_id
   const mixpanelID = externalData.mixpanel_id
   const existingIdentifier = externalData.unique_identifier
-  const previousLookupCreatedAt = externalData.previous_lookup_created_at
+  const existingLookupCreatedAt = externalData.existing_lookup_created_at
 
   if (plate && state) {
     let flattenedResponses = []
@@ -1500,10 +1599,10 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     let violations = mergeDuplicateViolationRecords(flattenedResponses)
     violations = modifyViolationsForResponse(violations)
 
-    if (previousLookupCreatedAt) {
+    if (existingLookupCreatedAt) {
       violations = filterOutViolationsAfterSearchDate(
         violations,
-        previousLookupCreatedAt
+        existingLookupCreatedAt
       )
     }
 
@@ -1522,7 +1621,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       plateTypes,
       lookupSource,
       existingIdentifier,
-      previousLookupCreatedAt
+      existingLookupCreatedAt
     )
 
     const summaryData = getAggregateFrequencySummaryData(violations)
@@ -1537,7 +1636,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             throw error
           }
 
-          const countTowardsFrequency = !["api"].includes(lookupSource)
+          const countTowardsFrequency = !["api", "existing_lookup"].includes(lookupSource)
           let frequency = countTowardsFrequency ? 1 : 0
           let previousCount = null
           let previousDate = null
@@ -1582,6 +1681,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             summaryData.violation_types,
             summaryData.years,
             cameraStreakData,
+            existingLookupCreatedAt,
             previousLookup
           )
 
@@ -1629,17 +1729,8 @@ const getViolationBorough = async (violation, index) => {
   if (!violation.location) {
     return Promise.resolve("No Borough Available")
   }
-  const boroughFromLocation = await connection
-    .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
-      violation.location + " New York NY",
-    ])
-    .then(async (results) => {
-      if (results.length) {
-        return results[0].borough
-      } else {
-        return await retrieveBoroughFromGeocode(violation.location)
-      }
-    })
+
+  const boroughFromLocation = await retrieveBoroughFromGeocode(violation.location)
 
   return boroughFromLocation
 }
@@ -1879,11 +1970,16 @@ const handleDirectMessageEvent = (event, users) => {
 
       console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
-      connection.query(
+      const databaseConnection = instantiateConnection()
+
+      databaseConnection.query(
         "insert into twitter_events set ?",
         newEvent,
         (error, results, fields) => {
           if (error) {
+            // Close database connection
+            databaseConnection.end(closeConnectionHandler)
+
             console.log(`error thrown at: ${new Date()}`)
             throw error
           }
@@ -1897,16 +1993,22 @@ const handleDirectMessageEvent = (event, users) => {
               twitter_event_id: insertID,
             }
 
-            connection.query(
+            databaseConnection.query(
               "insert into twitter_media_objects set ?",
               mediaObject,
               (error, results, fields) => {
+                // Close database connection
+                databaseConnection.end(closeConnectionHandler)
+
                 if (error) {
                   console.log(`error thrown at: ${new Date()}`)
                   throw error
                 }
               }
             )
+          } else {
+            // Close database connection
+            databaseConnection.end(closeConnectionHandler)
           }
         }
       )
@@ -1933,12 +2035,17 @@ const handleFavoriteEvent = (event) => {
     event && event.favorited_status && event.favorited_status.id_str
   const userId = event && event.user && event.user.id_str
 
+  const databaseConnection = instantiateConnection()
+
   if (favoritedStatusId && userId) {
-    connection.query(
+    databaseConnection.query(
       "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false",
       [favoritedStatusId, userId],
       (error, results, fields) => {
         if (error) {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
+
           console.log(`error thrown at: ${new Date()}`)
           throw error
         }
@@ -1958,6 +2065,9 @@ const handleFavoriteEvent = (event) => {
           console.log(`favorited status id: ${favoritedStatusId}`)
           console.log(`favoriting user id: ${userId}`)
         }
+
+        // Close database connection
+        databaseConnection.end(closeConnectionHandler)
       }
     )
   }
@@ -1966,14 +2076,19 @@ const handleFavoriteEvent = (event) => {
 const handleFollowEvent = (event) => {
   const userId = event && event.source && event.source.id
 
+  const databaseConnection = instantiateConnection()
+
   console.log(`userId: ${userId}`)
 
   if (userId) {
-    connection.query(
+    databaseConnection.query(
       "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false",
       [userId],
       (error, results, fields) => {
         if (error) {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
+
           console.log(`error thrown at: ${new Date()}`)
           throw error
         }
@@ -1987,6 +2102,9 @@ const handleFollowEvent = (event) => {
           console.log("No messages match.")
           console.log(`following user id: ${userId}`)
         }
+
+        // Close database connection
+        databaseConnection.end(closeConnectionHandler)
       }
     )
   }
@@ -2014,7 +2132,7 @@ const handleResponsePartFormation = (
   defaultDescription
 ) => {
   // collect the responses
-  responseContainer = []
+  const responseContainer = []
 
   // # Initialize current string to prefix
   let curString = ""
@@ -2025,10 +2143,10 @@ const handleResponsePartFormation = (
 
   const keyWithMostViolations = getCollectionKeyWithMostViolations(collection)
   const maxCountLength = keyWithMostViolations
-    ? collection[keyWithMostViolations].length
+    ? collection[keyWithMostViolations]
     : 0
   // const maxCountLength = len(str(max(item[count] for item in collection)))
-  const spacesNeeded = maxCountLength * 2 + 1
+  const spacesNeeded = maxCountLength.toString().length * 2 + 1
 
   const objectEntries = Object.entries(collection)
 
@@ -2040,7 +2158,7 @@ const handleResponsePartFormation = (
         firstLetterOfWord.toUpperCase()
       ) || defaultDescription
 
-    countLength = violationCountForKey.length
+    const countLength = violationCountForKey.toString().length
 
     // # e.g., if spaces_needed is 5, and count_length is 2,
     // we need to pad to 3.
@@ -2176,11 +2294,16 @@ const handleTweetCreateEvent = (event) => {
     console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
     console.log("\n\n")
 
-    connection.query(
+    const databaseConnection = instantiateConnection()
+
+    databaseConnection.query(
       "insert into twitter_events set ?",
       newEvent,
       (error, results, fields) => {
         if (error) {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
+
           console.log(`error thrown at: ${new Date()}`)
           throw error
         }
@@ -2196,16 +2319,22 @@ const handleTweetCreateEvent = (event) => {
             }
           })
 
-          connection.query(
+          databaseConnection.query(
             "insert into twitter_media_objects set ?",
             mediaObjects,
             (error, results, fields) => {
+              // Close database connection
+              databaseConnection.end(closeConnectionHandler)
+
               if (error) {
                 console.log(`error thrown at: ${new Date()}`)
                 throw error
               }
             }
           )
+        } else {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
         }
       }
     )
@@ -2230,15 +2359,52 @@ const handleUserEvent = (event) => {
   console.log(`handleUserEvent is a stub method: ${JSON.stringify(event)}`)
 }
 
-const insertNewLookup = (newLookup, callback) => {
-  connection.query("insert into plate_lookups set ?", newLookup, callback)
+
+/**
+ * Insert a new geocode lookup from Google into the database.
+ *
+ * @param {mysql.Connection}      connection - the connection to the database we are querying
+ * @param {Object<string,string>} geocode    - the geocode record we are inserting into the database
+ */
+const insertGeocodeIntoDatabase = async (connection, geocode) => {
+  connection.query('insert into geocodes set ?', geocode, (error) => {
+    if (error) throw error
+  })
 }
+
+const insertNewLookup = (newLookup, callback) => {
+  const databaseConnection = instantiateConnection()
+
+  const newCallback = () => {
+    // execute existing callback
+    callback()
+
+    // Close database connection
+    databaseConnection.end(closeConnectionHandler)
+  }
+
+  databaseConnection.query("insert into plate_lookups set ?", newLookup, newCallback)
+}
+
+/**
+ * Instantiate a connection to the mysql database
+ */
+const instantiateConnection = () =>
+  initializeConnection({
+    host: '127.0.0.1',
+    user: process.env.MYSQL_DATABASE_USER ?? '',
+    password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
+    database: process.env.MYSQL_DATABASE_NAME ?? '',
+    multipleStatements: true,
+  })
+
+const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
 const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   let rectifiedPlate = plate
 
   try {
-    possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(plate)
+    const possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(plate)
     if (possibleMedallionPlate) {
       rectifiedPlate = possibleMedallionPlate
     }
@@ -2475,14 +2641,20 @@ const normalizeViolations = async (requestPathname, violations) => {
 const obtainUniqueIdentifier = async () => {
   const identifierAlreadyExists = (identifier) => {
     return new Promise((resolve, reject) => {
-      connection.query(
+      const databaseConnection = instantiateConnection()
+
+      databaseConnection.query(
         "select count(*) as count from plate_lookups where unique_identifier = ?",
         [identifier],
         (error, results, fields) => {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
+
           if (error) {
             console.log(`error thrown at: ${new Date()}`)
             throw error
           }
+
           return resolve(
             !!(results && results[0] && results[0] && results[0].count !== 0)
           )
@@ -2505,20 +2677,35 @@ const obtainUniqueIdentifier = async () => {
 }
 
 const queryDatabaseForLookups = (queryString, queryArgs, callback) => {
-  connection.query(queryString, queryArgs, callback)
+  const databaseConnection = instantiateConnection()
+
+  const newCallback = (error, results, fields) => {
+    // execute existing callback
+    callback(error, results, fields)
+
+    // Close database connection
+    databaseConnection.end(closeConnectionHandler)
+  }
+
+  databaseConnection.query(queryString, queryArgs, newCallback)
 }
 
 const respondToReplyForNewFollower = (inReplyToMessageId, userId) => {
   console.log(`inReplyToMessageId: ${inReplyToMessageId}`)
   console.log(`userId: ${userId}`)
 
-  connection.query(
+  const databaseConnection = instantiateConnection()
+
+  databaseConnection.query(
     `
     update non_follower_replies set favorited = true where user_id = ?;
     update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ?
   `,
     [userId, inReplyToMessageId],
     (error, results, fields) => {
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+
       if (error) {
         console.log(`error thrown at: ${new Date()}`)
         throw error
@@ -2535,13 +2722,19 @@ const respondToNonFollowerFavorite = (
   console.log(
     `Updating twitter_events, setting user_favorited_non_follower_reply = true and responded_to = false for event ${inReplyToMessageId}`
   )
-  connection.query(
+
+  const databaseConnection = instantiateConnection()
+
+  databaseConnection.query(
     `
     update non_follower_replies set favorited = true where event_id = ? and user_id = ?;
     update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ? and is_duplicate = false
   `,
     [favoritedStatusId, userId, inReplyToMessageId],
     (error, results, fields) => {
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+
       if (error) {
         console.log(`error thrown at: ${new Date()}`)
         throw error
@@ -2550,54 +2743,104 @@ const respondToNonFollowerFavorite = (
   )
 }
 
-const retrieveBoroughFromGeocode = (location) => {
-  return googleMapsClient
-    .geocode({ address: location })
-    .asPromise()
-    .then(
-      (response) => {
-        const geocodeResult = response?.json?.results[0]
-        if (!geocodeResult?.address_components?.length) {
-          return "No Borough Available"
-        }
 
-        // Get latidude & longitude from address.
-        // const { lat, lng } = geocodeResult.geometry.location
-        const borough = geocodeResult.address_components.find(
-          (elem) => elem.types[2] === "sublocality_level_1"
-        )
+/**
+ * Obtain a geocode record with the borough information we need
+ *
+ * @param {string} streetAddress - the address whose borough we are trying to find
+ */
+const retrieveBoroughFromGeocode = async (streetAddress) => {
+  if (!streetAddress) {
+    return 'No Borough Available'
+  }
 
-        if (!borough?.long_name) {
-          return "No Borough Available"
-        }
+  const streetWithoutDirections = streetAddress
+    .replace(/[ENSW]\/?B/i, '')
+    .trim()
 
-        const newGeocode = {
-          lookup_string: `${location.trim()} New York NY`,
-          borough: borough.long_name,
-          geocoding_service: "google",
-        }
+  let potentialBorough
 
-        connection.query(
-          "insert into geocodes set ?",
-          newGeocode,
-          (error, results, fields) => {
-            if (error) {
-              console.log(`error thrown at: ${new Date()}`)
-              throw error
-            }
-          }
-        )
+  const databaseConnection = instantiateConnection()
 
-        return borough.long_name
-      },
-      (error) => {
-        console.log("\n\n")
-        console.log(`There was an error requesting the geocode for ${location}`)
-        console.error(error)
-        console.log("\n\n")
-      }
-    )
+  const results = await getGeocodeFromDatabase(
+    databaseConnection,
+    streetWithoutDirections
+  )
+
+  if (results.length) {
+    potentialBorough = results[0].borough
+  } else {
+    const geocodeFromGoogle = await getGoogleGeocode(streetWithoutDirections)
+
+    if (!geocodeFromGoogle) {
+      return 'No Borough Available'
+    }
+
+    potentialBorough = geocodeFromGoogle.borough
+
+    await insertGeocodeIntoDatabase(databaseConnection, geocodeFromGoogle)
+  }
+
+  // Close database connection
+  databaseConnection.end(closeConnectionHandler)
+
+  if (potentialBorough) {
+    return potentialBorough
+  }
+
+  return 'No Borough Available'
 }
+
+// const retrieveBoroughFromGeocode = (location) => {
+//   const googleMapsClient = new GoogleMapsClient({})
+
+//   return googleMapsClient
+//     .geocode({ address: location })
+//     .asPromise()
+//     .then(
+//       (response) => {
+//         const geocodeResult = response?.json?.results[0]
+//         if (!geocodeResult?.address_components?.length) {
+//           return "No Borough Available"
+//         }
+
+//         // Get latidude & longitude from address.
+//         // const { lat, lng } = geocodeResult.geometry.location
+//         const borough = geocodeResult.address_components.find(
+//           (elem) => elem.types[2] === "sublocality_level_1"
+//         )
+
+//         if (!borough?.long_name) {
+//           return "No Borough Available"
+//         }
+
+//         const newGeocode = {
+//           lookup_string: `${location.trim()} New York NY`,
+//           borough: borough.long_name,
+//           geocoding_service: "google",
+//         }
+
+//         connection.query(
+//           "insert into geocodes set ?",
+//           newGeocode,
+//           (error, results, fields) => {
+//             if (error) {
+//               console.log(`error thrown at: ${new Date()}`)
+//               throw error
+//             }
+//           }
+//         )
+
+//         return borough.long_name
+//       },
+//       (error) => {
+//         console.log("\n\n")
+//         console.log(`There was an error requesting the geocode for ${location}`)
+//         console.error(error)
+//         console.log("\n\n")
+//       }
+//     )
+// }
 
 const retrievePossibleMedallionVehiclePlate = async (plate) => {
   const medallionEndpoint =
@@ -2656,14 +2899,6 @@ const stripReturnData = (obj, selectedFields) => {
   }
   return obj
 }
-
-const connection = initializeConnection({
-  host: "localhost",
-  user: process.env.MYSQL_DATABASE_USER,
-  password: process.env.MYSQL_DATABASE_PASSWORD,
-  database: "traffic_violations",
-  multipleStatements: true,
-})
 
 const server = http.createServer(async (req, res) => {
   // Set response headers
@@ -2839,7 +3074,7 @@ const server = http.createServer(async (req, res) => {
         fingerprint_id: null,
         mixpanel_id: null,
         unique_identifier: identifier,
-        previous_lookup_created_at: previousLookup.created_at,
+        existing_lookup_created_at: previousLookup.created_at,
       }
 
       Promise.all(
