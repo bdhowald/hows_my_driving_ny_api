@@ -236,6 +236,9 @@ const getHumanizedDescription = (
     if (Array.isArray(violationCodeDefinition)) {
       // Iterate over the definitions to find the one that matches the
       // time period of the violation.
+
+      let descriptionForUpdatedViolatedCode
+
       violationCodeDefinition.forEach(
         (possibleDescription: ViolationMultipleDescriptionCode) => {
           const violationDateTimes = getFormattedTimes(
@@ -247,10 +250,14 @@ const getHumanizedDescription = (
             DateTime.fromJSDate(possibleDescription.startDate) <
               violationDateTimes.formattedTimeUtc
           ) {
-            return possibleDescription.description
+            descriptionForUpdatedViolatedCode = possibleDescription.description
           }
         }
       )
+      if (descriptionForUpdatedViolatedCode) {
+        return descriptionForUpdatedViolatedCode
+      }
+
       throw Error(
         'Unrecognized time period for fiscal year violation description'
       )
