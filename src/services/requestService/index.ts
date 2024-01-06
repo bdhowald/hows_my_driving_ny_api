@@ -175,11 +175,27 @@ export const handleExistingLookup = async (
     async (vehicle) =>
       await getAndProcessApiLookup(vehicle, filterFields, externalData)
   )
-  const results = await Promise.all(vehicleResponsePromises)
+  const vehicleResponses = await Promise.all(vehicleResponsePromises)
 
-  const decamelized = results.map((result) =>
-    decamelizeKeys(result)
-  ) as VehicleResponse[]
+  const decamelized = vehicleResponses.map((vehicleResponse) => {
+    const decamelizedVehicleResponse = decamelizeKeys(
+      vehicleResponse
+    ) as VehicleResponse
+
+    if (
+      vehicleResponse.vehicle?.statistics &&
+      decamelizedVehicleResponse.vehicle?.statistics
+    ) {
+      const decamelizedStatistics = decamelizeKeysOneLevel(
+        vehicleResponse.vehicle.statistics
+      )
+
+      // @ts-expect-error  Figure out how to prevent decamelization of boroughs and violation names
+      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
+    }
+
+    return decamelizedVehicleResponse
+  }) as VehicleResponse[]
 
   return { data: decamelized }
 }
