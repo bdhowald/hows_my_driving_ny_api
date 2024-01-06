@@ -23,10 +23,8 @@ export const mergeDuplicateViolationRecords = (violations: Violation[]) => {
       )
       const duplicateViolation = deduplicatedViolations[duplicateViolationIndex]
 
-      deduplicatedViolations[duplicateViolationIndex] = mergeMultipleRecordsOfSameViolation(
-        violation,
-        duplicateViolation
-      )
+      deduplicatedViolations[duplicateViolationIndex] =
+        mergeMultipleRecordsOfSameViolation(violation, duplicateViolation)
       return
     }
 
@@ -37,7 +35,7 @@ export const mergeDuplicateViolationRecords = (violations: Violation[]) => {
 }
 
 /**
- * 
+ *
  */
 const mergeMultipleRecordsOfSameViolation = (
   baseViolation: Violation,

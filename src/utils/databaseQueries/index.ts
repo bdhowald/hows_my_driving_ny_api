@@ -1,5 +1,3 @@
-import { camelizeKeys, decamelizeKeys } from 'humps'
-import { DateTime } from 'luxon'
 import { FieldInfo, MysqlError } from 'mysql'
 
 import { CAMERA_THRESHOLDS } from 'constants/dangerousVehicleAbatementAct'
@@ -12,6 +10,7 @@ import {
 import CameraData from 'types/cameraData'
 import { PreviousLookupAndFrequency, PreviousLookupResult } from 'types/query'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
+import { camelizeKeys, decamelizeKeys } from 'utils/camelize'
 
 const LOOKUP_SOURCES_THAT_SHOULD_NOT_INCREMENT_FREQUENCY = [LookupSource.Api]
 
@@ -99,9 +98,9 @@ export const createAndInsertNewLookup = async (
 
   const bootEligibleUnderDvaaThreshold =
     cameraData.redLightCameraViolations.maxStreak >=
-    CAMERA_THRESHOLDS.redLightCameraViolations ||
-    cameraData.speedCameraViolations?.maxStreak >=
-    CAMERA_THRESHOLDS.speedCameraViolations
+      CAMERA_THRESHOLDS.redLightCameraViolations ||
+    cameraData.schoolZoneSpeedCameraViolations?.maxStreak >=
+      CAMERA_THRESHOLDS.schoolZoneSpeedCameraViolations
 
   const newLookup: PlateLookup = {
     bootEligibleUnderRdaaThreshold: bootEligibleUnderRdaaThreshold,
@@ -120,7 +119,8 @@ export const createAndInsertNewLookup = async (
     plateTypes: plateTypes ? plateTypes.join() : null,
     respondedTo: true,
     redLightCameraViolations: cameraData?.redLightCameraViolations.total || 0,
-    speedCameraViolations: cameraData?.speedCameraViolations.total || 0,
+    speedCameraViolations:
+      cameraData?.schoolZoneSpeedCameraViolations.total || 0,
     state,
     uniqueIdentifier,
   }

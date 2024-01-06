@@ -7,7 +7,7 @@ type CameraData = {
   cameraViolations: CameraStreakAndTotalData
   cameraViolationsWithBusLaneCameraViolations: CameraStreakAndTotalData
   redLightCameraViolations: CameraStreakAndTotalData
-  speedCameraViolations: CameraStreakAndTotalData
+  schoolZoneSpeedCameraViolations: CameraStreakAndTotalData
 }
 
 export default CameraData

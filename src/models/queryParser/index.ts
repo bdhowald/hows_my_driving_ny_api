@@ -1,7 +1,6 @@
-import { camelize } from 'humps'
-
 import { PLATE_QUERY_FORMAT_HINT } from 'constants/errors'
 import ParsedQueryStringForApiLookup from 'types/queryStringParsing'
+import { camelize } from 'utils/camelize'
 
 type AnalyticsFields = 'fingerprintId' | 'lookupSource' | 'mixpanelId'
 
@@ -39,8 +38,8 @@ class QueryParser {
   }
 
   /**
-   * 
-   * @param fieldsFromQuery 
+   *
+   * @param fieldsFromQuery
    */
   findFilterFields = (fieldsFromQuery?: string | string[] | undefined) => {
     const possibleFilterFields = fieldsFromQuery ?? this.query['fields']

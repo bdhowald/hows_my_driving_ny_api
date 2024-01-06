@@ -52,7 +52,7 @@ const initializeConnection = (config: ConnectionConfig): Connection => {
  */
 export const instantiateConnection = () =>
   initializeConnection({
-    host: 'localhost',
+    host: '127.0.0.1',
     user: process.env.MYSQL_DATABASE_USER ?? '',
     password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
     database: process.env.MYSQL_DATABASE_NAME ?? '',

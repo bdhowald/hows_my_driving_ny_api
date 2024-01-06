@@ -36,7 +36,7 @@ const filterOutViolationsAfterSearchDate = (
     (violation) =>
       !violation.formattedTimeUtc ||
       DateTime.fromISO(violation.formattedTimeUtc) <=
-      DateTime.fromJSDate(existingLookupCreatedAt)
+        DateTime.fromJSDate(existingLookupCreatedAt)
   )
 
 const getAndProcessApiLookup = async (

@@ -1,7 +1,6 @@
 import { HttpStatusCode } from 'axios'
 import { createHmac } from 'crypto'
 import http from 'http'
-import { decamelizeKeys } from 'humps'
 
 import {
   EXISTING_LOOKUP_PATH,
@@ -11,6 +10,7 @@ import LookupSource from 'constants/lookupSources'
 import QueryParser from 'models/queryParser'
 import { ExternalData, ResponseBody, VehicleResponse } from 'types/request'
 import { PotentialVehicle } from 'types/vehicles'
+import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
 import { getPreviousLookupResult } from 'utils/databaseQueries'
 import detectVehicles from 'utils/detectVehicles'
 import getAndProcessApiLookup from 'utils/getAndProcessApiLookup'
@@ -94,9 +94,25 @@ export const handleApiLookup = async (
 
   const vehicleResponses = await Promise.all(vehicleResponsePromises)
 
-  const decamelized = vehicleResponses.map((vehicleResponse) =>
-    decamelizeKeys(vehicleResponse)
-  ) as VehicleResponse[]
+  const decamelized = vehicleResponses.map((vehicleResponse) => {
+    const decamelizedVehicleResponse = decamelizeKeys(
+      vehicleResponse
+    ) as VehicleResponse
+
+    if (
+      vehicleResponse.vehicle?.statistics &&
+      decamelizedVehicleResponse.vehicle?.statistics
+    ) {
+      const decamelizedStatistics = decamelizeKeysOneLevel(
+        vehicleResponse.vehicle.statistics
+      )
+
+      // @ts-expect-error  Figure out how to prevent decamelization of boroughs and violation names
+      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
+    }
+
+    return decamelizedVehicleResponse
+  }) as VehicleResponse[]
 
   return { data: decamelized }
 }
@@ -139,9 +155,10 @@ export const handleExistingLookup = async (
   }
 
   const potentialVehicle = [
-    `${previousLookupResult.plate}:${previousLookupResult.state}${previousLookupResult.plateTypes
-      ? `:${previousLookupResult.plateTypes}`
-      : ''
+    `${previousLookupResult.plate}:${previousLookupResult.state}${
+      previousLookupResult.plateTypes
+        ? `:${previousLookupResult.plateTypes}`
+        : ''
     }`,
   ]
 

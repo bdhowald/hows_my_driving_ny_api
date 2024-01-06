@@ -1,11 +1,11 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { camelizeKeys } from 'humps'
 
 import {
   fiscalYearEndpoints,
   MEDALLION_DATABASE_ENDPOINT,
   openParkingAndCameraViolationsEndpoint,
 } from 'constants/endpoints'
+import { camelizeKeys } from 'utils/camelize'
 
 type MedallionReponse = {
   dmvLicensePlateNumber: string

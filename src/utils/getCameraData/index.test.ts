@@ -123,32 +123,32 @@ describe('getCameraData', () => {
     const expected: CameraData = {
       busLaneCameraViolations: {
         maxStreak: 5,
-        streakEnd: DateTime.fromISO('2023-03-01T00:00:00.000-05:00'),
-        streakStart: DateTime.fromISO('2023-01-01T00:00:00.000-05:00'),
+        streakEnd: '2023-03-01T00:00:00.000-05:00',
+        streakStart: '2023-01-01T00:00:00.000-05:00',
         total: 9,
       },
       cameraViolations: {
         maxStreak: 4,
-        streakEnd: DateTime.fromISO('2023-03-15T00:00:00.000-04:00'),
-        streakStart: DateTime.fromISO('2022-04-01T00:00:00.000-04:00'),
+        streakEnd: '2023-03-15T00:00:00.000-04:00',
+        streakStart: '2022-04-01T00:00:00.000-04:00',
         total: 6,
       },
       cameraViolationsWithBusLaneCameraViolations: {
         maxStreak: 9,
-        streakEnd: DateTime.fromISO('2023-03-15T00:00:00.000-04:00'),
-        streakStart: DateTime.fromISO('2022-04-01T00:00:00.000-04:00'),
+        streakEnd: '2023-03-15T00:00:00.000-04:00',
+        streakStart: '2022-04-01T00:00:00.000-04:00',
         total: 15,
       },
       redLightCameraViolations: {
         maxStreak: 3,
-        streakEnd: DateTime.fromISO('2023-03-15T00:00:00.000-04:00'),
-        streakStart: DateTime.fromISO('2022-04-01T00:00:00.000-04:00'),
+        streakEnd: '2023-03-15T00:00:00.000-04:00',
+        streakStart: '2022-04-01T00:00:00.000-04:00',
         total: 3,
       },
-      speedCameraViolations: {
+      schoolZoneSpeedCameraViolations: {
         maxStreak: 1,
-        streakEnd: DateTime.fromISO('2021-01-01T00:00:00.000-05:00'),
-        streakStart: DateTime.fromISO('2021-01-01T00:00:00.000-05:00'),
+        streakEnd: '2021-01-01T00:00:00.000-05:00',
+        streakStart: '2021-01-01T00:00:00.000-05:00',
         total: 3,
       },
     }

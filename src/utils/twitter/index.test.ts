@@ -41,7 +41,7 @@ describe('twitter', () => {
             streakStart: null,
             total: 0,
           },
-          speedCameraViolations: {
+          schoolZoneSpeedCameraViolations: {
             maxStreak: 0,
             streakEnd: null,
             streakStart: null,
@@ -106,32 +106,32 @@ describe('twitter', () => {
         cameraData: {
           busLaneCameraViolations: {
             maxStreak: 64,
-            streakEnd: DateTime.fromISO('2022-08-19T08:39:00.000-04:00'),
-            streakStart: DateTime.fromISO('2021-09-01T09:21:00.000-04:00'),
+            streakEnd: '2022-08-19T08:39:00.000-04:00',
+            streakStart: '2021-09-01T09:21:00.000-04:00',
             total: 142,
           },
           cameraViolations: {
             maxStreak: 65,
-            streakEnd: DateTime.fromISO('2021-12-23T10:22:00.000-05:00'),
-            streakStart: DateTime.fromISO('2020-12-29T10:44:00.000-05:00'),
+            streakEnd: '2021-12-23T10:22:00.000-05:00',
+            streakStart: '2020-12-29T10:44:00.000-05:00',
             total: 127,
           },
           cameraViolationsWithBusLaneCameraViolations: {
             maxStreak: 101,
-            streakEnd: DateTime.fromISO('2022-01-12T12:52:00.000-05:00'),
-            streakStart: DateTime.fromISO('2021-01-14T09:43:00.000-05:00'),
+            streakEnd: '2022-01-12T12:52:00.000-05:00',
+            streakStart: '2021-01-14T09:43:00.000-05:00',
             total: 269,
           },
           redLightCameraViolations: {
             maxStreak: 4,
-            streakEnd: DateTime.fromISO('2022-01-27T11:32:00.000-05:00'),
-            streakStart: DateTime.fromISO('2021-03-24T13:25:00.000-04:00'),
+            streakEnd: '2022-01-27T11:32:00.000-05:00',
+            streakStart: '2021-03-24T13:25:00.000-04:00',
             total: 5,
           },
-          speedCameraViolations: {
+          schoolZoneSpeedCameraViolations: {
             maxStreak: 62,
-            streakEnd: DateTime.fromISO('2021-12-23T10:22:00.000-05:00'),
-            streakStart: DateTime.fromISO('2020-12-29T10:44:00.000-05:00'),
+            streakEnd: '2021-12-23T10:22:00.000-05:00',
+            streakStart: '2020-12-29T10:44:00.000-05:00',
             total: 122,
           },
         },

@@ -25,7 +25,6 @@ jest.mock('services/openDataService')
 jest.mock('utils/databaseQueries')
 
 describe('getAndProcessApiLookup', () => {
-
   describe('when there are violations', () => {
     const uniqueIdentifier = 'a1b2c3d4'
 
@@ -196,12 +195,12 @@ describe('getAndProcessApiLookup', () => {
             summonsNumber: '7',
           }),
         ],
-      }
+      },
     ]
 
     const openDataServiceResponse = [
       ...fiscalYearDatabaseResponses,
-      ...openParkingAndCameraDatabaseResponse
+      ...openParkingAndCameraDatabaseResponse,
     ]
 
     const potentialVehicle: PotentialVehicle = {
@@ -243,7 +242,7 @@ describe('getAndProcessApiLookup', () => {
             streakStart: null,
             total: 0,
           },
-          speedCameraViolations: {
+          schoolZoneSpeedCameraViolations: {
             maxStreak: 0,
             streakEnd: null,
             streakStart: null,
@@ -556,19 +555,19 @@ describe('getAndProcessApiLookup', () => {
           'LLLL dd, y'
         )}: #NY_ABC1234 has been queried 0 times.\n\n`,
         'Total parking and camera violation tickets for #NY_ABC1234: 8\n\n' +
-        '8 | Blocking Pedestrian Ramp\n',
+          '8 | Blocking Pedestrian Ramp\n',
         'Violations by year for #NY_ABC1234:\n\n' +
-        '2 | 2018\n' +
-        '4 | 2019\n' +
-        '1 | 2021\n' +
-        '1 | 2022\n',
+          '2 | 2018\n' +
+          '4 | 2019\n' +
+          '1 | 2021\n' +
+          '1 | 2022\n',
         'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
-        '$1,050.00 | Fined\n' +
-        '$0.00         | Reduced\n' +
-        '$1,050.00 | Paid\n' +
-        '$0.00         | Outstanding\n' +
-        '$0.00         | In Judgment\n',
+          '$1,050.00 | Fined\n' +
+          '$0.00         | Reduced\n' +
+          '$1,050.00 | Paid\n' +
+          '$0.00         | Outstanding\n' +
+          '$0.00         | In Judgment\n',
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
 
@@ -585,18 +584,18 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-        ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-          uniqueIdentifier
-        )
-        ; (makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-          openDataServiceResponse
-        )
-        ; (
-          getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-        ).mockResolvedValueOnce({
-          frequency: 0,
-          previousLookup: undefined,
-        })
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce({
+        frequency: 0,
+        previousLookup: undefined,
+      })
 
       const result = await getAndProcessApiLookup(
         potentialVehicle,
@@ -632,24 +631,24 @@ describe('getAndProcessApiLookup', () => {
         `As of ${now.toFormat('hh:mm:ss a ZZZZ')} on ${now.toFormat(
           'LLLL dd, y'
         )}: #NY_ABC1234 has been queried 2 times.\n\n` +
-        'This vehicle was last queried on ' +
-        `${luxonDate.toFormat('LLLL dd, y')} at ` +
-        `${luxonDate.toFormat('hh:mm:ss a ZZZZ')}. ` +
-        'Since then, #NY_ABC1234 has received 4 new tickets.\n\n',
+          'This vehicle was last queried on ' +
+          `${luxonDate.toFormat('LLLL dd, y')} at ` +
+          `${luxonDate.toFormat('hh:mm:ss a ZZZZ')}. ` +
+          'Since then, #NY_ABC1234 has received 4 new tickets.\n\n',
         'Total parking and camera violation tickets for #NY_ABC1234: 8\n\n' +
-        '8 | Blocking Pedestrian Ramp\n',
+          '8 | Blocking Pedestrian Ramp\n',
         'Violations by year for #NY_ABC1234:\n\n' +
-        '2 | 2018\n' +
-        '4 | 2019\n' +
-        '1 | 2021\n' +
-        '1 | 2022\n',
+          '2 | 2018\n' +
+          '4 | 2019\n' +
+          '1 | 2021\n' +
+          '1 | 2022\n',
         'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
-        '$1,050.00 | Fined\n' +
-        '$0.00         | Reduced\n' +
-        '$1,050.00 | Paid\n' +
-        '$0.00         | Outstanding\n' +
-        '$0.00         | In Judgment\n',
+          '$1,050.00 | Fined\n' +
+          '$0.00         | Reduced\n' +
+          '$1,050.00 | Paid\n' +
+          '$0.00         | Outstanding\n' +
+          '$0.00         | In Judgment\n',
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
 
@@ -670,15 +669,15 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-        ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-          uniqueIdentifier
-        )
-        ; (makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-          openDataServiceResponse
-        )
-        ; (
-          getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-        ).mockResolvedValueOnce(previousLookupAndFrequency)
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce(previousLookupAndFrequency)
 
       const result = await getAndProcessApiLookup(
         potentialVehicle,
@@ -715,23 +714,23 @@ describe('getAndProcessApiLookup', () => {
 
       const tweetParts = [
         `As of ${january12021AsLuxonDate.toFormat('hh:mm:ss a ZZZZ')} ` +
-        `on ${january12021AsLuxonDate.toFormat(
-          'LLLL dd, y'
-        )}: #NY_ABC1234 has been queried 2 times.\n\n` +
-        'This vehicle was last queried on ' +
-        `${december12020AsLuxonDate.toFormat('LLLL dd, y')} at ` +
-        `${december12020AsLuxonDate.toFormat('hh:mm:ss a ZZZZ')}. ` +
-        'Since then, #NY_ABC1234 has received 2 new tickets.\n\n',
+          `on ${january12021AsLuxonDate.toFormat(
+            'LLLL dd, y'
+          )}: #NY_ABC1234 has been queried 2 times.\n\n` +
+          'This vehicle was last queried on ' +
+          `${december12020AsLuxonDate.toFormat('LLLL dd, y')} at ` +
+          `${december12020AsLuxonDate.toFormat('hh:mm:ss a ZZZZ')}. ` +
+          'Since then, #NY_ABC1234 has received 2 new tickets.\n\n',
         'Total parking and camera violation tickets for #NY_ABC1234: 6\n\n' +
-        '6 | Blocking Pedestrian Ramp\n',
+          '6 | Blocking Pedestrian Ramp\n',
         'Violations by year for #NY_ABC1234:\n\n' + '2 | 2018\n' + '4 | 2019\n',
         'Violations by borough for #NY_ABC1234:\n\n' + '6 | Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
-        '$875.00 | Fined\n' +
-        '$0.00     | Reduced\n' +
-        '$875.00 | Paid\n' +
-        '$0.00     | Outstanding\n' +
-        '$0.00     | In Judgment\n',
+          '$875.00 | Fined\n' +
+          '$0.00     | Reduced\n' +
+          '$875.00 | Paid\n' +
+          '$0.00     | Outstanding\n' +
+          '$0.00     | In Judgment\n',
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
 
@@ -782,15 +781,15 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-        ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-          uniqueIdentifier
-        )
-        ; (makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-          openDataServiceResponse
-        )
-        ; (
-          getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-        ).mockResolvedValueOnce(previousLookupAndFrequency)
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce(previousLookupAndFrequency)
 
       const result = await getAndProcessApiLookup(
         potentialVehicle,
@@ -979,12 +978,12 @@ describe('getAndProcessApiLookup', () => {
               summonsNumber: '7',
             }),
           ],
-        }
+        },
       ]
 
       const openDataServiceResponse = [
         ...fiscalYearDatabaseResponses,
-        ...openParkingAndCameraDatabaseResponse
+        ...openParkingAndCameraDatabaseResponse,
       ]
 
       const updatedViolations = baseExpected.vehicle?.violations.map(
@@ -1004,19 +1003,19 @@ describe('getAndProcessApiLookup', () => {
             'LLLL dd, y'
           )}: #NY_Y201965C has been queried 0 times.\n\n`,
           'Total parking and camera violation tickets for #NY_Y201965C: 8\n\n' +
-          '8 | Blocking Pedestrian Ramp\n',
+            '8 | Blocking Pedestrian Ramp\n',
           'Violations by year for #NY_Y201965C:\n\n' +
-          '2 | 2018\n' +
-          '4 | 2019\n' +
-          '1 | 2021\n' +
-          '1 | 2022\n',
+            '2 | 2018\n' +
+            '4 | 2019\n' +
+            '1 | 2021\n' +
+            '1 | 2022\n',
           'Violations by borough for #NY_Y201965C:\n\n' + '8 | Bronx\n',
           'Known fines for #NY_Y201965C:\n\n' +
-          '$1,050.00 | Fined\n' +
-          '$0.00         | Reduced\n' +
-          '$1,050.00 | Paid\n' +
-          '$0.00         | Outstanding\n' +
-          '$0.00         | In Judgment\n',
+            '$1,050.00 | Fined\n' +
+            '$0.00         | Reduced\n' +
+            '$1,050.00 | Paid\n' +
+            '$0.00         | Outstanding\n' +
+            '$0.00         | In Judgment\n',
           `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
         ],
       }
@@ -1028,18 +1027,18 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-        ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-          uniqueIdentifier
-        )
-        ; (makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-          openDataServiceResponse
-        )
-        ; (
-          getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-        ).mockResolvedValueOnce({
-          frequency: 0,
-          previousLookup: undefined,
-        })
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce({
+        frequency: 0,
+        previousLookup: undefined,
+      })
 
       const result = await getAndProcessApiLookup(
         potentialVehicle,
@@ -1067,21 +1066,21 @@ describe('getAndProcessApiLookup', () => {
       const openDataServiceResponse = [
         ...fiscalYearDatabaseResponses.slice(0, 11),
         new Error('Network Error'),
-        ...openParkingAndCameraDatabaseResponse
+        ...openParkingAndCameraDatabaseResponse,
       ]
 
-        ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-          uniqueIdentifier
-        )
-        ; (makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
-          openDataServiceResponse
-        )
-        ; (
-          getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-        ).mockResolvedValueOnce({
-          frequency: 0,
-          previousLookup: undefined,
-        })
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce({
+        frequency: 0,
+        previousLookup: undefined,
+      })
 
       const result = await getAndProcessApiLookup(
         potentialVehicle,
@@ -1121,99 +1120,95 @@ describe('getAndProcessApiLookup', () => {
       lookupSource: LookupSource.Api,
     }
 
-      ; (
-        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
-      ).mockResolvedValueOnce({
-        frequency: 0,
-        previousLookup: undefined,
-      })
-
-      ; (makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        [
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/rhe8-mgbb.json${medallionQueryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/jt7v-77mi.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/c284-tqph.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/kiv2-tbus.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/2bnn-yakx.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/a5td-mswe.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/faiq-9dfq.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/p7t3-5i9s.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/kvfd-bves.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/7mxj-7a6y.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/869v-vr48.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/pvqr-7yc4.json${queryString}`,
-            },
-            data: [],
-          },
-          {
-            config: {
-              url: `https://data.cityofnewyork.us/resource/uvbq-3m68.json${queryString}`,
-            },
-            data: [],
-          }
-        ]
-      )
-
-      ; (createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
-      )
+    ;(
+      getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+    ).mockResolvedValueOnce({
+      frequency: 0,
+      previousLookup: undefined,
+    })
+    ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce([
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/rhe8-mgbb.json${medallionQueryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/jt7v-77mi.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/c284-tqph.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/kiv2-tbus.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/2bnn-yakx.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/a5td-mswe.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/faiq-9dfq.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/p7t3-5i9s.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/kvfd-bves.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/7mxj-7a6y.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/869v-vr48.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/pvqr-7yc4.json${queryString}`,
+        },
+        data: [],
+      },
+      {
+        config: {
+          url: `https://data.cityofnewyork.us/resource/uvbq-3m68.json${queryString}`,
+        },
+        data: [],
+      },
+    ])
+    ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+      uniqueIdentifier
+    )
 
     const result = await getAndProcessApiLookup(
       potentialVehicle,
@@ -1249,7 +1244,7 @@ describe('getAndProcessApiLookup', () => {
             streakStart: null,
             total: 0,
           },
-          speedCameraViolations: {
+          schoolZoneSpeedCameraViolations: {
             maxStreak: 0,
             streakEnd: null,
             streakStart: null,

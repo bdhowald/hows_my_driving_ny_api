@@ -7,9 +7,7 @@ const VALID_PLATE_PART_LENGTHS = [2, 3]
 const detectPlateTypes = (potentialPlateTypeString: string) => {
   if (potentialPlateTypeString.indexOf(',') !== -1) {
     const parts = potentialPlateTypeString.split(',')
-    const bools = parts.map(
-      (part) => !!part.match(plateTypesRegex)
-    )
+    const bools = parts.map((part) => !!part.match(plateTypesRegex))
     return bools.some((bool) => !!bool)
   } else {
     return !(potentialPlateTypeString.match(plateTypesRegex) == undefined)
@@ -21,7 +19,11 @@ const detectState = (potentialStateString: string) =>
 
 const detectVehicles = (potentialVehicles: string[]): PotentialVehicle[] => {
   return potentialVehicles.map((plate) => {
-    const parts = plate.toUpperCase().trim().split(':').filter((part) => !!part)
+    const parts = plate
+      .toUpperCase()
+      .trim()
+      .split(':')
+      .filter((part) => !!part)
 
     if (VALID_PLATE_PART_LENGTHS.includes(parts.length)) {
       const stateBools = parts.map((part) => detectState(part))
@@ -30,7 +32,8 @@ const detectVehicles = (potentialVehicles: string[]): PotentialVehicle[] => {
       const plateTypesBools = parts.map((part) => detectPlateTypes(part))
       const plateTypesIndex = plateTypesBools.indexOf(true)
 
-      const plateTypes = parts[plateTypesIndex]?.split(',')
+      const plateTypes = parts[plateTypesIndex]
+        ?.split(',')
         .filter((possiblePlateType) => detectPlateTypes(possiblePlateType))
         .sort()
         .join()

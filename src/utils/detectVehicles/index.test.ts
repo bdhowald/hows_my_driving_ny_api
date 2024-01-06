@@ -12,7 +12,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: undefined,
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -29,7 +29,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: 'PAS',
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -46,7 +46,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: 'COM,PAS',
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -63,7 +63,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: 'PAS',
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -80,7 +80,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: 'COM,PAS',
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -97,7 +97,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: undefined,
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -114,7 +114,7 @@ describe('detectVehicles', () => {
           state: 'NY',
           types: 'COM,PAS',
           validPlate: true,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -125,10 +125,7 @@ describe('detectVehicles', () => {
       const invalidPlate = 'notaplate'
       const validPlate = 'abc1234:ny:pas'
 
-      const potentialVehicles = [
-        invalidPlate,
-        validPlate,
-      ]
+      const potentialVehicles = [invalidPlate, validPlate]
 
       const expected = [
         {
@@ -157,7 +154,7 @@ describe('detectVehicles', () => {
         {
           originalString: potentialVehicle,
           validPlate: false,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -171,7 +168,7 @@ describe('detectVehicles', () => {
         {
           originalString: potentialVehicle,
           validPlate: false,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -185,7 +182,7 @@ describe('detectVehicles', () => {
         {
           originalString: potentialVehicle,
           validPlate: false,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 
@@ -199,7 +196,7 @@ describe('detectVehicles', () => {
         {
           originalString: potentialVehicle,
           validPlate: false,
-        }
+        },
       ]
       const result = detectVehicles([potentialVehicle])
 

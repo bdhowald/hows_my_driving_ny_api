@@ -2,8 +2,8 @@ import { DateTime } from 'luxon'
 
 type CameraStreakData = {
   maxStreak: number
-  streakEnd: DateTime | null
-  streakStart: DateTime | null
+  streakEnd: string | null
+  streakStart: string | null
 }
 
 export default CameraStreakData

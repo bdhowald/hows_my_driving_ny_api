@@ -1,4 +1,3 @@
-import { camelizeKeys } from 'humps'
 import { DateTime } from 'luxon'
 
 import issuingAgencies from 'constants/agencies'
@@ -17,6 +16,7 @@ import {
 import getBoroughService from 'services/geocodingService'
 import { RawViolation, Violation } from 'types/violations'
 import getFullAddress from 'utils/addressUtils'
+import { camelizeKeys } from 'utils/camelize'
 import { isNumber, objectHasKey } from 'utils/typePredicates'
 
 const DATE_FORMAT = /^\d{2}\/\d{2}\/\d{4}$/
@@ -139,10 +139,10 @@ const getFormattedTimes = (
 ):
   | undefined
   | {
-    formattedTime: DateTime
-    formattedTimeEastern: DateTime
-    formattedTimeUtc: DateTime
-  } => {
+      formattedTime: DateTime
+      formattedTimeEastern: DateTime
+      formattedTimeUtc: DateTime
+    } => {
   if (!violationDate) {
     return undefined
   }
@@ -219,8 +219,8 @@ const getHumanizedDescription = (
     'violationDescription' in violation
       ? violation.violationDescription
       : 'violationCode' in violation
-        ? violation.violationCode
-        : undefined
+      ? violation.violationCode
+      : undefined
 
   if (fiscalYearDescriptionKey) {
     // The same violation codes or descriptions in the fiscal year
@@ -230,7 +230,7 @@ const getHumanizedDescription = (
       | HumanizedDescription
       | Array<ViolationMultipleDescriptionCode> =
       humanizedDescriptionsForFiscalYearDatabaseViolations[
-      fiscalYearDescriptionKey
+        fiscalYearDescriptionKey
       ]
 
     if (Array.isArray(violationCodeDefinition)) {
@@ -245,7 +245,7 @@ const getHumanizedDescription = (
           if (
             violationDateTimes &&
             DateTime.fromJSDate(possibleDescription.startDate) <
-            violationDateTimes.formattedTimeUtc
+              violationDateTimes.formattedTimeUtc
           ) {
             return possibleDescription.description
           }

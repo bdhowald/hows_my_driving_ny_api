@@ -1,17 +1,17 @@
 import { HttpStatusCode } from 'axios'
 import http from 'http'
-import { decamelizeKeys } from 'humps'
 import { DateTime } from 'luxon'
 
 import {
   TWEET_CREATE_EVENT_EXPECTED_SHA,
-  TWEET_CREATE_EVENT_FIXTURE
+  TWEET_CREATE_EVENT_FIXTURE,
 } from '__fixtures__/twitter'
 import { violationFactory } from '__fixtures__/violations'
 import { Borough } from 'constants/boroughs'
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import AggregateFineData from 'models/aggregateFineData'
 import { VehicleResponse } from 'types/request'
+import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
 import { getPreviousLookupResult } from 'utils/databaseQueries'
 import getAndProcessApiLookup from 'utils/getAndProcessApiLookup'
 import { handleTwitterAccountActivityApiEvents } from 'utils/twitter'
@@ -66,7 +66,7 @@ describe('requestService', () => {
               streakStart: null,
               total: 0,
             },
-            speedCameraViolations: {
+            schoolZoneSpeedCameraViolations: {
               maxStreak: 0,
               streakEnd: null,
               streakStart: null,
@@ -106,19 +106,19 @@ describe('requestService', () => {
               'LLLL dd, y'
             )}: #NY_ABC1234 has been queried 0 times.\n\n`,
             'Total parking and camera violation tickets for #NY_ABC1234: 8\n\n' +
-            '8 | Blocking Pedestrian Ramp\n',
+              '8 | Blocking Pedestrian Ramp\n',
             'Violations by year for #NY_ABC1234:\n\n' +
-            '2 | 2018\n' +
-            '4 | 2019\n' +
-            '1 | 2021\n' +
-            '1 | 2022\n',
+              '2 | 2018\n' +
+              '4 | 2019\n' +
+              '1 | 2021\n' +
+              '1 | 2022\n',
             'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
             'Known fines for #NY_ABC1234:\n\n' +
-            '$1,050.00 | Fined\n' +
-            '$0.00         | Reduced\n' +
-            '$1,050.00 | Paid\n' +
-            '$0.00         | Outstanding\n' +
-            '$0.00         | In Judgment\n',
+              '$1,050.00 | Fined\n' +
+              '$0.00         | Reduced\n' +
+              '$1,050.00 | Paid\n' +
+              '$0.00         | Outstanding\n' +
+              '$0.00         | In Judgment\n',
             `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
           ],
           uniqueIdentifier,
@@ -388,18 +388,27 @@ describe('requestService', () => {
         },
       }
 
+      const statistics = apiQueryResponse.vehicle?.statistics
+      const statisticsBarelyDecamelized = decamelizeKeysOneLevel(statistics)
+
+      const decamelizedResponse = decamelizeKeys(
+        apiQueryResponse
+      ) as VehicleResponse
+      // @ts-expect-error  Figure out how to decamelize only the top-level betters.
+      decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
+
       const expected = {
-        data: [decamelizeKeys(apiQueryResponse)]
+        data: [decamelizedResponse],
       }
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1?plate=ABC1234:NY'
+        url: '/api/v1?plate=ABC1234:NY',
       } as http.IncomingMessage
 
-        ; (getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
-          apiQueryResponse
-        )
+      ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
+        apiQueryResponse
+      )
 
       const result = await handleApiLookup(incomingRequest)
 
@@ -443,7 +452,7 @@ describe('requestService', () => {
               streakStart: null,
               total: 0,
             },
-            speedCameraViolations: {
+            schoolZoneSpeedCameraViolations: {
               maxStreak: 0,
               streakEnd: null,
               streakStart: null,
@@ -474,7 +483,7 @@ describe('requestService', () => {
               'LLLL dd, y'
             )}: #NY_ABC1234 has been queried 0 times.\n\n`,
             'Total parking and camera violation tickets for #NY_ABC1234: 0\n\n' +
-            `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
+              `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
           ],
           uniqueIdentifier,
           violations: [],
@@ -483,17 +492,17 @@ describe('requestService', () => {
       }
 
       const expected = {
-        data: [decamelizeKeys(apiQueryResponse)]
+        data: [decamelizeKeys(apiQueryResponse)],
       }
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1?plate=ABC1234:NY'
+        url: '/api/v1?plate=ABC1234:NY',
       } as http.IncomingMessage
 
-        ; (getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
-          apiQueryResponse
-        )
+      ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
+        apiQueryResponse
+      )
 
       const result = await handleApiLookup(incomingRequest)
 
@@ -501,19 +510,18 @@ describe('requestService', () => {
     })
 
     it('should return an error response if there is a problem parsing the plate input', async () => {
-      const expected = decamelizeKeys(
-        {
-          errorCode: HttpStatusCode.BadRequest,
-          errorMessage: "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
-            "or 'plate=<PLATE>&state=<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'"
-        }
-      )
+      const expected = decamelizeKeys({
+        errorCode: HttpStatusCode.BadRequest,
+        errorMessage:
+          "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
+          "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
+          "or 'plate=<PLATE>&state=<STATE>', ex: " +
+          "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
+      })
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1?plate_id=ABC1234'
+        url: '/api/v1?plate_id=ABC1234',
       } as http.IncomingMessage
 
       const result = await handleApiLookup(incomingRequest)
@@ -526,12 +534,13 @@ describe('requestService', () => {
     it('should return an error response if there is no identifier of an existing lookup', async () => {
       const expected = {
         errorCode: HttpStatusCode.BadRequest,
-        errorMessage: "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'"
+        errorMessage:
+          "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'",
       }
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1/lookup'
+        url: '/api/v1/lookup',
       } as http.IncomingMessage
 
       const result = await handleExistingLookup(incomingRequest)
@@ -583,7 +592,7 @@ describe('requestService', () => {
               streakStart: null,
               total: 0,
             },
-            speedCameraViolations: {
+            schoolZoneSpeedCameraViolations: {
               maxStreak: 0,
               streakEnd: null,
               streakStart: null,
@@ -618,23 +627,23 @@ describe('requestService', () => {
           timesQueried: 0,
           tweetParts: [
             `As of ${january12021AsLuxonDate.toFormat('hh:mm:ss a ZZZZ')} ` +
-            `on ${january12021AsLuxonDate.toFormat(
-              'LLLL dd, y'
-            )}: #NY_ABC1234 has been queried 0 times.\n\n`,
+              `on ${january12021AsLuxonDate.toFormat(
+                'LLLL dd, y'
+              )}: #NY_ABC1234 has been queried 0 times.\n\n`,
             'Total parking and camera violation tickets for #NY_ABC1234: 8\n\n' +
-            '8 | Blocking Pedestrian Ramp\n',
+              '8 | Blocking Pedestrian Ramp\n',
             'Violations by year for #NY_ABC1234:\n\n' +
-            '2 | 2018\n' +
-            '4 | 2019\n' +
-            '1 | 2021\n' +
-            '1 | 2022\n',
+              '2 | 2018\n' +
+              '4 | 2019\n' +
+              '1 | 2021\n' +
+              '1 | 2022\n',
             'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
             'Known fines for #NY_ABC1234:\n\n' +
-            '$1,050.00 | Fined\n' +
-            '$0.00         | Reduced\n' +
-            '$1,050.00 | Paid\n' +
-            '$0.00         | Outstanding\n' +
-            '$0.00         | In Judgment\n',
+              '$1,050.00 | Fined\n' +
+              '$0.00         | Reduced\n' +
+              '$1,050.00 | Paid\n' +
+              '$0.00         | Outstanding\n' +
+              '$0.00         | In Judgment\n',
             `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
           ],
           uniqueIdentifier,
@@ -819,19 +828,19 @@ describe('requestService', () => {
       }
 
       const expected = {
-        data: [decamelizeKeys(apiQueryResponse)]
+        data: [decamelizeKeys(apiQueryResponse)],
       }
 
-        ; (getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
-          existingIdentifierQueryResult
-        )
-        ; (getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
-          apiQueryResponse
-        )
+      ;(getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
+        existingIdentifierQueryResult
+      )
+      ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
+        apiQueryResponse
+      )
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1/lookup/a1b2c3d4'
+        url: '/api/v1/lookup/a1b2c3d4',
       } as http.IncomingMessage
 
       const result = await handleExistingLookup(incomingRequest)
@@ -844,13 +853,13 @@ describe('requestService', () => {
 
       const expected = { data: [] }
 
-        ; (getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
-          existingIdentifierQueryResult
-        )
+      ;(getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
+        existingIdentifierQueryResult
+      )
 
       const incomingRequest = {
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/api/v1/lookup/a1b2c3d4'
+        url: '/api/v1/lookup/a1b2c3d4',
       } as http.IncomingMessage
 
       const result = await handleExistingLookup(incomingRequest)
@@ -865,13 +874,13 @@ describe('requestService', () => {
       const nonce = 'MTY4NTY2MjQ0ODA2MA'
 
       const expected = {
-        response_token: 'sha256=u9S5633gIBHtt5xTYFvzQjnF0OH2hV5o3eEqDiEiekw='
+        response_token: 'sha256=u9S5633gIBHtt5xTYFvzQjnF0OH2hV5o3eEqDiEiekw=',
       }
 
       const incomingRequest = {
         method: 'GET',
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: `/webhook/twitter?crc_token=${crcToken}&nonce=${nonce}`
+        url: `/webhook/twitter?crc_token=${crcToken}&nonce=${nonce}`,
       } as http.IncomingMessage
 
       const result = handleTwitterRequestChallenge(incomingRequest)
@@ -889,10 +898,12 @@ describe('requestService', () => {
       const incomingRequest = {
         method: 'GET',
         headers: { host: 'api.howsmydrivingny.nyc' },
-        url: '/webhook/twitter?crc_token=crcToken&nonce=nonce'
+        url: '/webhook/twitter?crc_token=crcToken&nonce=nonce',
       } as http.IncomingMessage
 
-      expect(() => handleTwitterRequestChallenge(incomingRequest)).toThrow('Server Error')
+      expect(() => handleTwitterRequestChallenge(incomingRequest)).toThrow(
+        'Server Error'
+      )
 
       // restore value
       process.env.TWITTER_CONSUMER_SECRET = testingTwitterConsumerSecret
@@ -901,7 +912,6 @@ describe('requestService', () => {
 
   describe('handleTwitterWebhookEvent', () => {
     it('should check the SHA of a webhook event and then call another function', () => {
-
       const textEncoder = new TextEncoder()
       const eventAsJson = JSON.stringify(TWEET_CREATE_EVENT_FIXTURE)
       const eventAsArrayBuffer = textEncoder.encode(eventAsJson)
@@ -914,9 +924,9 @@ describe('requestService', () => {
         method: 'POST',
         headers: {
           host: 'api.howsmydrivingny.nyc',
-          'x-twitter-webhooks-signature': TWEET_CREATE_EVENT_EXPECTED_SHA
+          'x-twitter-webhooks-signature': TWEET_CREATE_EVENT_EXPECTED_SHA,
         },
-        url: '/webhook/twitter'
+        url: '/webhook/twitter',
       } as unknown as http.IncomingMessage
 
       handleTwitterWebhookEvent(incomingRequest)

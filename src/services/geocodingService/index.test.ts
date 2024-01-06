@@ -1,14 +1,14 @@
 import { Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
-import initializeConnection from 'connections'
+import { instantiateConnection } from 'services/databaseService'
 
 import getBoroughService from '.'
 
 jest.mock('@googlemaps/google-maps-services-js')
-jest.mock('connections')
+jest.mock('services/databaseService')
 
 describe('getBoroughService', () => {
   beforeEach(() => {
-    ;(initializeConnection as jest.Mock).mockReset()
+    ;(instantiateConnection as jest.Mock).mockReset()
     ;(GoogleMapsClient as jest.Mock).mockReset()
   })
 
@@ -17,7 +17,7 @@ describe('getBoroughService', () => {
   it("should return 'No Borough Available' if no address is given", async () => {
     expect(await getBoroughService(undefined)).toBe('No Borough Available')
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledTimes(0)
+    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(0)
   })
 
   it('should search the database for a geocode and return the result if so', async () => {
@@ -29,23 +29,18 @@ describe('getBoroughService', () => {
 
     const databaseConnection = {
       end: jest.fn(),
-      query: jest.fn((sql, value, callback) =>
+      query: jest.fn((_, __, callback) =>
         callback(null, [geocodeFromDatabase])
       ),
     }
 
-    ;(initializeConnection as jest.Mock).mockReturnValueOnce(databaseConnection)
+    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      databaseConnection
+    )
 
     expect(await getBoroughService(address)).toBe(geocodeFromDatabase.borough)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledWith({
-      database: 'traffic_violations_test',
-      host: 'localhost',
-      multipleStatements: true,
-      password: '',
-      user: 'root',
-    })
+    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
   })
 
   it('should query Google for the borough if no database geocode and return one if it finds one', async () => {
@@ -107,24 +102,19 @@ describe('getBoroughService', () => {
 
     const databaseConnection = {
       end: jest.fn(),
-      query: jest.fn((sql, value, callback) => callback(null, [])),
+      query: jest.fn((_, __, callback) => callback(null, [])),
     }
 
-    ;(initializeConnection as jest.Mock).mockReturnValueOnce(databaseConnection)
+    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      databaseConnection
+    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
 
     expect(await getBoroughService(address)).toBe(brooklyn)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledWith({
-      database: 'traffic_violations_test',
-      host: 'localhost',
-      multipleStatements: true,
-      password: '',
-      user: 'root',
-    })
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
@@ -163,24 +153,19 @@ describe('getBoroughService', () => {
 
     const databaseConnection = {
       end: jest.fn(),
-      query: jest.fn((sql, value, callback) => callback(null, [])),
+      query: jest.fn((_, __, callback) => callback(null, [])),
     }
 
-    ;(initializeConnection as jest.Mock).mockReturnValueOnce(databaseConnection)
+    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      databaseConnection
+    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
 
     expect(await getBoroughService(address)).toBe(brooklyn)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledWith({
-      database: 'traffic_violations_test',
-      host: 'localhost',
-      multipleStatements: true,
-      password: '',
-      user: 'root',
-    })
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
@@ -197,24 +182,19 @@ describe('getBoroughService', () => {
 
     const databaseConnection = {
       end: jest.fn(),
-      query: jest.fn((sql, value, callback) => callback(null, [])),
+      query: jest.fn((_, __, callback) => callback(null, [])),
     }
 
-    ;(initializeConnection as jest.Mock).mockReturnValueOnce(databaseConnection)
+    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      databaseConnection
+    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
 
     expect(await getBoroughService(address)).toBe('No Borough Available')
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
 
-    expect(initializeConnection as jest.Mock).toHaveBeenCalledWith({
-      database: 'traffic_violations_test',
-      host: 'localhost',
-      multipleStatements: true,
-      password: '',
-      user: 'root',
-    })
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 })

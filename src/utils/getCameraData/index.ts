@@ -14,8 +14,8 @@ const findMaxCameraViolationsStreak = (
   violationTimes: Array<string | null | undefined>
 ): CameraStreakData => {
   let maxStreak = 0
-  let streakEnd = null
-  let streakStart = null
+  let streakEnd: string | null = null
+  let streakStart: string | null = null
 
   const dateTimes = violationTimes
     .filter(isPresent)
@@ -42,8 +42,8 @@ const findMaxCameraViolationsStreak = (
 
     if (thisStreak > maxStreak) {
       maxStreak = thisStreak
-      streakEnd = sortedYearLongTickets[yearLongTickets.length - 1] as DateTime
-      streakStart = sortedYearLongTickets[0] as DateTime
+      streakEnd = sortedYearLongTickets[yearLongTickets.length - 1].toISO()
+      streakStart = sortedYearLongTickets[0].toISO()
     }
   })
 
@@ -128,7 +128,7 @@ const getCameraData = (violations: Violation[]): CameraData => {
     cameraViolationsWithBusLaneCameraViolations:
       mixedCameraWithBusLaneCameraStreakData,
     redLightCameraViolations: redLightCameraStreakData,
-    speedCameraViolations: speedCameraStreakData,
+    schoolZoneSpeedCameraViolations: speedCameraStreakData,
   }
 }
 

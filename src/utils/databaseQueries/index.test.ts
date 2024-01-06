@@ -55,32 +55,32 @@ describe('databaseQueries', () => {
       cameraData: {
         busLaneCameraViolations: {
           maxStreak: 1,
-          streakEnd: DateTime.fromISO('2023-01-15T00:00:00.000-05:00'),
-          streakStart: DateTime.fromISO('2023-01-15T00:00:00.000-05:00'),
+          streakEnd: '2023-01-15T00:00:00.000-05:00',
+          streakStart: '2023-01-15T00:00:00.000-05:00',
           total: 1,
         },
         cameraViolations: {
           maxStreak: 2,
-          streakEnd: DateTime.fromISO('2023-02-15T00:00:00.000-05:00'),
-          streakStart: DateTime.fromISO('2023-03-15T00:00:00.000-04:00'),
+          streakEnd: '2023-02-15T00:00:00.000-05:00',
+          streakStart: '2023-03-15T00:00:00.000-04:00',
           total: 4,
         },
         cameraViolationsWithBusLaneCameraViolations: {
           maxStreak: 3,
-          streakEnd: DateTime.fromISO('2023-01-15T00:00:00.000-05:00'),
-          streakStart: DateTime.fromISO('2023-03-15T00:00:00.000-04:00'),
+          streakEnd: '2023-01-15T00:00:00.000-05:00',
+          streakStart: '2023-03-15T00:00:00.000-04:00',
           total: 5,
         },
         redLightCameraViolations: {
           maxStreak: 1,
-          streakEnd: DateTime.fromISO('2021-01-01T00:00:00.000-05:00'),
-          streakStart: DateTime.fromISO('2021-01-01T00:00:00.000-05:00'),
+          streakEnd: '2021-01-01T00:00:00.000-05:00',
+          streakStart: '2021-01-01T00:00:00.000-05:00',
           total: 2,
         },
-        speedCameraViolations: {
+        schoolZoneSpeedCameraViolations: {
           maxStreak: 1,
-          streakEnd: DateTime.fromISO('2022-01-01T00:00:00.000-05:00'),
-          streakStart: DateTime.fromISO('2022-01-01T00:00:00.000-05:00'),
+          streakEnd: '2022-01-01T00:00:00.000-05:00',
+          streakStart: '2022-01-01T00:00:00.000-05:00',
           total: 2,
         },
       },
@@ -108,10 +108,10 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (Math.random as jest.Mock).mockReturnValueOnce(
-          randomValueThatWillEvaluateToNewUniqueIdentifier
-        )
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(Math.random as jest.Mock).mockReturnValueOnce(
+        randomValueThatWillEvaluateToNewUniqueIdentifier
+      )
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
         callback(null, [{ count: 0 }])
@@ -167,7 +167,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       // We expect two calls
       databaseConnection.query
@@ -220,7 +220,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
         callback(null, [
@@ -247,10 +247,10 @@ describe('databaseQueries', () => {
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select count(*) as frequency from plate_lookups where plate = ? and ' +
-        'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
-        'select num_tickets as num_violations, created_at from plate_lookups where ' +
-        'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
-        'ORDER BY created_at DESC LIMIT 1;',
+          'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
+          'select num_tickets as num_violations, created_at from plate_lookups where ' +
+          'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
+          'ORDER BY created_at DESC LIMIT 1;',
         [
           'ABC1234',
           'NY',
@@ -278,7 +278,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       const frequency = 0
 
@@ -299,10 +299,10 @@ describe('databaseQueries', () => {
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select count(*) as frequency from plate_lookups where plate = ? and ' +
-        'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
-        'select num_tickets as num_violations, created_at from plate_lookups where ' +
-        'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
-        'ORDER BY created_at DESC LIMIT 1;',
+          'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
+          'select num_tickets as num_violations, created_at from plate_lookups where ' +
+          'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
+          'ORDER BY created_at DESC LIMIT 1;',
         [
           'ABC1234',
           'NY',
@@ -330,7 +330,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
         callback(null, [
@@ -355,10 +355,10 @@ describe('databaseQueries', () => {
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select count(*) as frequency from plate_lookups where plate = ? and ' +
-        'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
-        'select num_tickets as num_violations, created_at from plate_lookups where ' +
-        'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
-        'ORDER BY created_at DESC LIMIT 1;',
+          'state = ? and count_towards_frequency = 1 and plate_types = ?; ' +
+          'select num_tickets as num_violations, created_at from plate_lookups where ' +
+          'plate = ? and state = ? and count_towards_frequency = 1 and plate_types = ? ' +
+          'ORDER BY created_at DESC LIMIT 1;',
         [
           'ABC1234',
           'NY',
@@ -388,7 +388,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
         callback(null, [decamelizeKeys(expected)])
@@ -441,7 +441,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query
         .mockImplementationOnce((_, __, callback) =>
@@ -482,7 +482,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
         callback(null, { insertId: 123 })
@@ -514,7 +514,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query
         .mockImplementationOnce((_, __, callback) => {
@@ -531,15 +531,15 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
-        'non_follower_replies where user_id = ? and favorited = false and event_id = ?;',
+          'non_follower_replies where user_id = ? and favorited = false and event_id = ?;',
         [userId, favoritedStatusId],
         expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'update non_follower_replies set favorited = true where user_id = ? and event_id = ?; ' +
-        'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
-        'where is_duplicate = false and event_id = ?;',
+          'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
+          'where is_duplicate = false and event_id = ?;',
         [userId, favoritedStatusId, inReplyToMessageId],
         expect.anything()
       )
@@ -551,7 +551,7 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-        ; (instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query
         .mockImplementationOnce((_, __, callback) => {
@@ -568,15 +568,15 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
-        'non_follower_replies where user_id = ? and favorited = false;',
+          'non_follower_replies where user_id = ? and favorited = false;',
         [userId],
         expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'update non_follower_replies set favorited = true where user_id = ?; ' +
-        'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
-        'where is_duplicate = false and event_id = ?;',
+          'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
+          'where is_duplicate = false and event_id = ?;',
         [userId, inReplyToMessageId],
         expect.anything()
       )

@@ -1,4 +1,3 @@
-import { camelizeKeys } from 'humps'
 import { DateTime } from 'luxon'
 
 import { CAMERA_THRESHOLDS } from 'constants/dangerousVehicleAbatementAct'
@@ -26,6 +25,7 @@ import {
 import CameraData from 'types/cameraData'
 import FrequencyData from 'types/frequencyData'
 import { PreviousLookupAndFrequency } from 'types/query'
+import { camelizeKeys } from 'utils/camelize'
 import {
   insertNewTwitterEventAndMediaObjects,
   updateNonFollowerReplies,
@@ -44,9 +44,9 @@ type AssembleResponseTypeArguments = {
 
   // The summary data (e.g. years, boroughs, violation types)
   summaryDataSubset:
-  | FrequencyData['boroughs']
-  | FrequencyData['violationTypes']
-  | FrequencyData['years']
+    | FrequencyData['boroughs']
+    | FrequencyData['violationTypes']
+    | FrequencyData['years']
 }
 
 export type PlateLookupTweetArguments = {
@@ -137,8 +137,9 @@ const createRepeatLookupString = (
       const plateTypesString = plateTypes ? ` (types: ${plateTypes}) ` : ' '
       const fullPlateString = plateHashTagString + plateTypesString
 
-      const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${numNewViolations === 1 ? '' : 's'
-        }.\n\n`
+      const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${
+        numNewViolations === 1 ? '' : 's'
+      }.\n\n`
 
       violationsString += newTicketsSinceString
     }
@@ -315,7 +316,11 @@ const formPlateLookupTweets = (
 
   if (cameraData) {
     const thresholds = Object.entries(CAMERA_THRESHOLDS) as [
-      'cameraViolations' | 'redLightCameraViolations' | 'speedCameraViolations',
+      (
+        | 'cameraViolations'
+        | 'redLightCameraViolations'
+        | 'schoolZoneSpeedCameraViolations'
+      ),
       number
     ][]
     thresholds.forEach(([thresholdName, thresholdValue]) => {
@@ -333,14 +338,16 @@ const formPlateLookupTweets = (
           const humanReadableCameraTypeName =
             thresholdName === 'redLightCameraViolations'
               ? 'red light'
-              : thresholdName === 'speedCameraViolations'
-                ? 'school zone speed'
-                : 'unknown camera type'
+              : thresholdName === 'schoolZoneSpeedCameraViolations'
+              ? 'school zone speed'
+              : 'unknown camera type'
 
-          const formattedStreakStartDate =
-            thresholdData.streakStart.toFormat('LLLL dd, y')
-          const formattedStreakEndDate =
-            thresholdData.streakEnd.toFormat('LLLL dd, y')
+          const formattedStreakStartDate = DateTime.fromISO(
+            thresholdData.streakStart
+          ).toFormat('LLLL dd, y')
+          const formattedStreakEndDate = DateTime.fromISO(
+            thresholdData.streakEnd
+          ).toFormat('LLLL dd, y')
 
           const dvaaString =
             'Under the Dangerous Vehicle Abatement Act, this vehicle ' +
@@ -423,7 +430,7 @@ const handleDirectMessageEvent = (
     if (
       sender &&
       directMessageEvent.messageCreate.target.recipientId ===
-      HOWS_MY_DRIVING_NY_USER_ID
+        HOWS_MY_DRIVING_NY_USER_ID
     ) {
       const twitterDatabaseEvent: TwitterDatabaseEvent = {
         createdAt: BigInt(directMessageEvent.createdTimestamp),
@@ -438,11 +445,11 @@ const handleDirectMessageEvent = (
 
       const mediaObjects: TwitterMediaObject[] | undefined = photoUrl
         ? [
-          {
-            type: 'photo',
-            url: photoUrl,
-          },
-        ]
+            {
+              type: 'photo',
+              url: photoUrl,
+            },
+          ]
         : undefined
 
       insertNewTwitterEventAndMediaObjects(twitterDatabaseEvent, mediaObjects)
@@ -507,8 +514,8 @@ const handleResponsePartFormation = (
   const maxCountLength =
     keyWithMostViolations && keyWithMostViolations in summaryDataSubset
       ? summaryDataSubset[
-      keyWithMostViolations as keyof typeof summaryDataSubset
-      ]
+          keyWithMostViolations as keyof typeof summaryDataSubset
+        ]
       : 0
   // const maxCountLength = len(str(max(item[count] for item in collection)))
   const spacesNeeded = maxCountLength.toString().length * 2 + 1

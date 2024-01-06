@@ -3,10 +3,12 @@ import QueryParser from '.'
 describe('QueryParser', () => {
   describe('findFilterFields', () => {
     it("should return filter fields when 'fields' is present in query string", () => {
-      const searchParams = new URLSearchParams('plate=ABC1234:NY&fields=violations')
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations'
+      )
       const queryParser = new QueryParser(searchParams)
 
-      const expected = { 'violations': {} }
+      const expected = { violations: {} }
 
       const result = queryParser.findFilterFields()
 
@@ -14,7 +16,9 @@ describe('QueryParser', () => {
     })
 
     it("should return filter fields when 'fields' is an object with nested fields", () => {
-      const searchParams = new URLSearchParams('plate=ABC1234:NY&fields=violations(violation_code)')
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations(violation_code)'
+      )
       const queryParser = new QueryParser(searchParams)
 
       const expected = { violations: { violation_code: {} } }
@@ -76,7 +80,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY']
+          potentialVehicles: ['ABC1234:NY'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -85,11 +89,13 @@ describe('QueryParser', () => {
       })
 
       it('should detect potential vehicles with plate types', () => {
-        const searchParams = new URLSearchParams('plate_id=ABC1234&state=NY&plate_types=PAS,COM')
+        const searchParams = new URLSearchParams(
+          'plate_id=ABC1234&state=NY&plate_types=PAS,COM'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY:PAS,COM']
+          potentialVehicles: ['ABC1234:NY:PAS,COM'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -102,7 +108,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['abc1234:ny']
+          potentialVehicles: ['abc1234:ny'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -115,7 +121,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY']
+          potentialVehicles: ['ABC1234:NY'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -123,13 +129,14 @@ describe('QueryParser', () => {
         expect(result).toEqual(expected)
       })
 
-
       it('should detect potential vehicles in either parameter order with plate types', () => {
-        const searchParams = new URLSearchParams('state=NY&plate_types=COM,PAS&plate_id=ABC1234')
+        const searchParams = new URLSearchParams(
+          'state=NY&plate_types=COM,PAS&plate_id=ABC1234'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY:COM,PAS']
+          potentialVehicles: ['ABC1234:NY:COM,PAS'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -138,12 +145,15 @@ describe('QueryParser', () => {
       })
 
       it('should return an error on multiple plate lookups', () => {
-        const searchParams = new URLSearchParams('plate_id=ABC1234&state=NY&plate_id=XYZ6789&state=NY')
+        const searchParams = new URLSearchParams(
+          'plate_id=ABC1234&state=NY&plate_id=XYZ6789&state=NY'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          error: "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
-            "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'"
+          error:
+            "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
+            "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'",
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -156,10 +166,11 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          error: "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
+          error:
+            "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
             "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
             "or 'plate=<PLATE>&state=<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'"
+            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -172,10 +183,11 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          error: "Missing plate: use either 'plate=<PLATE>:<STATE>', ex: " +
+          error:
+            "Missing plate: use either 'plate=<PLATE>:<STATE>', ex: " +
             "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
             "or 'plate=<PLATE>&state=<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'"
+            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -190,7 +202,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY']
+          potentialVehicles: ['ABC1234:NY'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -203,7 +215,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY:PAS,COM']
+          potentialVehicles: ['ABC1234:NY:PAS,COM'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -216,7 +228,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['abc1234:ny']
+          potentialVehicles: ['abc1234:ny'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -229,7 +241,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['NY:ABC1234']
+          potentialVehicles: ['NY:ABC1234'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -242,7 +254,7 @@ describe('QueryParser', () => {
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['NY:COM,PAS:ABC1234']
+          potentialVehicles: ['NY:COM,PAS:ABC1234'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -251,11 +263,13 @@ describe('QueryParser', () => {
       })
 
       it('should handle multiple plate lookups without plate types', () => {
-        const searchParams = new URLSearchParams('plate=ABC1234:NY&plate=XYZ6789:NY')
+        const searchParams = new URLSearchParams(
+          'plate=ABC1234:NY&plate=XYZ6789:NY'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY', 'XYZ6789:NY']
+          potentialVehicles: ['ABC1234:NY', 'XYZ6789:NY'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -264,11 +278,13 @@ describe('QueryParser', () => {
       })
 
       it('should handle multiple plate lookups with plate types', () => {
-        const searchParams = new URLSearchParams('plate=ABC1234:NY:COM&plate=XYZ6789:NY:PAS')
+        const searchParams = new URLSearchParams(
+          'plate=ABC1234:NY:COM&plate=XYZ6789:NY:PAS'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          potentialVehicles: ['ABC1234:NY:COM', 'XYZ6789:NY:PAS']
+          potentialVehicles: ['ABC1234:NY:COM', 'XYZ6789:NY:PAS'],
         }
 
         const result = queryParser.getPotentialVehicles()
@@ -279,11 +295,14 @@ describe('QueryParser', () => {
 
     describe('mixing current-style and legacy params', () => {
       it('should return an error if both types of params are used', () => {
-        const searchParams = new URLSearchParams('plate_id=ABC1234&state=NY&plate=XYZ6789:NY')
+        const searchParams = new URLSearchParams(
+          'plate_id=ABC1234&state=NY&plate=XYZ6789:NY'
+        )
         const queryParser = new QueryParser(searchParams)
 
         const expected = {
-          error: "Cannot use both 'plate' and 'plate_id'. Use either 'plate=<PLATE>:<STATE>', " +
+          error:
+            "Cannot use both 'plate' and 'plate_id'. Use either 'plate=<PLATE>:<STATE>', " +
             "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
             "or 'plate=<PLATE>&state=<STATE>', ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
         }
@@ -299,7 +318,8 @@ describe('QueryParser', () => {
       const queryParser = new QueryParser(searchParams)
 
       const expected = {
-        error: "To query a vehicle, use 'plate=<PLATE>:<STATE>', ex: " +
+        error:
+          "To query a vehicle, use 'plate=<PLATE>:<STATE>', ex: " +
           "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'",
       }
 

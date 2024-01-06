@@ -80,8 +80,6 @@ const server = http.createServer(async (request: http.IncomingMessage, response:
         }
         returnResponse(response, HttpStatusCode.InternalServerError, body)
       }
-
-      console.log(JSON.stringify(response))
     }
   } else if (request.url?.match(EXISTING_LOOKUP_PATH)) {
     const result = await handleExistingLookup(request)
@@ -96,6 +94,7 @@ const server = http.createServer(async (request: http.IncomingMessage, response:
     if ('errorCode' in result && result.errorCode) {
       return returnResponse(response, result.errorCode, result)
     }
+    return returnResponse(response, HttpStatusCode.Ok, result)
   }
 })
 
