@@ -27,7 +27,9 @@ const returnResponse = (
   responseObj.setHeader('Content-Type', 'application/json; charset=utf-8')
   responseObj.setHeader('Access-Control-Allow-Origin', '*')
   responseObj.writeHead(httpStatusCode)
-  responseObj.end(JSON.stringify(responseBody))
+  responseObj.end(JSON.stringify(responseBody, (key, value) =>
+    typeof value === 'undefined' ? null : value
+  ))
 }
 
 const stripReturnData = (obj: any, selectedFields: any) => {
