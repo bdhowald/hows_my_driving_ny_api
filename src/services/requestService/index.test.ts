@@ -12,7 +12,7 @@ import { HumanizedDescription } from 'constants/violationDescriptions'
 import AggregateFineData from 'models/aggregateFineData'
 import { VehicleResponse } from 'types/request'
 import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
-import { getPreviousLookupResult } from 'utils/databaseQueries'
+import { getExistingLookupResult } from 'utils/databaseQueries'
 import getAndProcessApiLookup from 'utils/getAndProcessApiLookup'
 import { handleTwitterAccountActivityApiEvents } from 'utils/twitter'
 
@@ -827,11 +827,20 @@ describe('requestService', () => {
         },
       }
 
+      const statistics = apiQueryResponse.vehicle?.statistics
+      const statisticsBarelyDecamelized = decamelizeKeysOneLevel(statistics)
+
+      const decamelizedResponse = decamelizeKeys(
+        apiQueryResponse
+      ) as VehicleResponse
+      // @ts-expect-error  Figure out how to decamelize only the top-level betters.
+      decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
+
       const expected = {
-        data: [decamelizeKeys(apiQueryResponse)],
+        data: [decamelizedResponse],
       }
 
-      ;(getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
+      ;(getExistingLookupResult as jest.Mock).mockResolvedValueOnce(
         existingIdentifierQueryResult
       )
       ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
@@ -853,7 +862,7 @@ describe('requestService', () => {
 
       const expected = { data: [] }
 
-      ;(getPreviousLookupResult as jest.Mock).mockResolvedValueOnce(
+      ;(getExistingLookupResult as jest.Mock).mockResolvedValueOnce(
         existingIdentifierQueryResult
       )
 

@@ -1,11 +1,14 @@
 import { PLATE_QUERY_FORMAT_HINT } from 'constants/errors'
+import LookupSource from 'constants/lookupSources'
 import ParsedQueryStringForApiLookup from 'types/queryStringParsing'
 import { camelize } from 'utils/camelize'
 
 type AnalyticsFields = 'fingerprintId' | 'lookupSource' | 'mixpanelId'
 
 type AnalyticsData = {
-  [key in AnalyticsFields]: string | undefined
+  fingerprintId: string | undefined
+  lookupSource: LookupSource | undefined
+  mixpanelId: string | undefined
 }
 
 type Query = { [key: string]: string | string[] | undefined }
@@ -88,9 +91,22 @@ class QueryParser {
    */
   getAnalyticsData = (): AnalyticsData => {
     if (this.query) {
+      let lookupSource: LookupSource | undefined
+
       const fingerprintId = this.query['fingerprintId'] as string | undefined
-      const lookupSource = this.query['lookupSource'] as string | undefined
+      const lookupSourceAsString = this.query['lookupSource'] as
+        | string
+        | undefined
       const mixpanelId = this.query['mixpanelId'] as string | undefined
+
+      if (
+        lookupSourceAsString &&
+        Object.values(LookupSource).includes(
+          lookupSourceAsString as LookupSource
+        )
+      ) {
+        lookupSource = lookupSourceAsString as LookupSource
+      }
 
       return {
         fingerprintId,

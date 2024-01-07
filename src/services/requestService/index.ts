@@ -11,7 +11,7 @@ import QueryParser from 'models/queryParser'
 import { ExternalData, ResponseBody, VehicleResponse } from 'types/request'
 import { PotentialVehicle } from 'types/vehicles'
 import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
-import { getPreviousLookupResult } from 'utils/databaseQueries'
+import { getExistingLookupResult } from 'utils/databaseQueries'
 import detectVehicles from 'utils/detectVehicles'
 import getAndProcessApiLookup from 'utils/getAndProcessApiLookup'
 import { handleTwitterAccountActivityApiEvents } from 'utils/twitter'
@@ -50,9 +50,11 @@ export const handleApiLookup = async (
 
   const vehicles = detectVehicles(parsedQueryResults.potentialVehicles)
 
+  const analyticsData = queryParser.getAnalyticsData()
+
   const externalData: ExternalData = {
-    ...queryParser.getAnalyticsData(),
-    lookupSource: LookupSource.Api,
+    ...analyticsData,
+    ...{ lookupSource: analyticsData.lookupSource ?? LookupSource.Api },
   }
 
   // const pathname: string | null = parser.pathname
@@ -149,7 +151,7 @@ export const handleExistingLookup = async (
     return body
   }
 
-  const previousLookupResult = await getPreviousLookupResult(identifier)
+  const previousLookupResult = await getExistingLookupResult(identifier)
   if (!previousLookupResult) {
     return { data: [] }
   }

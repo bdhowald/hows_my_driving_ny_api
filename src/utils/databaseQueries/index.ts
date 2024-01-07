@@ -277,7 +277,7 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
  * @param {string} identifier - unique identifier of previous query
  * @returns
  */
-export const getPreviousLookupResult = async (
+export const getExistingLookupResult = async (
   identifier: string
 ): Promise<ExistingIdentifierQueryResult | null> =>
   new Promise((resolve, reject) => {
@@ -334,6 +334,8 @@ const insertNewLookup = (newLookup: PlateLookup) => {
   const decamelizedLookup = decamelizeKeys(newLookup)
 
   const callback = (error: MysqlError | null) => {
+    // Close database connection
+    databaseConnection.end(closeConnectionHandler)
     if (error) {
       console.error(error)
       throw error

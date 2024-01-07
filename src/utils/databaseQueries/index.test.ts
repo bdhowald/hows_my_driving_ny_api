@@ -9,8 +9,8 @@ import { instantiateConnection } from 'services/databaseService'
 import {
   createAndInsertNewLookup,
   CreateNewLookupArguments,
+  getExistingLookupResult,
   getPreviousLookupAndLookupFrequencyForVehicle,
-  getPreviousLookupResult,
   insertNewTwitterEventAndMediaObjects,
   updateNonFollowerReplies,
   VehicleQueryProps,
@@ -372,7 +372,7 @@ describe('databaseQueries', () => {
     })
   })
 
-  describe('getPreviousLookupResult', () => {
+  describe('getExistingLookupResult', () => {
     it('should return the previous lookup when one exists', async () => {
       const date = new Date()
 
@@ -396,7 +396,7 @@ describe('databaseQueries', () => {
 
       const identifier = 'a1b2c3d4'
 
-      const previousLookupResult = await getPreviousLookupResult(identifier)
+      const previousLookupResult = await getExistingLookupResult(identifier)
 
       expect(previousLookupResult).toEqual(expected)
 

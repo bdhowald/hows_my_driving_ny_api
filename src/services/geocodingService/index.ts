@@ -7,7 +7,10 @@ import {
 import { Connection, MysqlError } from 'mysql'
 
 import { Borough } from 'constants/boroughs'
-import { instantiateConnection } from 'services/databaseService'
+import {
+  closeConnectionHandler,
+  instantiateConnection,
+} from 'services/databaseService'
 
 type DatabaseGeocode = {
   borough: string
@@ -18,13 +21,6 @@ type DatabaseGeocode = {
 type GeocodeQueryResult = DatabaseGeocode & { id: number }
 
 const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
-
-const closeConnectionHandler = (error?: MysqlError | undefined) => {
-  if (error) {
-    console.error(error)
-    return
-  }
-}
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 

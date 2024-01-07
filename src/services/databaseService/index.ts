@@ -5,7 +5,7 @@ const DATABASE_CONNECTION_LOST = 'PROTOCOL_CONNECTION_LOST"'
 /**
  * Creates a string summarizing a vehicle's previous lookup details
  *
- * @param {MysqlError} error - error raised by mysql
+ * @param error - error raised by mysql
  */
 export const closeConnectionHandler = (error?: MysqlError) => {
   if (error) {
@@ -47,10 +47,8 @@ const initializeConnection = (config: ConnectionConfig): Connection => {
 /**
  * instantiate mysql database connection by wrapping
  * initializeConnection
- *
- * @returns {MysqlError.Connection}
  */
-export const instantiateConnection = () =>
+export const instantiateConnection = (): Connection =>
   initializeConnection({
     host: '127.0.0.1',
     user: process.env.MYSQL_DATABASE_USER ?? '',
