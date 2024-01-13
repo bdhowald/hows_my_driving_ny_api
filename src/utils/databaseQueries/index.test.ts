@@ -237,8 +237,6 @@ describe('databaseQueries', () => {
         },
       }
 
-      const lookupSource = LookupSource.WebClient
-
       const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
         vehicleQueryProps
       )
@@ -366,6 +364,60 @@ describe('databaseQueries', () => {
           'ABC1234',
           'NY',
           'AGR,ARG,AYG,BOB,CMH,FPW,GSM,HAM,HIS,JWV,MCL,NLM,ORG,PAS,PHS,PPH,RGL,SOS,SPO,SRF,WUG',
+        ],
+        expect.anything()
+      )
+    })
+
+    it('should query for null plate types when they are not supplied in the query', async () => {
+      const vehicleQueryProps: VehicleQueryProps = {
+        existingIdentifier: 'a1b2c3d4',
+        existingLookupCreatedAt: date,
+        lookupSource: LookupSource.Api,
+        plate,
+        plateTypes: undefined,
+        state,
+      }
+
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, [
+          [{ frequency }],
+          [{ created_at: date, num_violations: numViolations }],
+        ])
+      )
+
+      const expected = {
+        frequency,
+        previousLookup: {
+          createdAt: date,
+          numViolations,
+        },
+      }
+
+      const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
+        vehicleQueryProps
+      )
+
+      expect(queryResult).toEqual(expected)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select count(*) as frequency from plate_lookups where plate = ? and ' +
+          'state = ? and count_towards_frequency = 1 and plate_types is null; ' +
+          'select num_tickets as num_violations, created_at from plate_lookups where ' +
+          'plate = ? and state = ? and count_towards_frequency = 1 and plate_types is null ' +
+          'ORDER BY created_at DESC LIMIT 1;',
+        [
+          'ABC1234',
+          'NY',
+          'ABC1234',
+          'NY',
         ],
         expect.anything()
       )

@@ -177,6 +177,9 @@ const getPreviousLookupAndFrequencyQueryArguments = (
 
     baseNumTicketsQueryString += ' and plate_types = ?'
     baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+  } else {
+    baseFrequencyQueryString += ' and plate_types is null'
+    baseNumTicketsQueryString += ' and plate_types is null'
   }
 
   if (

@@ -1521,7 +1521,11 @@ const getSearchQueryStringAndArgs = (
 
     baseNumTicketsQueryString += " and plate_types = ?"
     baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+  } else {
+    baseFrequencyQueryString += " and plate_types IS NULL"
+    baseNumTicketsQueryString += " and plate_types IS NULL"
   }
+
   if (lookupSource === EXISTING_LOOKUP_SOURCE) {
     baseFrequencyQueryString += " and unique_identifier <> ? and created_at < ?"
     baseFrequencyQueryArgs = [
