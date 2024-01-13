@@ -674,7 +674,12 @@ class FineData {
   }
 
   get maxAmount() {
-    return Math.max(this.fined, this.outstanding, this.paid, this.reduced)
+    return Math.max(
+      this.total_fined,
+      this.total_outstanding,
+      this.total_paid,
+      this.total_reduced
+    )
   }
 }
 
@@ -786,7 +791,7 @@ const createNewLookup = async (
  * @param {number}      numNewViolations - Frequency of violations for each borough
  * @param {string}      plate            - The text on this license plate
  * @param {string}      state            - The two-character abbreviation of the plate's state
- *  @param {string}     plateTypes       - The possible type(s) of this plate
+ * @param {string}     plateTypes        - The possible type(s) of this plate
  * @param {PlateLookup} previousLookup   - Number of violations and creation date of a previous lookup
  */
 const createRepeatLookupString = (
@@ -819,7 +824,7 @@ const createRepeatLookupString = (
       violationsString += lastQueriedString
 
       const plateHashTagString = getPlateHashTagString(plate, state)
-      const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+      const plateTypesString = plateTypes ? ` (types: ${plateTypes}) ` : " "
       const fullPlateString = plateHashTagString + plateTypesString
 
       const newTicketsSinceString = ` Since then, ${fullPlateString}has received ${numNewViolations} new ticket${
@@ -887,10 +892,10 @@ const detectVehicles = (potentialVehicles) => {
 
 const filterOutViolationsAfterSearchDate = (
   violations,
-  previousLookupCreatedAt
+  existingLookupCreatedAt
 ) =>
   violations.filter(
-    (item) => item.formatted_time_eastern <= previousLookupCreatedAt
+    (item) => item.formatted_time_eastern <= existingLookupCreatedAt
   )
 
 const findFilterFields = (fieldsString) => {
@@ -988,6 +993,7 @@ const formPlateLookupTweets = (
   violationTypeFrequencyData,
   yearFrequencyData,
   cameraStreakData = undefined,
+  existingLookupCreatedAt = undefined,
   previousLookup = undefined
 ) => {
   // response_chunks holds tweet-length-sized parts of the response
@@ -1002,19 +1008,22 @@ const formPlateLookupTweets = (
     0
   )
 
-  const violationDateTimeInEasternTime =
-    DateTime.utc().setZone("America/New_York")
-  const violationTime =
-    violationDateTimeInEasternTime.toFormat("hh:mm:ss a ZZZZ")
-  const violationDate = violationDateTimeInEasternTime.toFormat("LLLL dd, y")
-  const timePrefix = `As of ${violationTime} on ${violationDate}:`
+  const asOfDateTime = existingLookupCreatedAt
+    ? DateTime.fromJSDate(existingLookupCreatedAt)
+    : DateTime.utc()
+
+  const asOfDateTimeInEasternTime = asOfDateTime.setZone('America/New_York')
+  const asOfTime = asOfDateTimeInEasternTime.toFormat('hh:mm:ss a ZZZZ')
+  const asOfDate = asOfDateTimeInEasternTime.toFormat('LLLL dd, y')
+  const timePrefix = `As of ${asOfTime} on ${asOfDate}:`
+
 
   // Append time prefix to blank string to start to build tweet.
   violationsString += timePrefix
 
   // Append summary string.
   const plateHashTagString = getPlateHashTagString(plate, state)
-  const plateTypesString = plateTypes ? `' (types: ${plateTypes}) '` : " "
+  const plateTypesString = plateTypes ? ` (types: ${plateTypes}) ` : " "
   const lookupSummaryString = ` ${plateHashTagString}${plateTypesString}has been queried ${frequency} time${
     frequency === 1 ? "" : "s"
   }.\n\n`
@@ -1037,7 +1046,7 @@ const formPlateLookupTweets = (
 
   responseChunks.push(violationsString)
 
-  const totalViolationsPrefixFormatString = `Total parking and camera violation tickets for ${plateHashTagString}: ${totalViolations}\n\n`
+  const totalViolationsPrefixFormatString = `Total parking and camera violation tickets for ${plateHashTagString}: ${totalViolations}:\n\n`
   const totalViolationsContinuedFormatString = `Total parking and camera violation tickets for ${plateHashTagString}, cont'd:\n\n`
 
   responseChunks.push(
@@ -1049,7 +1058,7 @@ const formPlateLookupTweets = (
     )
   )
 
-  if (yearFrequencyData) {
+  if (Object.keys(yearFrequencyData).length) {
     const yearPrefixFormatString = `Violations by year for ${plateHashTagString}\n\n`
     const yearContinuedFormatString = `Violations by year for ${plateHashTagString}, cont'd:\n\n`
 
@@ -1063,13 +1072,13 @@ const formPlateLookupTweets = (
     )
   }
 
-  if (boroughFrequencyData) {
-    const boroughPrefixFormatString = `Violations by borough for ${plateHashTagString}\n\n`
+  if (Object.keys(boroughFrequencyData).length) {
+    const boroughPrefixFormatString = `Violations by borough for ${plateHashTagString}:\n\n`
     const boroughContinuedFormatString = `Violations by borough for ${plateHashTagString}, cont'd:\n\n`
 
     responseChunks.push(
       handleResponsePartFormation(
-        yearFrequencyData,
+        boroughFrequencyData,
         boroughPrefixFormatString,
         boroughContinuedFormatString,
         "No Borough Available"
@@ -1078,7 +1087,7 @@ const formPlateLookupTweets = (
   }
 
   if (fineData && fineData.areFinesAssessed) {
-    let curString = ""
+    let curString = `Known fines for ${plateHashTagString}:\n\n`
     const maxCountLength = US_DOLLAR_FORMAT_OBJECT.format(
       fineData.maxAmount
     ).length
@@ -1153,14 +1162,14 @@ const formPlateLookupTweets = (
         }
       }
     )
-
-    const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
-
-    const websiteLinkString = `View more details at ${uniqueLink}.`
-    responseChunks.push(websiteLinkString)
-
-    return responseChunks
   }
+
+  const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
+
+  const websiteLinkString = `View more details at ${uniqueLink}.`
+  responseChunks.push(websiteLinkString)
+
+  return responseChunks
 }
 
 const getAggregateFineDataForVehicle = (violations) => {
@@ -1193,7 +1202,7 @@ const getAggregateFineDataForVehicle = (violations) => {
 /**
  * Gets stats for a lookup on borough, year, violation type frequency
  *
- * @param {Array<string, any>>} violations - all the violations for a vehicle available in open data
+ * @param {Array<string, any>} violations - all the violations for a vehicle available in open data
  */
 const getAggregateFrequencySummaryData = (violations) => {
   const years = {}
@@ -1313,8 +1322,8 @@ const getCameraStreakData = (violations) => {
 /**
  * Return the key with the most violations in a collection
  *
- * @param {Object<string, any>>} collection - an object with any keys, where the values are always
- *                                            a number of violations pertaining to that key
+ * @param {Object<string, any>} collection - an object with any keys, where the values are always
+ *                                           a number of violations pertaining to that key
  */
 const getCollectionKeyWithMostViolations = (collection) => {
   const objectEntries = Object.entries(collection)
@@ -1406,7 +1415,7 @@ const getSearchQueryStringAndArgs = (
   plateTypes,
   lookupSource,
   existingIdentifier,
-  previousLookupCreatedAt
+  existingLookupCreatedAt
 ) => {
   let baseFrequencyQueryString =
     "select count(*) as frequency from plate_lookups where plate = ? and state = ? and count_towards_frequency = 1"
@@ -1422,13 +1431,17 @@ const getSearchQueryStringAndArgs = (
 
     baseNumTicketsQueryString += " and plate_types = ?"
     baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+  } else {
+    baseFrequencyQueryString += " and plate_types is null"
+    baseNumTicketsQueryString += " and plate_types is null"
   }
+
   if (lookupSource === EXISTING_LOOKUP_SOURCE) {
     baseFrequencyQueryString += " and unique_identifier <> ? and created_at < ?"
     baseFrequencyQueryArgs = [
       ...baseFrequencyQueryArgs,
       existingIdentifier,
-      previousLookupCreatedAt,
+      existingLookupCreatedAt,
     ]
 
     baseNumTicketsQueryString +=
@@ -1436,7 +1449,7 @@ const getSearchQueryStringAndArgs = (
     baseNumTicketsQueryArgs = [
       ...baseFrequencyQueryArgs,
       existingIdentifier,
-      previousLookupCreatedAt,
+      existingLookupCreatedAt,
     ]
   }
 
@@ -1465,7 +1478,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   const fingerprintID = externalData.fingerprint_id
   const mixpanelID = externalData.mixpanel_id
   const existingIdentifier = externalData.unique_identifier
-  const previousLookupCreatedAt = externalData.previous_lookup_created_at
+  const existingLookupCreatedAt = externalData.existing_lookup_created_at
 
   if (plate && state) {
     let flattenedResponses = []
@@ -1500,10 +1513,10 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     let violations = mergeDuplicateViolationRecords(flattenedResponses)
     violations = modifyViolationsForResponse(violations)
 
-    if (previousLookupCreatedAt) {
+    if (existingLookupCreatedAt) {
       violations = filterOutViolationsAfterSearchDate(
         violations,
-        previousLookupCreatedAt
+        existingLookupCreatedAt
       )
     }
 
@@ -1522,7 +1535,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       plateTypes,
       lookupSource,
       existingIdentifier,
-      previousLookupCreatedAt
+      existingLookupCreatedAt
     )
 
     const summaryData = getAggregateFrequencySummaryData(violations)
@@ -1537,7 +1550,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             throw error
           }
 
-          const countTowardsFrequency = !["api"].includes(lookupSource)
+          const countTowardsFrequency = !["api", "existing_lookup"].includes(lookupSource)
           let frequency = countTowardsFrequency ? 1 : 0
           let previousCount = null
           let previousDate = null
@@ -1582,6 +1595,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             summaryData.violation_types,
             summaryData.years,
             cameraStreakData,
+            existingLookupCreatedAt,
             previousLookup
           )
 
@@ -2014,7 +2028,7 @@ const handleResponsePartFormation = (
   defaultDescription
 ) => {
   // collect the responses
-  responseContainer = []
+  const responseContainer = []
 
   // # Initialize current string to prefix
   let curString = ""
@@ -2025,9 +2039,9 @@ const handleResponsePartFormation = (
 
   const keyWithMostViolations = getCollectionKeyWithMostViolations(collection)
   const maxCountLength = keyWithMostViolations
-    ? collection[keyWithMostViolations].length
+    ? collection[keyWithMostViolations].toString().length
     : 0
-  // const maxCountLength = len(str(max(item[count] for item in collection)))
+
   const spacesNeeded = maxCountLength * 2 + 1
 
   const objectEntries = Object.entries(collection)
@@ -2040,7 +2054,7 @@ const handleResponsePartFormation = (
         firstLetterOfWord.toUpperCase()
       ) || defaultDescription
 
-    countLength = violationCountForKey.length
+    const countLength = violationCountForKey.toString().length
 
     // # e.g., if spaces_needed is 5, and count_length is 2,
     // we need to pad to 3.
@@ -2658,7 +2672,7 @@ const stripReturnData = (obj, selectedFields) => {
 }
 
 const connection = initializeConnection({
-  host: "localhost",
+  host: "127.0.0.1",
   user: process.env.MYSQL_DATABASE_USER,
   password: process.env.MYSQL_DATABASE_PASSWORD,
   database: "traffic_violations",
@@ -2839,7 +2853,7 @@ const server = http.createServer(async (req, res) => {
         fingerprint_id: null,
         mixpanel_id: null,
         unique_identifier: identifier,
-        previous_lookup_created_at: previousLookup.created_at,
+        existing_lookup_created_at: previousLookup.created_at,
       }
 
       Promise.all(
