@@ -7,6 +7,7 @@ import {
 } from '__fixtures__/violations'
 import makeOpenDataVehicleRequest from 'services/openDataService'
 import createServer from 'services/server'
+import LookupSource from 'constants/lookupSources'
 
 jest.mock('services/openDataService')
 
@@ -336,6 +337,8 @@ describe('app', () => {
       const state = 'NY'
       const plateTypes = 'PAS'
 
+      const lookupSource = LookupSource.WebClient
+
       const queryForPlate = () => new Promise((resolve, reject) => {
         const databaseConnection = instantiateConnection()
 
@@ -365,7 +368,7 @@ describe('app', () => {
       expect(queryBeforeLookupResults).toEqual([])
 
       await axios.get(
-        `http://localhost:1234/api/v1?plate=${plate}:${state}:${plateTypes}&lookup_source=web_client`
+        `http://localhost:1234/api/v1?plate=${plate}:${state}:${plateTypes}&lookup_source=${lookupSource}`
       )
 
       // Wait for new record to be inserted into database
@@ -376,6 +379,7 @@ describe('app', () => {
       expect(queryAfterLookupResults[0].plate).toEqual(plate)
       expect(queryAfterLookupResults[0].state).toEqual(state)
       expect(queryAfterLookupResults[0].plate_types).toEqual(plateTypes)
+      expect(queryAfterLookupResults[0].lookup_source).toEqual(lookupSource)
     })
 
     it('should return a previous lookup result when one exists', async () => {
