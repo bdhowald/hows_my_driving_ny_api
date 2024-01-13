@@ -1,4 +1,5 @@
 import axios from 'axios'
+import mysql, { MysqlError } from 'mysql'
 
 import {
   rawFiscalYearDatabaseViolationFactory,
@@ -10,6 +11,50 @@ import createServer from 'services/server'
 jest.mock('services/openDataService')
 
 describe('app', () => {
+  const closeConnectionHandler = (error: any) => {
+    if (error) {
+      console.error(error)
+      return
+    }
+  }
+
+  const instantiateConnection = () => mysql.createConnection({
+    host: '127.0.0.1',
+    user: process.env.MYSQL_DATABASE_USER ?? '',
+    password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
+    database: process.env.MYSQL_DATABASE_NAME ?? '',
+    multipleStatements: true,
+  })
+
+  const wipeTestDatabase = () => {
+    const testDatabaseName = process.env.MYSQL_DATABASE_NAME ?? ''
+
+    if (!testDatabaseName.match(/test/)) {
+      throw new Error('database may not be a test database')
+    }
+
+    const databaseConnection = instantiateConnection()
+
+    databaseConnection.query('truncate table plate_lookups', (error) => {
+      if (error) {
+        // Close database connection
+        databaseConnection.end(closeConnectionHandler)
+
+        throw error
+      }
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+    })
+  }
+
+  beforeEach(() => {
+    wipeTestDatabase()
+  })
+
+  afterEach(() => {
+    wipeTestDatabase()
+  })
+
   describe('perform a vehicle lookup', () => {
     const licensePlate = 'ABC1234'
     const licenseState = 'NY'
@@ -278,6 +323,59 @@ describe('app', () => {
       expect(violations_count).toBeDefined()
 
       server.close()
+    })
+
+    it('should create a record in the database', async () => {
+      const server = createServer()
+      server.listen(1234)
+      ;(makeOpenDataVehicleRequest as jest.Mock)
+        .mockResolvedValueOnce(openDataResponses)
+        .mockResolvedValueOnce(openDataResponses)
+
+      const plate = 'ABC1234'
+      const state = 'NY'
+      const plateTypes = 'PAS'
+
+      const queryForPlate = () => new Promise((resolve, reject) => {
+        const databaseConnection = instantiateConnection()
+
+        databaseConnection.query(
+          'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
+          [plate, state, plateTypes],
+          (
+            error: MysqlError | null,
+            results: any,
+          ) => {
+            // Close database connection
+            databaseConnection.end(closeConnectionHandler)
+
+            if (error) {
+              console.error(error)
+              reject(error)
+            }
+            if (results) {
+              return resolve(results)
+            }
+          }
+        )
+      })
+
+      const queryBeforeLookupResults = await queryForPlate()
+
+      expect(queryBeforeLookupResults).toEqual([])
+
+      await axios.get(
+        `http://localhost:1234/api/v1?plate=${plate}:${state}:${plateTypes}&lookup_source=web_client`
+      )
+
+      // Wait for new record to be inserted into database
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const queryAfterLookupResults = await queryForPlate() as Record<string, any>[]
+
+      expect(queryAfterLookupResults[0].plate).toEqual(plate)
+      expect(queryAfterLookupResults[0].state).toEqual(state)
+      expect(queryAfterLookupResults[0].plate_types).toEqual(plateTypes)
     })
 
     it('should return a previous lookup result when one exists', async () => {
