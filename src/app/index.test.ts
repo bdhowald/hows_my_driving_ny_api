@@ -12,6 +12,9 @@ import LookupSource from 'constants/lookupSources'
 jest.mock('services/openDataService')
 
 describe('app', () => {
+  const serverPort = 1234
+  const apiEndpoint = `http://localhost:${serverPort}/api/v1`
+
   const closeConnectionHandler = (error: any) => {
     if (error) {
       console.error(error)
@@ -27,33 +30,66 @@ describe('app', () => {
     multipleStatements: true,
   })
 
-  const wipeTestDatabase = () => {
-    const testDatabaseName = process.env.MYSQL_DATABASE_NAME ?? ''
-
-    if (!testDatabaseName.match(/test/)) {
-      throw new Error('database may not be a test database')
-    }
-
+  const queryForPlate = (
+    plate: string, state: string, plateTypes: string
+  ) => new Promise((resolve, reject) => {
     const databaseConnection = instantiateConnection()
 
-    databaseConnection.query('truncate table plate_lookups', (error) => {
-      if (error) {
+    databaseConnection.query(
+      'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
+      [plate, state, plateTypes],
+      (
+        error: MysqlError | null,
+        results: any,
+      ) => {
         // Close database connection
         databaseConnection.end(closeConnectionHandler)
 
-        throw error
+        if (error) {
+          console.error(error)
+          reject(error)
+        }
+        if (results) {
+          return resolve(results)
+        }
       }
-      // Close database connection
-      databaseConnection.end(closeConnectionHandler)
-    })
-  }
-
-  beforeEach(() => {
-    wipeTestDatabase()
+    )
   })
 
-  afterEach(() => {
-    wipeTestDatabase()
+  const wipeTestDatabase = async () =>
+    new Promise<void>((resolve, reject) => {
+      const testDatabaseName = process.env.MYSQL_DATABASE_NAME ?? ''
+
+      if (!testDatabaseName.match(/test/)) {
+        throw new Error('database may not be a test database')
+      }
+
+      const databaseConnection = instantiateConnection()
+
+      databaseConnection.query('truncate table plate_lookups', (error) => {
+        if (error) {
+          // Close database connection
+          databaseConnection.end(closeConnectionHandler)
+
+          reject(error)
+        }
+        // Close database connection
+        databaseConnection.end(closeConnectionHandler)
+
+        resolve()
+      })
+    })
+
+  const server = createServer()
+
+  beforeEach(async () => {
+    await wipeTestDatabase()
+    server.listen(serverPort)
+  })
+
+  afterEach(async () => {
+    server.close()
+    await wipeTestDatabase()
   })
 
   describe('perform a vehicle lookup', () => {
@@ -251,15 +287,11 @@ describe('app', () => {
     ]
 
     it('should return the expected fields', async () => {
-      const server = createServer()
-      server.listen(1234)
       ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataResponses
       )
 
-      const response = await axios.get(
-        'http://localhost:1234/api/v1?plate=ABC1234:NY:PAS'
-      )
+      const response = await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
       const { data } = response.data
 
       const { successful_lookup, vehicle } = data[0]
@@ -322,13 +354,9 @@ describe('app', () => {
       expect(violations).toBeDefined()
 
       expect(violations_count).toBeDefined()
-
-      server.close()
     })
 
     it('should create a record in the database', async () => {
-      const server = createServer()
-      server.listen(1234)
       ;(makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
         .mockResolvedValueOnce(openDataResponses)
@@ -339,42 +367,20 @@ describe('app', () => {
 
       const lookupSource = LookupSource.WebClient
 
-      const queryForPlate = () => new Promise((resolve, reject) => {
-        const databaseConnection = instantiateConnection()
-
-        databaseConnection.query(
-          'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
-          [plate, state, plateTypes],
-          (
-            error: MysqlError | null,
-            results: any,
-          ) => {
-            // Close database connection
-            databaseConnection.end(closeConnectionHandler)
-
-            if (error) {
-              console.error(error)
-              reject(error)
-            }
-            if (results) {
-              return resolve(results)
-            }
-          }
-        )
-      })
-
-      const queryBeforeLookupResults = await queryForPlate()
+      const queryBeforeLookupResults = await queryForPlate(plate, state, plateTypes)
 
       expect(queryBeforeLookupResults).toEqual([])
 
       await axios.get(
-        `http://localhost:1234/api/v1?plate=${plate}:${state}:${plateTypes}&lookup_source=${lookupSource}`
+        `${apiEndpoint}?plate=${plate}:${state}:${plateTypes}&lookup_source=${lookupSource}`
       )
 
       // Wait for new record to be inserted into database
       await new Promise((r) => setTimeout(r, 1000))
 
-      const queryAfterLookupResults = await queryForPlate() as Record<string, any>[]
+      const queryAfterLookupResults = await queryForPlate(
+        plate, state, plateTypes
+      ) as Record<string, any>[]
 
       expect(queryAfterLookupResults[0].plate).toEqual(plate)
       expect(queryAfterLookupResults[0].state).toEqual(state)
@@ -382,18 +388,16 @@ describe('app', () => {
       expect(queryAfterLookupResults[0].lookup_source).toEqual(lookupSource)
     })
 
-    it('should return a previous lookup result when one exists', async () => {
-      const server = createServer()
-      server.listen(1234)
+    it('should return a previous lookup result as part of a lookup result when one exists', async () => {
       ;(makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
         .mockResolvedValueOnce(openDataResponses)
 
       const firstResponse = await axios.get(
-        'http://localhost:1234/api/v1?plate=ABC1234:NY:PAS&lookup_source=web_client'
+        `${apiEndpoint}?plate=ABC1234:NY:PAS&lookup_source=web_client`
       )
       const secondResponse = await axios.get(
-        'http://localhost:1234/api/v1?plate=ABC1234:NY:PAS&lookup_source=web_client'
+        `${apiEndpoint}?plate=ABC1234:NY:PAS&lookup_source=web_client`
       )
 
       const { data: firstResponseData } = firstResponse.data
@@ -420,8 +424,59 @@ describe('app', () => {
       expect(secondResponseUniqueIdentifier).not.toBe(
         firstResponseUniqueIdentifier
       )
+    }, 10000)
 
-      server.close()
+    it('should return an existing lookup', async () => {
+      ;(makeOpenDataVehicleRequest as jest.Mock)
+        .mockResolvedValueOnce(openDataResponses)
+        .mockResolvedValueOnce(openDataResponses)
+
+      const plateLookupResponse = await axios.get(
+        `${apiEndpoint}?plate=ABC1234:NY:PAS&lookup_source=web_client`
+      )
+
+      const { data: plateResponseData } = plateLookupResponse.data
+      const { vehicle: { unique_identifier: uniqueIdentifier } } = plateResponseData[0]
+
+      // Wait for new record to be inserted into database
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const existingLookupResponse = await axios.get(
+        `${apiEndpoint}/lookup/${uniqueIdentifier}`
+      )
+
+      const { data: existingLookupData } = existingLookupResponse.data
+
+      const {
+        camera_streak_data: cameraStreakData,
+        fines,
+        plate,
+        plate_types: plateTypes,
+        rectified_plate: rectifiedPlate,
+        statistics,
+        state,
+        times_queried: timesQueried,
+        tweet_parts: tweetParts,
+        violations,
+        violations_count: violationsCount,
+      } = plateResponseData[0].vehicle
+
+      expect(existingLookupData[0].vehicle.camera_streak_data).toEqual(cameraStreakData)
+      expect(existingLookupData[0].vehicle.fines).toEqual(fines)
+      expect(existingLookupData[0].vehicle.plate).toEqual(plate)
+      expect(existingLookupData[0].vehicle.plate_types).toEqual(plateTypes)
+      expect(existingLookupData[0].vehicle.rectified_plate).toEqual(rectifiedPlate)
+      expect(existingLookupData[0].vehicle.statistics).toEqual(statistics)
+      expect(existingLookupData[0].vehicle.state).toEqual(state)
+      expect(existingLookupData[0].vehicle.times_queried).toEqual(timesQueried)
+      expect(existingLookupData[0].vehicle.unique_identifier).toEqual(uniqueIdentifier)
+      expect(existingLookupData[0].vehicle.violations).toEqual(violations)
+      expect(existingLookupData[0].vehicle.violations_count).toEqual(violationsCount)
+
+      expect(existingLookupData[0].vehicle.tweet_parts.slice(1)).toEqual(tweetParts.slice(1))
+      expect(existingLookupData[0].vehicle.tweet_parts[0]).toMatch(
+        /^As of \d{2}:\d{2}:\d{2} [A|P]M E[D|S]T on (.*) \d{2}, \d{4}: #NY_ABC1234 \(types: PAS\) has been queried 1 time./
+      )
     }, 10000)
   })
 })
