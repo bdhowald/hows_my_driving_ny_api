@@ -26,7 +26,7 @@ const returnResponse = (
   responseObj.setHeader('Access-Control-Allow-Origin', '*')
   responseObj.writeHead(httpStatusCode)
   responseObj.end(
-    JSON.stringify(responseBody, (key, value) =>
+    JSON.stringify(responseBody, (_, value) =>
       typeof value === 'undefined' ? null : value
     )
   )
