@@ -20,38 +20,6 @@ export default (violation: RawViolation): string | undefined => {
     return undefined
   }
 
-  // let fullAddress: string | undefined
-
-  // if (!street1) {
-  //   return undefined
-  // }
-
-  // if (street2) {
-  //   if (
-  //     street1.length === STREET_FIELD_MAX_LENGTH &&
-  //     street1.charAt(STREET_FIELD_MAX_LENGTH - 1) !== " "
-  //   ) {
-  //     if (houseNumber) {
-  //       fullAddress = `${houseNumber} ${street1}${street2}`
-  //     } else {
-  //       fullAddress = `${street1}${street2}`
-  //     }
-  //   } else {
-  //     fullAddress = `${street1} ${street2}`
-  //   }
-  // } else if (houseNumber) {
-  //   if (
-  //     houseNumber.length == STREET_FIELD_MAX_LENGTH &&
-  //     houseNumber.charAt(STREET_FIELD_MAX_LENGTH - 1) != " "
-  //   ) {
-  //     fullAddress = `${houseNumber}${street1}`
-  //   } else {
-  //     fullAddress = `${houseNumber} ${street1}`
-  //   }
-  // } else {
-  //   fullAddress = street1
-  // }
-
   const normalizedCapitalizedAddress = fullAddress
     .split(' ')
     .map((strPart) => strPart.toLowerCase())

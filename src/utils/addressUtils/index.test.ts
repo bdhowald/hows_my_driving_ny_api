@@ -121,5 +121,20 @@ describe('addressUtils', () => {
 
       expect(fullAddress).toBe('Midland Beach Lot 6 Father Capodanno Blv')
     })
+
+    it('should when it only has a streetName', () => {
+      const streetName = '72ND STREET'
+
+      const rawFiscalYearDatabaseViolation: RawViolation =
+        rawFiscalYearDatabaseViolationFactory.build({
+          houseNumber: undefined,
+          streetName,
+          intersectingStreet: undefined,
+        })
+
+      const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
+
+      expect(fullAddress).toBe('72nd Street')
+    })
   })
 })

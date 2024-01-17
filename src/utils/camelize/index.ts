@@ -10,8 +10,8 @@ const decamelizeKeys = humps.decamelizeKeys
 
 const decamelizeKeysOneLevel = (originalObject: any) => {
   if (
-    !(typeof originalObject === 'object') &&
-    Array.isArray(originalObject) &&
+    typeof originalObject !== 'object' ||
+    Array.isArray(originalObject) ||
     originalObject === null
   ) {
     return originalObject

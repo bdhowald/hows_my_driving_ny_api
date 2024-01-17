@@ -72,7 +72,7 @@ const createServer = () =>
 
           handleTwitterWebhookEvent(request)
 
-          return returnResponse(response, HttpStatusCode.Ok, {
+          returnResponse(response, HttpStatusCode.Ok, {
             data: [{ success: true }],
           })
         } else if (request.method == 'GET') {
@@ -80,7 +80,7 @@ const createServer = () =>
 
           try {
             const responseChallenge = handleTwitterRequestChallenge(request)
-            return returnResponse(
+            returnResponse(
               response,
               HttpStatusCode.Ok,
               responseChallenge
@@ -89,7 +89,7 @@ const createServer = () =>
             const body = {
               error: 'Error responding to challenge request',
             }
-            return returnResponse(
+            returnResponse(
               response,
               HttpStatusCode.InternalServerError,
               body
@@ -100,16 +100,16 @@ const createServer = () =>
         const result = await handleExistingLookup(request)
 
         if ('errorCode' in result) {
-          return returnResponse(response, HttpStatusCode.BadRequest, result)
+          returnResponse(response, HttpStatusCode.BadRequest, result)
         }
-        return returnResponse(response, HttpStatusCode.Ok, result)
+        returnResponse(response, HttpStatusCode.Ok, result)
       } else if (request.url?.match(API_LOOKUP_PATH)) {
         const result = await handleApiLookup(request)
 
         if ('errorCode' in result && result.errorCode) {
-          return returnResponse(response, result.errorCode, result)
+          returnResponse(response, result.errorCode, result)
         }
-        return returnResponse(response, HttpStatusCode.Ok, result)
+        returnResponse(response, HttpStatusCode.Ok, result)
       }
     }
   )

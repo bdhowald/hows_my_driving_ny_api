@@ -15,59 +15,57 @@ import createServer from '.'
 jest.mock('services/requestService')
 
 describe('createServer', () => {
+  const serverPort = 12345
+  const apiEndpoint = `http://localhost:${serverPort}/api/v1`
+  const twitterWebhookEndpoint = `http://localhost:${serverPort}/webhook/twitter`
+
+  const server = createServer()
+
+  beforeAll(async () => {
+    server.listen(serverPort)
+  })
+
+  afterAll(async () => {
+    server.close()
+  })
+
   it('should query for a vehicle', async () => {
-    const server = createServer()
-    server.listen(8080)
     ;(handleApiLookup as jest.Mock).mockResolvedValueOnce({
       data: [],
       successful_lookup: true,
     })
 
-    await axios.get('http://localhost:8080/api/v1?plate=ABC1234:NY:PAS')
+    await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
 
     expect(handleApiLookup as jest.Mock).toHaveBeenCalledTimes(1)
-
-    server.close()
   })
 
   it('should query for an existing lookup', async () => {
-    const server = createServer()
-    server.listen(8080)
     ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce({
       data: [],
       successful_lookup: true,
     })
 
-    await axios.get('http://localhost:8080/api/v1/lookup/a1b2c3d4')
+    await axios.get(`${apiEndpoint}/lookup/a1b2c3d4`)
 
     expect(handleExistingLookup as jest.Mock).toHaveBeenCalledTimes(1)
-
-    server.close()
   })
 
   it('should respond to a Twitter challenge request', async () => {
-    const server = createServer()
-    server.listen(8080)
-    ;(handleTwitterRequestChallenge as jest.Mock).mockResolvedValueOnce({
+    ;(handleTwitterRequestChallenge as jest.Mock).mockReturnValueOnce({
       request_token: 'ABCDEFGHIJK',
     })
 
-    await axios.get('http://localhost:8080/webhook/twitter')
+    await axios.get(twitterWebhookEndpoint)
 
     expect(handleTwitterRequestChallenge as jest.Mock).toHaveBeenCalledTimes(1)
-
-    server.close()
   })
 
   it('should handle a Twitter webhook event', async () => {
-    const server = createServer()
-    server.listen(8080)
     ;(handleTwitterWebhookEvent as jest.Mock).mockReturnValueOnce(true)
 
-    await axios.post('http://localhost:8080/webhook/twitter')
+    await axios.post(twitterWebhookEndpoint)
 
     expect(handleTwitterWebhookEvent as jest.Mock).toHaveBeenCalledTimes(1)
-
-    server.close()
   })
 })
