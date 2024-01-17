@@ -160,26 +160,32 @@ const getPreviousLookupAndFrequencyQueryArguments = (
     state,
   } = vehicleQueryProps
 
-  let baseFrequencyQueryString =
+  // Get the number of times this vehicle has been queried for
+  // in the past, but only consider countable queries.
+  let frequencyQueryString =
     'select count(*) as frequency from plate_lookups where ' +
     'plate = ? and state = ? and count_towards_frequency = 1'
 
-  let baseNumTicketsQueryString =
+  // Get the number of violations the last time we queried this vehicle.
+  let numViolationsForMostRecentLookupQueryString =
     'select num_tickets as num_violations, created_at from plate_lookups ' +
     'where plate = ? and state = ? and count_towards_frequency = 1'
 
-  let baseFrequencyQueryArgs = [plate, state]
-  let baseNumTicketsQueryArgs = [plate, state]
+  let frequencyQueryArgs = [plate, state]
+  let numViolationsForMostRecentLookupQueryArgs = [plate, state]
 
   if (plateTypes) {
-    baseFrequencyQueryString += ' and plate_types = ?'
-    baseFrequencyQueryArgs = [...baseFrequencyQueryArgs, plateTypes.join()]
+    frequencyQueryString += ' and plate_types = ?'
+    frequencyQueryArgs = [...frequencyQueryArgs, plateTypes.join()]
 
-    baseNumTicketsQueryString += ' and plate_types = ?'
-    baseNumTicketsQueryArgs = [...baseNumTicketsQueryArgs, plateTypes.join()]
+    numViolationsForMostRecentLookupQueryString += ' and plate_types = ?'
+    numViolationsForMostRecentLookupQueryArgs = [
+      ...numViolationsForMostRecentLookupQueryArgs,
+      plateTypes.join()
+    ]
   } else {
-    baseFrequencyQueryString += ' and plate_types is null'
-    baseNumTicketsQueryString += ' and plate_types is null'
+    frequencyQueryString += ' and plate_types is null'
+    numViolationsForMostRecentLookupQueryString += ' and plate_types is null'
   }
 
   if (
@@ -187,30 +193,29 @@ const getPreviousLookupAndFrequencyQueryArguments = (
     existingIdentifier &&
     existingLookupCreatedAt
   ) {
-    baseFrequencyQueryString += ' and unique_identifier <> ? and created_at < ?'
-    baseFrequencyQueryArgs = [
-      ...baseFrequencyQueryArgs,
-      existingIdentifier,
+    frequencyQueryString += ' and created_at <= ?'
+    frequencyQueryArgs = [
+      ...frequencyQueryArgs,
       existingLookupCreatedAt.toISOString(),
     ]
 
-    baseNumTicketsQueryString +=
+    numViolationsForMostRecentLookupQueryString +=
       ' and unique_identifier <> ? and created_at < ?'
 
-    baseNumTicketsQueryArgs = [
-      ...baseFrequencyQueryArgs,
+    numViolationsForMostRecentLookupQueryArgs = [
+      ...numViolationsForMostRecentLookupQueryArgs,
       existingIdentifier,
       existingLookupCreatedAt.toISOString(),
     ]
   }
 
-  baseNumTicketsQueryString += ' ORDER BY created_at DESC LIMIT 1'
+  numViolationsForMostRecentLookupQueryString += ' ORDER BY created_at DESC LIMIT 1'
 
   const searchQueryArgs = [
-    ...baseFrequencyQueryArgs,
-    ...baseNumTicketsQueryArgs,
+    ...frequencyQueryArgs,
+    ...numViolationsForMostRecentLookupQueryArgs,
   ]
-  const searchQueryString = `${baseFrequencyQueryString}; ${baseNumTicketsQueryString};`
+  const searchQueryString = `${frequencyQueryString}; ${numViolationsForMostRecentLookupQueryString};`
 
   return {
     queryArgs: searchQueryArgs,
