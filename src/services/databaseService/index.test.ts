@@ -12,7 +12,7 @@ describe('databaseService', () => {
 
     it('should console.error an error', () => {
       const error: MysqlError = {
-        code: 'ROTOCOL_CONNECTION_LOST',
+        code: 'PROTOCOL_CONNECTION_LOST',
         errno: 123,
         fatal: true,
         message: 'a fatal error',

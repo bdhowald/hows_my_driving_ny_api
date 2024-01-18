@@ -1,5 +1,5 @@
+import { MysqlError } from 'mysql'
 import { decamelizeKeys } from 'humps'
-import { DateTime } from 'luxon'
 
 import LookupSource from 'constants/lookupSources'
 import PlateLookup from 'constants/plateLookup'
@@ -108,9 +108,6 @@ describe('databaseQueries', () => {
         query: jest.fn(),
       }
 
-      ;(Math.random as jest.Mock).mockReturnValueOnce(
-        randomValueThatWillEvaluateToNewUniqueIdentifier
-      )
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query.mockImplementationOnce((_, __, callback) =>
@@ -198,6 +195,29 @@ describe('databaseQueries', () => {
         expect.anything(),
         expect.anything()
       )
+    })
+
+    it('should handle a database error', async () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const error: MysqlError = {
+        code: 'PROTOCOL_CONNECTION_LOST',
+        errno: 123,
+        fatal: true,
+        message: 'a fatal error',
+        name: 'someError',
+      }
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(error)
+      )
+
+      expect(createAndInsertNewLookup(createNewLookupArguments)).rejects.toBe(error)
     })
   })
 
@@ -590,7 +610,7 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'update non_follower_replies set favorited = true where user_id = ? and event_id = ?; ' +
-          'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
+          'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false ' +
           'where is_duplicate = false and event_id = ?;',
         [userId, favoritedStatusId, inReplyToMessageId],
         expect.anything()
@@ -627,7 +647,7 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'update non_follower_replies set favorited = true where user_id = ?; ' +
-          'update twitter_events set user_favorited_non_follower_reply = true , responded_to = false ' +
+          'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false ' +
           'where is_duplicate = false and event_id = ?;',
         [userId, inReplyToMessageId],
         expect.anything()

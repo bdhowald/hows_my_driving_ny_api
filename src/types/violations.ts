@@ -49,6 +49,7 @@ export type RawFiscalYearDatabaseViolation = {
   violationCode?: FiscalYearDatabaseViolationName
   violationCounty?: string
   violationDescription?: FiscalYearDatabaseViolationName
+  violationInFrontOfOr?: string
   violationInFrontOfOrOpposite?: string
   violationLegalCode?: string
   violationLocation?: string

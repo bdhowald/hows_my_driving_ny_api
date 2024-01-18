@@ -267,10 +267,8 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
         // Close database connection
         databaseConnection.end(closeConnectionHandler)
 
-        if (error) {
-          console.error(error)
-          reject(error)
-        }
+        handleDatabaseError(error, reject)
+
         if (results) {
           return resolve(callback(results))
         }
@@ -315,10 +313,7 @@ export const getExistingLookupResult = async (
       // Close database connection
       databaseConnection.end(closeConnectionHandler)
 
-      if (error) {
-        console.error(error)
-        reject(error)
-      }
+      handleDatabaseError(error, reject)
 
       const previousQueryResult = results.length
         ? (camelizeKeys(results[0]) as ExistingIdentifierQueryResult)
@@ -330,27 +325,45 @@ export const getExistingLookupResult = async (
     databaseConnection.query(queryString, queryArgs, callback)
   })
 
+new Promise((resolve, reject) => {
+
+})
+
+
+/**
+ * Handle any database error by (error-)logging to the console and rejecting
+ *
+ * @param error  - the error raised by mysql
+ * @param reject - the rejection function of the wrapping promise
+ */
+const handleDatabaseError = (error: MysqlError | null, reject: (value: unknown) => void) => {
+  if (error) {
+    console.error(error)
+    reject(error)
+  }
+}
+
 /**
  * Insert a new plate lookup into our database
  *
- * @param {PlateLookup} newLookup - the plate lookup to be inserted into our database
+ * @param newLookup - the plate lookup to be inserted into our database
  */
 const insertNewLookup = (newLookup: PlateLookup) => {
-  const databaseConnection = instantiateConnection()
+  new Promise((_, reject) => {
+    const databaseConnection = instantiateConnection()
 
-  const queryString = 'insert into plate_lookups set ?'
-  const decamelizedLookup = decamelizeKeys(newLookup)
+    const queryString = 'insert into plate_lookups set ?'
+    const decamelizedLookup = decamelizeKeys(newLookup)
 
-  const callback = (error: MysqlError | null) => {
-    // Close database connection
-    databaseConnection.end(closeConnectionHandler)
-    if (error) {
-      console.error(error)
-      throw error
+    const callback = (error: MysqlError | null) => {
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+
+      handleDatabaseError(error, reject)
     }
-  }
 
-  databaseConnection.query(queryString, decamelizedLookup, callback)
+    databaseConnection.query(queryString, decamelizedLookup, callback)
+  })
 }
 
 /**
@@ -374,10 +387,7 @@ export const insertNewTwitterEventAndMediaObjects = (
       // Close database connection
       databaseConnection.end(closeConnectionHandler)
 
-      if (error) {
-        console.error(error)
-        reject(error)
-      }
+      handleDatabaseError(error, reject)
 
       if (!mediaObjects) {
         return resolve(!!results)
@@ -402,10 +412,7 @@ export const insertNewTwitterEventAndMediaObjects = (
         // Close database connection
         newDatabaseConnection.end(closeConnectionHandler)
 
-        if (error) {
-          console.error(error)
-          reject(error)
-        }
+        handleDatabaseError(error, reject)
 
         return resolve(!!results)
       }
@@ -448,10 +455,7 @@ const obtainUniqueIdentifier = async (): Promise<string> => {
         // Close database connection
         databaseConnection.end(closeConnectionHandler)
 
-        if (error) {
-          console.error(error)
-          reject(error)
-        }
+        handleDatabaseError(error, reject)
 
         return resolve(results[0].count !== 0)
       }
@@ -511,32 +515,29 @@ export const updateNonFollowerReplies = async (
       // Close database connection
       databaseConnection.end(closeConnectionHandler)
 
-      if (error) {
-        console.error(error)
-        reject(error)
-      }
+      handleDatabaseError(error, reject)
 
       if (results.length) {
         results.forEach((updatedEvent) => {
           const inReplyToMessageId = updatedEvent.in_reply_to_message_id
 
-          const baseUpdateNonFollowerRepliesQueryString = (
+          const baseUpdateNonFollowerRepliesQueryString = formatQueryString(
             'update non_follower_replies' +
             '   set favorited = true' +
             ' where user_id = ?'
-          ).replace(/\s{2,}/g, ' ')
+          )
 
           const updateNonFollowerRepliesQueryString = favoritedStatusId
             ? baseUpdateNonFollowerRepliesQueryString + ' and event_id = ?;'
             : baseUpdateNonFollowerRepliesQueryString + ';'
 
-          const updateTwitterEventsQueryString = (
+          const updateTwitterEventsQueryString = formatQueryString(
             'update twitter_events' +
             '   set user_favorited_non_follower_reply = true' +
             '     , responded_to = false' +
             ' where is_duplicate = false' +
             '   and event_id = ?;'
-          ).replace(/\s{2,}/g, ' ')
+          )
 
           const updateQueryString = `${updateNonFollowerRepliesQueryString} ${updateTwitterEventsQueryString}`
 
@@ -550,10 +551,7 @@ export const updateNonFollowerReplies = async (
             // Close database connection
             newDatabaseConnection.end(closeConnectionHandler)
 
-            if (error) {
-              console.error(error)
-              reject(error)
-            }
+            handleDatabaseError(error, reject)
 
             return resolve(true)
           }
