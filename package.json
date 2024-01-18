@@ -28,6 +28,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "coverage": "MYSQL_DATABASE_NAME=traffic_violations_test MYSQL_DATABASE_USER=root NYC_OPEN_DATA_APP_TOKEN=token TWITTER_CONSUMER_SECRET=tyqHqFAKEhnLp3Vm0kaFAKELcPfbiTaodnFAKEaY1C4TY2BdfS jest --config=jest.config.unit.js --coverage",
     "start": "node dist/app.js",
     "start:dev": "nodemon",
     "test": "MYSQL_DATABASE_NAME=traffic_violations_test MYSQL_DATABASE_USER=root NYC_OPEN_DATA_APP_TOKEN=token TWITTER_CONSUMER_SECRET=tyqHqFAKEhnLp3Vm0kaFAKELcPfbiTaodnFAKEaY1C4TY2BdfS jest --bail --config=jest.config.unit.js --setupFiles dotenv/config"
