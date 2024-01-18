@@ -68,9 +68,6 @@ const getBorough = async (
 
   const potentialBorough: Borough = await getBoroughService(fullAddress)
 
-  if (potentialBorough in boroughs) {
-    return boroughs[potentialBorough]
-  }
   return potentialBorough
 }
 
@@ -92,7 +89,7 @@ const getFineDataForViolation = (violation: RawViolation) => {
   const reductionAmount =
     'reductionAmount' in violation ? violation.reductionAmount : undefined
 
-  let fined = amountDue ?? penaltyAmount ?? interestAmount ? 0 : undefined
+  let fined = fineAmount ?? penaltyAmount ?? interestAmount ? 0 : undefined
 
   if (isNumber(fined)) {
     if (fineAmount) {
@@ -173,7 +170,7 @@ const getFormattedTimes = (
       hour = fourDigitWithColonTimeMatch[0].split(':')[0]
       minute = fourDigitWithColonTimeMatch[0].split(':')[1]
     } else {
-      throw Error('Unexpected date format')
+      throw Error('Unexpected time format')
     }
 
     // Change 12-hour PM format to 24-hour format
@@ -197,7 +194,7 @@ const getFormattedTimes = (
   } else {
     // If no time data, just assume midnight (Eastern).
     // replace slashes with dashes
-    formattedTime = `${date.replace(/\//g, '-')} 00:00`
+    formattedTime = `${date.replace(/\//g, '-')}T00:00`
   }
 
   const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
@@ -410,7 +407,9 @@ const normalizeViolation = async (
     violationInFrontOfOrOpposite:
       'violationInFrontOfOrOpposite' in violation
         ? violation.violationInFrontOfOrOpposite
-        : undefined,
+        : 'violationInFrontOfOr' in violation
+          ? violation.violationInFrontOfOr
+          : undefined,
     violationLegalCode:
       'violationLegalCode' in violation
         ? violation.violationLegalCode
