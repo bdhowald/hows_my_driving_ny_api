@@ -69,11 +69,11 @@ export type DirectMessageCreateAccountActivityApiObject = {
       name: string
       profileImageUrl: string
       profileImageUrlHttps: string
-      protected: string
+      protected: boolean
       screenName: string
       statusesCount: number
       url: string
-      verified: string
+      verified: boolean
     }
   }
 }

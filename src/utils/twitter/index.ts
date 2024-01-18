@@ -607,7 +607,7 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentionIds = userMentionData?.userMentionIds
       userMentions = userMentionData?.userMentions
 
-      if (tweetCreateEvent.extendedTweet) {
+      if (tweetCreateEvent.extendedEntities) {
         const extendedEntities = tweetCreateEvent.extendedEntities
         photoUrls = parseExtendedEntitiesForMediaUrls(extendedEntities)
       }

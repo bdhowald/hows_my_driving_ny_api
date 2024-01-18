@@ -1,9 +1,13 @@
 import { DateTime } from 'luxon'
 
 import AggregateFineData from 'models/aggregateFineData'
-import CameraData from 'types/cameraData'
+import { instantiateConnection } from 'services/databaseService'
 
-import formPlateLookupTweets, { PlateLookupTweetArguments } from '.'
+import formPlateLookupTweets, {
+  handleTwitterAccountActivityApiEvents, PlateLookupTweetArguments
+} from '.'
+
+jest.mock('services/databaseService')
 
 describe('twitter', () => {
   describe('formPlateLookupTweets', () => {
@@ -289,6 +293,589 @@ describe('twitter', () => {
       expect(result).toEqual(expected)
 
       jest.useRealTimers()
+    })
+  })
+
+  describe('handleTwitterAccountActivityApiEvents', () => {
+    it('should handle a direct message create Account Activity object', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const insertId = '12345'
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, { insertId })
+      )
+
+      const directMessageCreateAccountActivityApiObject = {
+        for_user_id: '536123456783222211',
+        direct_message_events: [
+          {
+            type: 'message_create',
+            id: '1664302173159661234',
+            created_timestamp: '1685635531234',
+            message_create: {
+              message_data: {
+                attachment: {
+                  media: {
+                    media_url_https: 'https://pbs.twimg.com/media/FxgrtW2WAAMZUUm.jpg',
+                    type: 'photo',
+                  }
+                },
+                entities: {
+                  hashtags: [],
+                  symbols: [],
+                  urls: [],
+                  user_mentions: [],
+                },
+                text: 'Ny:jrm1490',
+              },
+              sender_id: '12345678',
+              target:{
+                recipient_id: '976593574732222465',
+              },
+            },
+          }
+        ],
+        apps: {
+          '1234567': {
+            id: '14966629',
+            name: "How's My Driving NY",
+            url: 'https://howsmydrivingny.nyc'
+          }
+        },
+        users: {
+          '12345678': {
+            id: '8765432',
+            created_timestamp: '1251295177000',
+            name: 'ACCOUNT',
+            screen_name: 'ScreenName',
+            location: 'NYC',
+            description: "Me fail English? That's unpossible.",
+            protected: false,
+            verified: false,
+            followers_count: 336,
+            friends_count: 1416,
+            statuses_count: 11718,
+            profile_image_url: 'http://pbs.twimg.com/profile_images/1090661139611074562/OmjkOg2t_normal.jpg',
+            profile_image_url_https: 'https://pbs.twimg.com/profile_images/1090661139611074562/OmjkOg2t_normal.jpg'
+          },
+          '11223344': {
+            id: '39487532',
+            created_timestamp: '1521673027264',
+            name: "How's My Driving NY",
+            screen_name: 'HowsMyDrivingNY',
+            location: 'New York, NY',
+            description: "I look up traffic violations from @NYCDoITT's #opendata.\n" +
+              '\n' +
+              "I'm a bot, but for non-plate inquiries, please contact @bdhowald.\n" +
+              '\n' +
+              'https://t.co/S0yIuvwOa3',
+            url: 'https://t.co/bZcXYVzBod',
+            protected: false,
+            verified: false,
+            followers_count: 7072,
+            friends_count: 8,
+            statuses_count: 180556,
+            profile_image_url: 'http://pbs.twimg.com/profile_images/977216445938585605/gjUlx3tr_normal.jpg',
+            profile_image_url_https: 'https://pbs.twimg.com/profile_images/977216445938585605/gjUlx3tr_normal.jpg'
+          }
+        }
+      }
+
+      const directMessageEvent = directMessageCreateAccountActivityApiObject.direct_message_events[0]
+
+      type SenderId = keyof typeof directMessageCreateAccountActivityApiObject.users
+
+      const senderId = directMessageEvent.message_create.sender_id as SenderId
+      const sender = directMessageCreateAccountActivityApiObject.users[senderId]
+
+      const expectedTwitterEvent = {
+        created_at: BigInt(directMessageEvent.created_timestamp),
+        event_id: BigInt(directMessageEvent.id),
+        event_text: directMessageEvent.message_create.message_data.text,
+        event_type: 'direct_message',
+        location: undefined,
+        responded_to: false,
+        user_handle: sender.screen_name,
+        user_id: BigInt(sender.id),
+      }
+
+      const expectedTwitterMediaObject = {
+        twitter_event_id: insertId,
+        type: directMessageEvent.message_create.message_data.attachment.media.type,
+        url: directMessageEvent.message_create.message_data.attachment.media.media_url_https,
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(directMessageCreateAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenCalledTimes(2)
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
+        'insert into twitter_events set ?',
+        expectedTwitterEvent,
+        expect.anything(),
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'insert into twitter_media_objects set ?',
+        [expectedTwitterMediaObject],
+        expect.anything(),
+      )
+    })
+
+    it('should handle a favorite event Account Activity object', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const favoriteEventAccountActivityApiObject = {
+        for_user_id: '976593574732222465',
+        favorite_events: [
+          {
+            id: '2934ed1afd27e23248b0f9a5a49dadf2',
+            created_at: 'Sun Jun 04 18:19:56 +0000 2023',
+            timestamp_ms: 1685902796418,
+            favorited_status: {
+              id_str: '123456789012',
+            },
+            user: {
+              id_str: '210987654321',
+            },
+          }
+        ]
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(favoriteEventAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id ' +
+        'from non_follower_replies where user_id = ? and favorited = false and event_id = ?;',
+        [
+          BigInt(favoriteEventAccountActivityApiObject.favorite_events[0].user.id_str),
+          BigInt(favoriteEventAccountActivityApiObject.favorite_events[0].favorited_status.id_str),
+        ],
+        expect.anything(),
+      )
+    })
+
+    it('should handle a follow event Activity API object', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const followEventAccountActivityApiObject = {
+        for_user_id: '976593574732222465',
+        follow_events: [
+          {
+            created_timestamp: '1685902796418',
+            source: {
+              id: '210987654321',
+            },
+            target: {
+              id: '976593574732222465',
+            },
+            type: 'follow',
+          }
+        ]
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(followEventAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id ' +
+        'from non_follower_replies where user_id = ? and favorited = false;',
+        [
+          BigInt(followEventAccountActivityApiObject.follow_events[0].source.id),
+        ],
+        expect.anything(),
+      )
+    })
+
+    it('should handle a tweet create event Account Activity object with an extended tweet field', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const insertId = '12345'
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, { insertId })
+      )
+
+      const tweetCreateEventCreateAccountActivityApiObject = {
+        tweet_create_events: [
+          {
+            extended_tweet: {
+              entities: {
+                hashtags: [],
+                urls: [],
+                user_mentions:[
+                  {
+                    id:4867386993,
+                    id_str: "4867386993",
+                    indices: [0,13],
+                    name: "placard corruption",
+                    screen_name: 'placardabuse',
+                  },
+                  {
+                    id: 2842148794,
+                    id_str: "2842148794",
+                    indices:[14,28],
+                    name: "NYCourts",
+                    screen_name: "NYSCourtsNews",
+                  }
+                ],
+                symbols: [],
+              },
+              extended_entities: {
+                media: [
+                  {
+                    id: '1532000116223221800',
+                    id_str: "1532000116223221761",
+                    indices: [
+                      250,
+                      273
+                    ],
+                    media_url: "http://pbs.twimg.com/media/FULB_SNXoAEMl0R.jpg",
+                    media_url_https: "https://pbs.twimg.com/media/FULB_SNXoAEMl0R.jpg",
+                    url: "https://t.co/HlLwRXQyIY",
+                    display_url: "pic.twitter.com/HlLwRXQyIY",
+                    expanded_url: "https://twitter.com/sqddxjQ48j/status/1532000121793167360/photo/1",
+                    type: "photo",
+                    sizes: {
+                      medium: {
+                        w: 900,
+                        h: 1200,
+                        resize: "fit"
+                      },
+                      thumb: {
+                        w: 150,
+                        h: 150,
+                        resize: "crop"
+                      },
+                      small: {
+                        w: 510,
+                        h: 680,
+                        resize: "fit"
+                      },
+                      large: {
+                        w: 1536,
+                        h: 2048,
+                        resize: "fit"
+                      }
+                    }
+                  }
+                ],
+              },
+              full_text: '@placardabuse @NYSCourtsNews One installed on actual Camry Hybrids of this vintage.',
+            },
+            id_str: "12345678276030615556",
+            in_reply_to_status_id_str: '1665471049385885697',
+            timestamp_ms: '1685895318942',
+            user: {
+              id_str: "11223344276030615556",
+              screen_name: 'ScreenName',
+            }
+          },
+        ],
+        user_has_blocked: false,
+      }
+
+      const tweetCreateEvent = tweetCreateEventCreateAccountActivityApiObject.tweet_create_events[0]
+
+      const expectedTwitterEvent = {
+        created_at: BigInt(tweetCreateEvent.timestamp_ms),
+        event_id: BigInt(tweetCreateEvent.id_str),
+        event_text: tweetCreateEvent.extended_tweet.full_text,
+        event_type: 'status',
+        in_reply_to_message_id: BigInt(tweetCreateEvent.in_reply_to_status_id_str),
+        location: undefined,
+        responded_to: false,
+        user_handle: tweetCreateEvent.user.screen_name,
+        user_id: BigInt(tweetCreateEvent.user.id_str),
+        user_mention_ids: tweetCreateEvent.extended_tweet.entities.user_mentions.map(
+          (userMention) => userMention.id_str
+        ).join(' '),
+        user_mentions: tweetCreateEvent.extended_tweet.entities.user_mentions.map(
+          (userMention) => userMention.screen_name
+        ).join(' '),
+      }
+
+      const expectedTwitterMediaObject = {
+        twitter_event_id: insertId,
+        type: tweetCreateEvent.extended_tweet.extended_entities.media[0].type,
+        url: tweetCreateEvent.extended_tweet.extended_entities.media[0].media_url_https,
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
+        'insert into twitter_events set ?',
+        expectedTwitterEvent,
+        expect.anything(),
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'insert into twitter_media_objects set ?',
+        [expectedTwitterMediaObject],
+        expect.anything(),
+      )
+    })
+
+    it('should handle a tweet create event Account Activity object with an extended tweet field, but no photos', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const insertId = '12345'
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, { insertId })
+      )
+
+      const tweetCreateEventCreateAccountActivityApiObject = {
+        tweet_create_events: [
+          {
+            extended_tweet: {
+              entities: {
+                hashtags: [],
+                urls: [],
+                user_mentions:[
+                  {
+                    id:4867386993,
+                    id_str: "4867386993",
+                    indices: [0,13],
+                    name: "placard corruption",
+                    screen_name: 'placardabuse',
+                  },
+                  {
+                    id: 2842148794,
+                    id_str: "2842148794",
+                    indices:[14,28],
+                    name: "NYCourts",
+                    screen_name: "NYSCourtsNews",
+                  }
+                ],
+                symbols: [],
+              },
+              full_text: '@placardabuse @NYSCourtsNews One installed on actual Camry Hybrids of this vintage.',
+            },
+            id_str: "12345678276030615556",
+            in_reply_to_status_id_str: '1665471049385885697',
+            timestamp_ms: '1685895318942',
+            user: {
+              id_str: "11223344276030615556",
+              screen_name: 'ScreenName',
+            }
+          },
+        ],
+        user_has_blocked: false,
+      }
+
+      const tweetCreateEvent = tweetCreateEventCreateAccountActivityApiObject.tweet_create_events[0]
+
+      const expectedTwitterEvent = {
+        created_at: BigInt(tweetCreateEvent.timestamp_ms),
+        event_id: BigInt(tweetCreateEvent.id_str),
+        event_text: tweetCreateEvent.extended_tweet.full_text,
+        event_type: 'status',
+        in_reply_to_message_id: BigInt(tweetCreateEvent.in_reply_to_status_id_str),
+        location: undefined,
+        responded_to: false,
+        user_handle: tweetCreateEvent.user.screen_name,
+        user_id: BigInt(tweetCreateEvent.user.id_str),
+        user_mention_ids: tweetCreateEvent.extended_tweet.entities.user_mentions.map(
+          (userMention) => userMention.id_str
+        ).join(' '),
+        user_mentions: tweetCreateEvent.extended_tweet.entities.user_mentions.map(
+          (userMention) => userMention.screen_name
+        ).join(' '),
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'insert into twitter_events set ?',
+        expectedTwitterEvent,
+        expect.anything(),
+      )
+    })
+
+    it('should handle a tweet create event Account Activity object with no extended tweet field', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const insertId = '12345'
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, { insertId })
+      )
+
+      const tweetCreateEventCreateAccountActivityApiObject = {
+        tweet_create_events: [
+          {
+            entities: {
+              hashtags: [],
+              urls: [],
+              user_mentions: [
+                {
+                  id: '976593574732222500',
+                  id_str: "976593574732222465",
+                  indices: [12,28],
+                  name: "How's My Driving NY",
+                  screen_name: "HowsMyDrivingNY",
+                }
+              ],
+              symbols: [],
+            },
+            extended_entities: {
+              media: [
+                {
+                  id: '1532000116223221800',
+                  id_str: "1532000116223221761",
+                  indices: [
+                    250,
+                    273
+                  ],
+                  media_url: "http://pbs.twimg.com/media/FULB_SNXoAEMl0R.jpg",
+                  media_url_https: "https://pbs.twimg.com/media/FULB_SNXoAEMl0R.jpg",
+                  url: "https://t.co/HlLwRXQyIY",
+                  display_url: "pic.twitter.com/HlLwRXQyIY",
+                  expanded_url: "https://twitter.com/sqddxjQ48j/status/1532000121793167360/photo/1",
+                  type: "photo",
+                  sizes: {
+                    medium: {
+                      w: 900,
+                      h: 1200,
+                      resize: "fit"
+                    },
+                    thumb: {
+                      w: 150,
+                      h: 150,
+                      resize: "crop"
+                    },
+                    small: {
+                      w: 510,
+                      h: 680,
+                      resize: "fit"
+                    },
+                    large: {
+                      w: 1536,
+                      h: 2048,
+                      resize: "fit"
+                    }
+                  }
+                }
+              ],
+            },
+            text: 'NY:LAYLOW1 @HowsMyDrivingNY https://t.co/GEEHV6kL3L',
+            id_str: "12345678276030615556",
+            in_reply_to_status_id_str: '1665471049385885697',
+            timestamp_ms: '1685895318942',
+            user: {
+              id_str: "11223344276030615556",
+              screen_name: 'ScreenName',
+            }
+          },
+        ],
+        user_has_blocked: false,
+      }
+
+      const tweetCreateEvent = tweetCreateEventCreateAccountActivityApiObject.tweet_create_events[0]
+
+      const expectedTwitterEvent = {
+        created_at: BigInt(tweetCreateEvent.timestamp_ms),
+        event_id: BigInt(tweetCreateEvent.id_str),
+        event_text: tweetCreateEvent.text,
+        event_type: 'status',
+        in_reply_to_message_id: BigInt(tweetCreateEvent.in_reply_to_status_id_str),
+        location: undefined,
+        responded_to: false,
+        user_handle: tweetCreateEvent.user.screen_name,
+        user_id: BigInt(tweetCreateEvent.user.id_str),
+        user_mention_ids: tweetCreateEvent.entities.user_mentions.map(
+          (userMention) => userMention.id_str
+        ).join(' '),
+        user_mentions: tweetCreateEvent.entities.user_mentions.map(
+          (userMention) => userMention.screen_name
+        ).join(' '),
+      }
+
+      const expectedTwitterMediaObject = {
+        twitter_event_id: insertId,
+        type: tweetCreateEvent.extended_entities.media[0].type,
+        url: tweetCreateEvent.extended_entities.media[0].media_url_https,
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
+        'insert into twitter_events set ?',
+        expectedTwitterEvent,
+        expect.anything(),
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'insert into twitter_media_objects set ?',
+        [expectedTwitterMediaObject],
+        expect.anything(),
+      )
+    })
+
+    it('should log, but otherwise ignore an event it does not know how to handle', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const directMessageMarkReadEventAccountActivityApiObject = {
+        direct_message_mark_read_events: [],
+        for_user_id: '976593574732222465',
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(directMessageMarkReadEventAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).not.toHaveBeenCalled()
     })
   })
 })
