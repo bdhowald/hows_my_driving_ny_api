@@ -396,6 +396,10 @@ describe('app', () => {
       const firstResponse = await axios.get(
         `${apiEndpoint}?plate=ABC1234:NY:PAS&lookup_source=web_client`
       )
+
+      // Wait for new record to be inserted into database
+      await new Promise((r) => setTimeout(r, 1000))
+
       const secondResponse = await axios.get(
         `${apiEndpoint}?plate=ABC1234:NY:PAS&lookup_source=web_client`
       )
