@@ -57,7 +57,7 @@ describe('QueryParser', () => {
       expect(result).toEqual(expected)
     })
 
-    it('should return undefinedanalytics fields from the query string if they do not exist', () => {
+    it('should return undefined analytics fields from the query string if they do not exist', () => {
       const searchParams = new URLSearchParams({})
       const queryParser = new QueryParser(searchParams)
 
