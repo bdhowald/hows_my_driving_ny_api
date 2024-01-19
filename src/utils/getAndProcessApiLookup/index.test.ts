@@ -1093,6 +1093,36 @@ describe('getAndProcessApiLookup', () => {
     })
   })
 
+  it('should return an error if not both plate and state available', async () => {
+    jest.useFakeTimers()
+
+    const potentialVehicle = {
+      originalString: 'hello world',
+      validPlate: false,
+    }
+
+    const expected = {
+      error:
+        'Sorry, a plate and state could not be inferred from ' +
+        potentialVehicle.originalString,
+      successfulLookup: false,
+    }
+
+    const externalData: ExternalData = {
+      lookupSource: LookupSource.Api,
+    }
+
+    const result = await getAndProcessApiLookup(
+      potentialVehicle,
+      undefined,
+      externalData
+    )
+
+    expect(result).toEqual(expected)
+
+    jest.useRealTimers()
+  })
+
   it('should get api response from open data and process the api response even when no violations', async () => {
     jest.useFakeTimers()
 

@@ -87,9 +87,6 @@ const getAndProcessApiLookup = async (
       plateTypes
     )
 
-    if (endpointResponses?.some((endpointResponse) => !endpointResponse)) {
-      return openDataQueryErrorResponse
-    }
   } catch (error) {
     return openDataQueryErrorResponse
   }
