@@ -24,6 +24,23 @@ describe('addressUtils', () => {
       expect(fullAddress).toBe('1752 Pk Ave 122 St')
     })
 
+    it('should when it has a houseNumber, streetName, and intersectingStreet, and houseNumber is 20 chars long with a trailing space', () => {
+      const houseNumber = 'SUPEEER LONG STREET '
+      const streetName = 'PK AVE'
+      const intersectingStreet = '122 ST'
+
+      const rawFiscalYearDatabaseViolation: RawViolation =
+        rawFiscalYearDatabaseViolationFactory.build({
+          houseNumber,
+          streetName,
+          intersectingStreet,
+        })
+
+      const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
+
+      expect(fullAddress).toBe('Supeeer Long Street Pk Ave 122 St')
+    })
+
     it('should when it has a houseNumber, streetName, and intersectingStreet, and streetName is 20 chars long', () => {
       const houseNumber = '114-52'
       const streetName = 'FRANCIS LEWIS BOULEV'
