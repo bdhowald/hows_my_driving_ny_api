@@ -67,9 +67,6 @@ const getCameraData = (violations: Violation[]): CameraData => {
   )
   const cameraViolationsWithBusCameraViolations = violations.filter(
     (violation) => {
-      if (!violation.humanizedDescription) {
-        return false
-      }
       return [
         BUS_LANE_VIOLATION,
         FAILURE_TO_STOP_AT_RED_LIGHT,

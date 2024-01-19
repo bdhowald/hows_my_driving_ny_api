@@ -64,7 +64,7 @@ export type RawOpenParkingAndCameraViolation = {
   fineAmount?: string
   interestAmount?: string
   issueDate: string
-  issuingAgency: string
+  issuingAgency?: string
   judgmentEntryDate?: string
   licenseType: string
   paymentAmount?: string

@@ -308,6 +308,192 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
+  it('should normalize open parking and camera database violations with partial information', async () => {
+    const databasePathname = '/resource/uvbq-3m68.json'
+
+    const rawOpenParkingAndCameraViolation =
+      rawOpenParkingAndCameraViolationFactory.build({
+        amountDue: undefined,
+        county: undefined,
+        fineAmount: undefined,
+        interestAmount: undefined,
+        issuingAgency: undefined,
+        paymentAmount: undefined,
+        penaltyAmount: '50',
+        precinct: '99',
+        reductionAmount: undefined,
+      })
+
+    const {
+      county,
+      licenseType,
+      plate,
+      precinct,
+      state,
+      violation,
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields
+    } = rawOpenParkingAndCameraViolation
+
+    const expectedOpenParkingAndCameraViolation = {
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields,
+      amountDue: undefined,
+      dateFirstObserved: undefined,
+      daysParkingInEffect: undefined,
+      feetFromCurb: undefined,
+      fineAmount: undefined,
+      fined: 50,
+      formattedTime: formattedTime.toISO(),
+      formattedTimeEastern: formattedTime.toISO(),
+      formattedTimeUtc: formattedTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Open Parking and Camera Violations',
+        },
+      ],
+      fromHoursInEffect: undefined,
+      houseNumber: undefined,
+      humanizedDescription: 'Blocking Pedestrian Ramp',
+      interestAmount: undefined,
+      intersectingStreet: undefined,
+      issuerCode: undefined,
+      issuerCommand: undefined,
+      issuerPrecinct: undefined,
+      issuerSquad: undefined,
+      issuingAgency: undefined,
+      judgmentEntryDate: undefined,
+      lawSection: undefined,
+      location: undefined,
+      meterNumber: undefined,
+      outstanding: undefined,
+      paid: undefined,
+      paymentAmount: undefined,
+      penaltyAmount: 50,
+      plateId: 'KZH2758',
+      plateType: 'PAS',
+      reduced: undefined,
+      reductionAmount: undefined,
+      registrationState: 'NY',
+      streetCode1: undefined,
+      streetCode2: undefined,
+      streetCode3: undefined,
+      streetName: undefined,
+      subDivision: undefined,
+      toHoursInEffect: undefined,
+      unregisteredVehicle: undefined,
+      vehicleBodyType: undefined,
+      vehicleColor: undefined,
+      vehicleExpirationDate: undefined,
+      vehicleMake: undefined,
+      vehicleYear: undefined,
+      violationCode: '67',
+      violationCounty: undefined,
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationLocation: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 99,
+    }
+
+    const normalizedViolation = await normalizeViolations(
+      [rawOpenParkingAndCameraViolation],
+      databasePathname
+    )
+
+    expect(normalizedViolation).toEqual([expectedOpenParkingAndCameraViolation])
+  })
+
+  it('should normalize fiscal year database violations with partial information', async () => {
+    const databasePathname = '/resource/869v-vr48.json'
+
+    const rawFiscalYearDatabaseViolation: RawViolation = {
+      issueDate: '2023-06-09T00:00:00.000',
+      issuingAgency: 'P',
+      plateId: 'KZH2758',
+      plateType: 'PAS',
+      registrationState: 'NY',
+      summonsNumber: '1159000000',
+      violationDescription: 'BUS LANE VIOLATION',
+      violationInFrontOfOrOpposite: 'F',
+      violationPrecinct: '99',
+      violationTime: '09:11A',
+    }
+
+    const {
+      violationDescription,
+      ...rawFiscalYearDatabaseViolationMinusRemovedFields
+    } = rawFiscalYearDatabaseViolation
+
+    const expectedFiscalYearDatabaseViolation = {
+      ...rawFiscalYearDatabaseViolationMinusRemovedFields,
+      amountDue: undefined,
+      dateFirstObserved: undefined,
+      daysParkingInEffect: undefined,
+      feetFromCurb: undefined,
+      fineAmount: undefined,
+      fined: undefined,
+      formattedTime: formattedTime.toISO(),
+      formattedTimeEastern: formattedTime.toISO(),
+      formattedTimeUtc: formattedTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Parking Violations Issued - Fiscal Year 2023',
+        },
+      ],
+      fromHoursInEffect: undefined,
+      houseNumber: undefined,
+      humanizedDescription: 'Bus Lane Violation',
+      interestAmount: undefined,
+      intersectingStreet: undefined,
+      issuerCode: undefined,
+      issuerCommand: undefined,
+      issuerPrecinct: undefined,
+      issuerSquad: undefined,
+      issuingAgency: 'NYPD',
+      judgmentEntryDate: undefined,
+      lawSection: undefined,
+      location: undefined,
+      meterNumber: undefined,
+      outstanding: undefined,
+      paid: undefined,
+      paymentAmount: undefined,
+      penaltyAmount: undefined,
+      plateId: 'KZH2758',
+      plateType: 'PAS',
+      reduced: undefined,
+      reductionAmount: undefined,
+      registrationState: 'NY',
+      streetCode1: undefined,
+      streetCode2: undefined,
+      streetCode3: undefined,
+      streetName: undefined,
+      subDivision: undefined,
+      summonsImage: undefined,
+      toHoursInEffect: undefined,
+      unregisteredVehicle: undefined,
+      vehicleBodyType: undefined,
+      vehicleColor: undefined,
+      vehicleExpirationDate: undefined,
+      vehicleMake: undefined,
+      vehicleYear: undefined,
+      violationCode: '5',
+      violationCounty: undefined,
+      violationInFrontOfOrOpposite: 'F',
+      violationLegalCode: undefined,
+      violationLocation: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 99,
+    }
+
+    const normalizedViolation = await normalizeViolations(
+      [rawFiscalYearDatabaseViolation],
+      databasePathname
+    )
+
+    expect(normalizedViolation).toEqual([expectedFiscalYearDatabaseViolation])
+  })
+
   it('should obtain the borough from the county if possible and needed', async () => {
     const databasePathname = '/resource/uvbq-3m68.json'
 
@@ -504,6 +690,9 @@ describe('normalizeViolations', () => {
       registrationState: 'NY',
       summonsNumber: '1159000000',
       violationCounty: 'BX',
+      violationInFrontOfOr: 'O',
+      violationLegalCode: 'T',
+      violationPostCode: '001',
       violationTime: '09:11A',
     }
 
@@ -512,8 +701,13 @@ describe('normalizeViolations', () => {
       databasePathname
     )
 
+    const {
+      violationInFrontOfOr,
+      ...rawFiscalYearDatabaseViolationMinusRemovedFields
+    } = rawFiscalYearDatabaseViolation
+
     const expectedViolation = {
-      ...rawFiscalYearDatabaseViolation,
+      ...rawFiscalYearDatabaseViolationMinusRemovedFields,
       amountDue: undefined,
       dateFirstObserved: undefined,
       daysParkingInEffect: undefined,
@@ -567,10 +761,10 @@ describe('normalizeViolations', () => {
       vehicleYear: undefined,
       violationCode: undefined,
       violationCounty: 'Bronx',
-      violationInFrontOfOrOpposite: undefined,
-      violationLegalCode: undefined,
+      violationInFrontOfOrOpposite: 'O',
+      violationLegalCode: 'T',
       violationLocation: undefined,
-      violationPostCode: undefined,
+      violationPostCode: '001',
       violationPrecinct: undefined,
     }
 

@@ -92,14 +92,14 @@ const getFineDataForViolation = (violation: RawViolation) => {
   let fined = fineAmount ?? penaltyAmount ?? interestAmount ? 0 : undefined
 
   if (isNumber(fined)) {
-    if (fineAmount) {
-      fined += parseFloat(fineAmount) ?? 0
+    if (isNumber(fineAmount)) {
+      fined += parseFloat(fineAmount)
     }
-    if (penaltyAmount) {
-      fined += parseFloat(penaltyAmount) ?? 0
+    if (isNumber(penaltyAmount)) {
+      fined += parseFloat(penaltyAmount)
     }
-    if (interestAmount) {
-      fined += parseFloat(interestAmount) ?? 0
+    if (isNumber(interestAmount)) {
+      fined += parseFloat(interestAmount)
     }
   }
 
