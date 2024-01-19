@@ -87,7 +87,7 @@ export default async (
   plate: string,
   state: string,
   plateTypes?: string[] | undefined
-) => {
+): Promise<AxiosResponse[]> => {
   // Checking for selected fields for violations
   /**
    * const fieldsForExternalRequests = 'violations' in selectedFields
