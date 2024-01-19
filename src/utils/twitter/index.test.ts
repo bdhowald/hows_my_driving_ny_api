@@ -858,6 +858,70 @@ describe('twitter', () => {
       )
     })
 
+    it('should handle a tweet create event Account Activity object with no user mentions', () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const insertId = '12345'
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, { insertId })
+      )
+
+      const tweetCreateEventCreateAccountActivityApiObject = {
+        tweet_create_events: [
+          {
+            entities: {
+              hashtags: [],
+              urls: [],
+              user_mentions: [],
+              symbols: [],
+            },
+            extended_entities: {},
+            text: 'NY:LAYLOW1',
+            id_str: "12345678276030615556",
+            in_reply_to_status_id_str: '1665471049385885697',
+            timestamp_ms: '1685895318942',
+            user: {
+              id_str: "11223344276030615556",
+              screen_name: 'ScreenName',
+            }
+          },
+        ],
+        user_has_blocked: false,
+      }
+
+      const tweetCreateEvent = tweetCreateEventCreateAccountActivityApiObject.tweet_create_events[0]
+
+      const expectedTwitterEvent = {
+        created_at: BigInt(tweetCreateEvent.timestamp_ms),
+        event_id: BigInt(tweetCreateEvent.id_str),
+        event_text: tweetCreateEvent.text,
+        event_type: 'status',
+        in_reply_to_message_id: BigInt(tweetCreateEvent.in_reply_to_status_id_str),
+        location: undefined,
+        responded_to: false,
+        user_handle: tweetCreateEvent.user.screen_name,
+        user_id: BigInt(tweetCreateEvent.user.id_str),
+        user_mention_ids: undefined,
+        user_mentions: undefined,
+      }
+
+      handleTwitterAccountActivityApiEvents(
+        JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
+      )
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'insert into twitter_events set ?',
+        expectedTwitterEvent,
+        expect.anything(),
+      )
+    })
+
     it('should log, but otherwise ignore an event it does not know how to handle', () => {
       const databaseConnection = {
         end: jest.fn(),

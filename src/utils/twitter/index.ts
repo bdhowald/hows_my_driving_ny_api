@@ -284,29 +284,27 @@ const formPlateLookupTweets = (
       // to pad to 3.
       const leftJustifyAmount = spacesNeeded - countLength
 
+      const paddedCurrencyString = currencyString.padEnd(leftJustifyAmount)
+
       const humanReadableFineType = fineType
         .replace('total', '')
         .replace(/(\S)([A-Z])/g, '$1 $2')
 
       // formulate next string part
-      const nextPart = `${currencyString.padEnd(
-        leftJustifyAmount
-      )}| ${humanReadableFineType.replace(/\b[a-z]/g, (firstLetterOfWord) =>
-        firstLetterOfWord.toUpperCase()
-      )}\n`
+      const fineTypeSummary = `${paddedCurrencyString}| ${humanReadableFineType}\n`
 
       // determine current string length if necessary
-      const potentialResponseLength = (curString + nextPart).length
+      const potentialResponseLength = (curString + fineTypeSummary).length
 
       // If violation string so far and new part are less or
       // equal than 280 characters, append to existing tweet string.
       if (potentialResponseLength <= STATUS_MAX_LENGTH) {
-        curString += nextPart
+        curString += fineTypeSummary
       } else {
         responseChunks.push(curString)
 
         curString = `Known fines for ${plateHashTagString}, cont'd:\n\n`
-        curString += nextPart
+        curString += fineTypeSummary
       }
     })
 
@@ -700,7 +698,7 @@ const parseEntitiesForUserMentionData = (
   entities: Entities,
   tweetText: string
 ): { userMentionIds: string; userMentions: string } | undefined => {
-  if (entities.userMentions) {
+  if (entities.userMentions?.length) {
     const userMentionIds = entities.userMentions
       .map((mention: UserMention) => mention.idStr)
       .join(' ')
