@@ -94,7 +94,7 @@ describe('databaseQueries', () => {
       state,
     }
 
-    it('should insert a new lookup into the database', async () => {
+    it('should insert a new lookup with plate types into the database', async () => {
       jest.useFakeTimers()
 
       const randomValueThatWillEvaluateToNewUniqueIdentifier = 0.2787865416438
@@ -133,6 +133,75 @@ describe('databaseQueries', () => {
         observed: null,
         plate,
         plateTypes: nonEmptyPlateTypes.join(','),
+        respondedTo: true,
+        redLightCameraViolations: 2,
+        speedCameraViolations: 2,
+        state,
+        uniqueIdentifier: newUniqueIdentifier,
+      }
+
+      expect(databaseConnection.query).toHaveBeenCalledTimes(2)
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
+        'select count(*) as count from plate_lookups where unique_identifier = ?',
+        [newUniqueIdentifier],
+        expect.anything()
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'insert into plate_lookups set ?',
+        decamelizeKeys(newLookup),
+        expect.anything()
+      )
+
+      jest.useRealTimers()
+    })
+
+    it('should insert a new lookup without plate types into the database', async () => {
+      jest.useFakeTimers()
+
+      const randomValueThatWillEvaluateToNewUniqueIdentifier = 0.2787865416438
+
+      jest
+        .spyOn(global.Math, 'random')
+        .mockReturnValueOnce(randomValueThatWillEvaluateToNewUniqueIdentifier)
+
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, [{ count: 0 }])
+      )
+
+      const createNewLookupArgumentsWithoutPlateTypes = {
+        ...createNewLookupArguments,
+        plateTypes: undefined,
+      }
+
+      await createAndInsertNewLookup(createNewLookupArgumentsWithoutPlateTypes)
+
+      const now = new Date()
+
+      const newLookup: PlateLookup = {
+        bootEligibleUnderRdaaThreshold: false,
+        bootEligibleUnderDvaaThreshold: false,
+        busLaneCameraViolations: 1,
+        countTowardsFrequency: false,
+        createdAt: now,
+        externalUsername: null,
+        fingerprintId: undefined,
+        lookupSource: LookupSource.Api,
+        messageId: null,
+        mixpanelId: undefined,
+        numTickets: 17,
+        observed: null,
+        plate,
+        plateTypes: null,
         respondedTo: true,
         redLightCameraViolations: 2,
         speedCameraViolations: 2,
@@ -445,7 +514,7 @@ describe('databaseQueries', () => {
   })
 
   describe('getExistingLookupResult', () => {
-    it('should return the previous lookup when one exists', async () => {
+    it('should return an existing lookup when one exists', async () => {
       const date = new Date()
 
       const expected = {
@@ -471,6 +540,40 @@ describe('databaseQueries', () => {
       const previousLookupResult = await getExistingLookupResult(identifier)
 
       expect(previousLookupResult).toEqual(expected)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
+        ['a1b2c3d4'],
+        expect.anything()
+      )
+    })
+
+    it('should return no existing lookup when one does not exist', async () => {
+      const date = new Date()
+
+      const expected = {
+        createdAt: date,
+        plate,
+        plateTypes: nonEmptyPlateTypes,
+        state,
+      }
+
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
+        callback(null, [])
+      )
+
+      const identifier = 'a1b2c3d4'
+
+      const previousLookupResult = await getExistingLookupResult(identifier)
+
+      expect(previousLookupResult).toEqual(null)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
@@ -650,6 +753,31 @@ describe('databaseQueries', () => {
           'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false ' +
           'where is_duplicate = false and event_id = ?;',
         [userId, inReplyToMessageId],
+        expect.anything()
+      )
+    })
+
+    it('should not update non-follower replies when given a user id that yields no results', async () => {
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      databaseConnection.query
+        .mockImplementationOnce((_, __, callback) => {
+          callback(null, [])
+        })
+
+      const result = await updateNonFollowerReplies(userId)
+
+      expect(result).toBe(true)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
+          'non_follower_replies where user_id = ? and favorited = false;',
+        [userId],
         expect.anything()
       )
     })

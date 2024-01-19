@@ -269,9 +269,7 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
 
         handleDatabaseError(error, reject)
 
-        if (results) {
-          return resolve(callback(results))
-        }
+        return resolve(callback(results))
       }
     )
   })
@@ -324,10 +322,6 @@ export const getExistingLookupResult = async (
 
     databaseConnection.query(queryString, queryArgs, callback)
   })
-
-new Promise((resolve, reject) => {
-
-})
 
 
 /**
@@ -389,7 +383,7 @@ export const insertNewTwitterEventAndMediaObjects = (
 
       handleDatabaseError(error, reject)
 
-      if (!mediaObjects) {
+      if (!mediaObjects?.length) {
         return resolve(!!results)
       }
 
@@ -517,52 +511,54 @@ export const updateNonFollowerReplies = async (
 
       handleDatabaseError(error, reject)
 
-      if (results.length) {
-        results.forEach((updatedEvent) => {
-          const inReplyToMessageId = updatedEvent.in_reply_to_message_id
-
-          const baseUpdateNonFollowerRepliesQueryString = formatQueryString(
-            'update non_follower_replies' +
-            '   set favorited = true' +
-            ' where user_id = ?'
-          )
-
-          const updateNonFollowerRepliesQueryString = favoritedStatusId
-            ? baseUpdateNonFollowerRepliesQueryString + ' and event_id = ?;'
-            : baseUpdateNonFollowerRepliesQueryString + ';'
-
-          const updateTwitterEventsQueryString = formatQueryString(
-            'update twitter_events' +
-            '   set user_favorited_non_follower_reply = true' +
-            '     , responded_to = false' +
-            ' where is_duplicate = false' +
-            '   and event_id = ?;'
-          )
-
-          const updateQueryString = `${updateNonFollowerRepliesQueryString} ${updateTwitterEventsQueryString}`
-
-          const updateQueryArgs = favoritedStatusId
-            ? [userId, favoritedStatusId, inReplyToMessageId]
-            : [userId, inReplyToMessageId]
-
-          const newDatabaseConnection = instantiateConnection()
-
-          const innerCallback = (error: MysqlError | null, results: any) => {
-            // Close database connection
-            newDatabaseConnection.end(closeConnectionHandler)
-
-            handleDatabaseError(error, reject)
-
-            return resolve(true)
-          }
-
-          databaseConnection.query(
-            updateQueryString,
-            updateQueryArgs,
-            innerCallback
-          )
-        })
+      if (!results.length) {
+        return resolve(true)
       }
+
+      results.forEach((updatedEvent) => {
+        const inReplyToMessageId = updatedEvent.in_reply_to_message_id
+
+        const baseUpdateNonFollowerRepliesQueryString = formatQueryString(
+          'update non_follower_replies' +
+          '   set favorited = true' +
+          ' where user_id = ?'
+        )
+
+        const updateNonFollowerRepliesQueryString = favoritedStatusId
+          ? baseUpdateNonFollowerRepliesQueryString + ' and event_id = ?;'
+          : baseUpdateNonFollowerRepliesQueryString + ';'
+
+        const updateTwitterEventsQueryString = formatQueryString(
+          'update twitter_events' +
+          '   set user_favorited_non_follower_reply = true' +
+          '     , responded_to = false' +
+          ' where is_duplicate = false' +
+          '   and event_id = ?;'
+        )
+
+        const updateQueryString = `${updateNonFollowerRepliesQueryString} ${updateTwitterEventsQueryString}`
+
+        const updateQueryArgs = favoritedStatusId
+          ? [userId, favoritedStatusId, inReplyToMessageId]
+          : [userId, inReplyToMessageId]
+
+        const newDatabaseConnection = instantiateConnection()
+
+        const innerCallback = (error: MysqlError | null, results: any) => {
+          // Close database connection
+          newDatabaseConnection.end(closeConnectionHandler)
+
+          handleDatabaseError(error, reject)
+
+          return resolve(true)
+        }
+
+        databaseConnection.query(
+          updateQueryString,
+          updateQueryArgs,
+          innerCallback
+        )
+      })
     }
 
     databaseConnection.query(selectQueryString, selectQueryArgs, outerCallback)
