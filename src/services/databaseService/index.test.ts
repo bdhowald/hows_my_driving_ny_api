@@ -1,4 +1,4 @@
-import { Connection, MysqlError } from 'mysql'
+import { MysqlError } from 'mysql'
 
 import { closeConnectionHandler, instantiateConnection } from '.'
 
