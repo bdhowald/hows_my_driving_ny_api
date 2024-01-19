@@ -109,7 +109,6 @@ export const handleApiLookup = async (
         vehicleResponse.vehicle.statistics
       )
 
-      // @ts-expect-error  Figure out how to prevent decamelization of boroughs and violation names
       decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
     }
 
@@ -192,7 +191,6 @@ export const handleExistingLookup = async (
         vehicleResponse.vehicle.statistics
       )
 
-      // @ts-expect-error  Figure out how to prevent decamelization of boroughs and violation names
       decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
     }
 

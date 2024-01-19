@@ -90,7 +90,7 @@ class QueryParser {
    * Get data that represents the user and lookup type
    */
   getAnalyticsData = (): AnalyticsData => {
-    if (this.query) {
+    if (Object.keys(this.query).length) {
       let lookupSource: LookupSource | undefined
 
       const fingerprintId = this.query['fingerprintId'] as string | undefined
