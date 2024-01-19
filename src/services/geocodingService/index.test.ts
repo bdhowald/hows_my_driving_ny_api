@@ -1,14 +1,16 @@
 import { Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { instantiateConnection } from 'services/databaseService'
+import { getBoroughFromDatabaseGeocode } from 'utils/databaseQueries'
 
 import getBoroughService from '.'
 
 jest.mock('@googlemaps/google-maps-services-js')
 jest.mock('services/databaseService')
+jest.mock('utils/databaseQueries')
 
 describe('getBoroughService', () => {
   beforeEach(() => {
-    ;(instantiateConnection as jest.Mock).mockReset()
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockReset()
     ;(GoogleMapsClient as jest.Mock).mockReset()
   })
 
@@ -17,30 +19,19 @@ describe('getBoroughService', () => {
   it("should return 'No Borough Available' if no address is given", async () => {
     expect(await getBoroughService(undefined)).toBe('No Borough Available')
 
-    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(0)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(0)
   })
 
   it('should search the database for a geocode and return the result if so', async () => {
-    const geocodeFromDatabase = {
+    const boroughFromDatabase = {
       borough: 'Brooklyn',
-      geocoding_service: 'google',
-      lookup_string: '99 Schermerhorn Street New York NY',
     }
 
-    const databaseConnection = {
-      end: jest.fn(),
-      query: jest.fn((_, __, callback) =>
-        callback(null, [geocodeFromDatabase])
-      ),
-    }
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([boroughFromDatabase])
 
-    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
-      databaseConnection
-    )
+    expect(await getBoroughService(address)).toBe(boroughFromDatabase.borough)
 
-    expect(await getBoroughService(address)).toBe(geocodeFromDatabase.borough)
-
-    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
   })
 
   it('should query Google for the borough if no database geocode and return one if it finds one', async () => {
@@ -100,21 +91,15 @@ describe('getBoroughService', () => {
       geocode: jest.fn(() => googleMapsGeocodeResponse),
     }
 
-    const databaseConnection = {
-      end: jest.fn(),
-      query: jest.fn((_, __, callback) => callback(null, [])),
-    }
-
-    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
-      databaseConnection
-    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address)).toBe(brooklyn)
 
-    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
 
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
@@ -151,21 +136,81 @@ describe('getBoroughService', () => {
       geocode: jest.fn(() => googleMapsGeocodeResponse),
     }
 
-    const databaseConnection = {
-      end: jest.fn(),
-      query: jest.fn((_, __, callback) => callback(null, [])),
-    }
-
-    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
-      databaseConnection
-    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address)).toBe(brooklyn)
 
-    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
 
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
+  it("should return 'No Borough Available' if no Google result has borough-level data", async () => {
+    const googleMapsGeocodeResponse = {
+      data: {
+        results: [
+          {
+            address_components: [
+              {
+                long_name: 'A City',
+                short_name: 'A Big City',
+                types: ['political', 'locality', 'locality_level_1'],
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => googleMapsGeocodeResponse),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
+
+    expect(await getBoroughService(address)).toBe('No Borough Available')
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
+  it("should return 'No Borough Available' if no Google result is a borough", async () => {
+    const googleMapsGeocodeResponse = {
+      data: {
+        results: [
+          {
+            address_components: [
+              {
+                long_name: 'Not a Borough',
+                short_name: 'Not a Borough',
+                types: ['political', 'sublocality', 'sublocality_level_1'],
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => googleMapsGeocodeResponse),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
+
+    expect(await getBoroughService(address)).toBe('No Borough Available')
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
@@ -180,21 +225,38 @@ describe('getBoroughService', () => {
       geocode: jest.fn(() => googleMapsGeocodeResponse),
     }
 
-    const databaseConnection = {
-      end: jest.fn(),
-      query: jest.fn((_, __, callback) => callback(null, [])),
-    }
-
-    ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
-      databaseConnection
-    )
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address)).toBe('No Borough Available')
 
-    expect(instantiateConnection as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
 
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
+  it("should return 'No Borough Available' if the Google request errors", async () => {
+    const consoleErrorSpy = jest.spyOn(global.console, 'error')
+
+    const errorMessage = new Error('something broke')
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => { throw errorMessage}),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
+
+    expect(await getBoroughService(address)).toBe('No Borough Available')
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(errorMessage)
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 })

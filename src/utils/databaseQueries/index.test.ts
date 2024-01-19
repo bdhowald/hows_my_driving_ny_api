@@ -3,6 +3,7 @@ import { decamelizeKeys } from 'humps'
 
 import LookupSource from 'constants/lookupSources'
 import PlateLookup from 'constants/plateLookup'
+import { DatabaseGeocode } from 'types/geocoding'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
 import { instantiateConnection } from 'services/databaseService'
 
@@ -10,7 +11,9 @@ import {
   createAndInsertNewLookup,
   CreateNewLookupArguments,
   getExistingLookupResult,
+  getBoroughFromDatabaseGeocode,
   getPreviousLookupAndLookupFrequencyForVehicle,
+  insertGeocodeIntoDatabase,
   insertNewTwitterEventAndMediaObjects,
   updateNonFollowerReplies,
   VehicleQueryProps,
@@ -580,6 +583,59 @@ describe('databaseQueries', () => {
         ['a1b2c3d4'],
         expect.anything()
       )
+    })
+  })
+
+  describe('getBoroughFromDatabaseGeocode', () => {
+    it('should search the database for a geocode and return the result if so', async () => {
+      const address = '99 Schermerhorn Street New York NY'
+
+      const borough = {borough: 'Brooklyn'}
+
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn((_, __, callback) =>
+          callback(null, [borough])
+        ),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+        databaseConnection
+      )
+
+      expect(await getBoroughFromDatabaseGeocode(address)).toEqual([borough])
+
+      expect(databaseConnection.query).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('insertGeocodeIntoDatabase', () => {
+    it('should insert a geocode into the database', async () => {
+      const address = '99 Schermerhorn Street New York NY'
+
+      const geocode: DatabaseGeocode = {
+        borough: 'Brooklyn',
+        geocoding_service: 'google',
+        lookup_string: address
+      }
+
+      const databaseConnection = {
+        end: jest.fn(),
+        query: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+        databaseConnection
+      )
+
+      databaseConnection.query
+        .mockImplementationOnce((_, __, callback) =>
+          callback(null, { insertId: '123' })
+        )
+
+      expect(await insertGeocodeIntoDatabase(geocode)).toBe(true)
+
+      expect(databaseConnection.query).toHaveBeenCalledTimes(1)
     })
   })
 

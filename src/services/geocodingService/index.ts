@@ -4,27 +4,16 @@ import {
   Client as GoogleMapsClient,
   GeocodeResponse,
 } from '@googlemaps/google-maps-services-js'
-import { Connection, MysqlError } from 'mysql'
 
 import { Borough } from 'constants/boroughs'
-import {
-  closeConnectionHandler,
-  instantiateConnection,
-} from 'services/databaseService'
-
-type DatabaseGeocode = {
-  borough: string
-  geocoding_service: string
-  lookup_string: string
-}
-
-type GeocodeQueryResult = DatabaseGeocode & { id: number }
+import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
+import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
 
 const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
-export default async (streetAddress: string | undefined): Promise<Borough> => {
+const getBoroughService = async (streetAddress: string | undefined): Promise<Borough> => {
   if (!streetAddress) {
     return Borough.NoBoroughAvailable
   }
@@ -34,10 +23,7 @@ export default async (streetAddress: string | undefined): Promise<Borough> => {
 
   let potentialBorough: string | Borough | undefined
 
-  const databaseConnection = instantiateConnection()
-
-  const results: GeocodeQueryResult[] = await getGeocodeFromDatabase(
-    databaseConnection,
+  const results: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
     streetWithoutDirections
   )
 
@@ -53,43 +39,14 @@ export default async (streetAddress: string | undefined): Promise<Borough> => {
 
     potentialBorough = geocodeFromGoogle.borough
 
-    await insertGeocodeIntoDatabase(databaseConnection, geocodeFromGoogle)
+    await insertGeocodeIntoDatabase(geocodeFromGoogle)
   }
-
-  // Close database connection
-  databaseConnection.end(closeConnectionHandler)
 
   if (potentialBorough in Borough) {
     return potentialBorough as Borough
   }
 
   return Borough.NoBoroughAvailable
-}
-
-const getGeocodeFromDatabase = async (
-  connection: Connection,
-  streetAddress: string
-): Promise<GeocodeQueryResult[]> => {
-  const geocodeSQLString =
-    'select borough from geocodes WHERE lookup_string = ?'
-
-  return new Promise((resolve, reject) => {
-    const callback = (
-      error: MysqlError | null,
-      results?: GeocodeQueryResult[]
-    ) => {
-      if (error) {
-        reject(error)
-      }
-      if (results) {
-        resolve(results)
-      }
-    }
-
-    const valuesString = [`${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`]
-
-    return connection.query(geocodeSQLString, valuesString, callback)
-  })
 }
 
 const getGoogleGeocode = async (
@@ -120,7 +77,7 @@ const getGoogleGeocode = async (
           addressComponent.types.indexOf(AddressType.sublocality) !== -1
       )
 
-      if (potentialBorough && potentialBorough.long_name in Borough) {
+      if (potentialBorough) {
         return {
           lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
           borough: potentialBorough.long_name,
@@ -135,11 +92,4 @@ const getGoogleGeocode = async (
   }
 }
 
-const insertGeocodeIntoDatabase = async (
-  connection: Connection,
-  geocode: DatabaseGeocode
-) => {
-  connection.query('insert into geocodes set ?', geocode, (error) => {
-    if (error) throw error
-  })
-}
+export default getBoroughService

@@ -8,6 +8,7 @@ import {
   instantiateConnection,
 } from 'services/databaseService'
 import CameraData from 'types/cameraData'
+import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
 import { PreviousLookupAndFrequency, PreviousLookupResult } from 'types/query'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
 import { camelizeKeys, decamelizeKeys } from 'utils/camelize'
@@ -16,6 +17,8 @@ const LOOKUP_SOURCES_THAT_SHOULD_NOT_INCREMENT_FREQUENCY = [
   LookupSource.Api,
   LookupSource.ExistingLookup,
 ]
+
+const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
 
 export type CreateNewLookupArguments = {
   cameraData: CameraData
@@ -140,6 +143,40 @@ export const createAndInsertNewLookup = async (
  */
 const formatQueryString = (queryString: string): string =>
   queryString.replace(/\s{2,},/g, ',').replace(/\s{2,}/g, ' ')
+
+
+/**
+ * Query the database for a previously-saved geocode
+ *
+ * @param streetAddress - the address field of the geocode we are looking for
+ */
+export const getBoroughFromDatabaseGeocode = async (
+  streetAddress: string
+): Promise<GeocodeQueryResult[]> => {
+  const databaseConnection = instantiateConnection()
+
+  const geocodeSQLString =
+    'select borough from geocodes WHERE lookup_string = ?'
+
+  return new Promise((resolve, reject) => {
+    const callback = (
+      error: MysqlError | null,
+      results: GeocodeQueryResult[]
+    ) => {
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+
+      handleDatabaseError(error, reject)
+
+      resolve(results)
+    }
+
+    const valuesString = [`${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`]
+
+    return databaseConnection.query(geocodeSQLString, valuesString, callback)
+  })
+}
+
 
 /**
  * Get arguments to query the database for previous lookups for this vehicle
@@ -336,6 +373,29 @@ const handleDatabaseError = (error: MysqlError | null, reject: (value: unknown) 
     reject(error)
   }
 }
+
+/**
+ * Insert a geocode into the database after querying for it
+ *
+ * @param geocode - street address, borough, and geocoding service to insert into database
+ */
+export const insertGeocodeIntoDatabase = async (
+  geocode: DatabaseGeocode
+) =>
+  new Promise((resolve, reject) => {
+    const databaseConnection = instantiateConnection()
+
+    const callback = (error: MysqlError | null, results: any) => {
+      // Close database connection
+      databaseConnection.end(closeConnectionHandler)
+
+      handleDatabaseError(error, reject)
+
+      resolve(true)
+    }
+
+    databaseConnection.query('insert into geocodes set ?', geocode, callback)
+  })
 
 /**
  * Insert a new plate lookup into our database
