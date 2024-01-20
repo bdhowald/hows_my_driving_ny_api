@@ -3,8 +3,6 @@ import LookupSource from 'constants/lookupSources'
 import ParsedQueryStringForApiLookup from 'types/queryStringParsing'
 import { camelize } from 'utils/camelize'
 
-type AnalyticsFields = 'fingerprintId' | 'lookupSource' | 'mixpanelId'
-
 type AnalyticsData = {
   fingerprintId: string | undefined
   lookupSource: LookupSource | undefined
@@ -41,8 +39,9 @@ class QueryParser {
   }
 
   /**
+   * Identify fields with which to filter the response to the client.
    *
-   * @param fieldsFromQuery
+   * @param fieldsFromQuery - allows us to recurse into the nested structure
    */
   findFilterFields = (fieldsFromQuery?: string | string[] | undefined) => {
     const possibleFilterFields = fieldsFromQuery ?? this.query['fields'] ?? this.query['fields[]']

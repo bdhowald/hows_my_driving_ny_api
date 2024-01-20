@@ -1,4 +1,4 @@
-import { AxiosResponse, HttpStatusCode } from 'axios'
+import { AxiosResponse } from 'axios'
 import { DateTime } from 'luxon'
 
 import LookupSource from 'constants/lookupSources'
