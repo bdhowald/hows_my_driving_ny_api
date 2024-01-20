@@ -28,6 +28,71 @@ describe('QueryParser', () => {
       expect(result).toEqual(expected)
     })
 
+    it("should return filter fields when 'fields' is an object with nested fields, even if nested fields are empty", () => {
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations()'
+      )
+      const queryParser = new QueryParser(searchParams)
+
+      const expected = { violations: {} }
+
+      const result = queryParser.findFilterFields()
+
+      expect(result).toEqual(expected)
+    })
+
+    it("should return filter fields when 'fields' has multiple entries", () => {
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations(violation_code)&fields=times_queried&fields=unique_identifier'
+      )
+      const queryParser = new QueryParser(searchParams)
+
+      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+
+      const result = queryParser.findFilterFields()
+
+      expect(result).toEqual(expected)
+    })
+
+    it("should return filter fields when 'fields' uses array-type query params", () => {
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields[]=violations(violation_code)&fields[]=times_queried&fields[]=unique_identifier'
+      )
+      const queryParser = new QueryParser(searchParams)
+
+      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+
+      const result = queryParser.findFilterFields()
+
+      expect(result).toEqual(expected)
+    })
+
+    it("should return filter fields when 'fields' uses comma-separated query params", () => {
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations(violation_code),times_queried,unique_identifier'
+      )
+      const queryParser = new QueryParser(searchParams)
+
+      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+
+      const result = queryParser.findFilterFields()
+
+      expect(result).toEqual(expected)
+    })
+
+    it("should ignore individual filter fields when field cannot be understood", () => {
+      const searchParams = new URLSearchParams(
+        'plate=ABC1234:NY&fields=violations(.*.),times_queried,unique_identifier'
+      )
+      const queryParser = new QueryParser(searchParams)
+
+      const expected = { times_queried: {}, unique_identifier: {} }
+
+      const result = queryParser.findFilterFields()
+
+      expect(result).toEqual(expected)
+    })
+
     it("should return empty filter fields when 'fields' is missing from query string", () => {
       const searchParams = new URLSearchParams('plate=ABC1234:NY')
       const queryParser = new QueryParser(searchParams)
@@ -147,6 +212,23 @@ describe('QueryParser', () => {
       it('should return an error on multiple plate lookups', () => {
         const searchParams = new URLSearchParams(
           'plate_id=ABC1234&state=NY&plate_id=XYZ6789&state=NY'
+        )
+        const queryParser = new QueryParser(searchParams)
+
+        const expected = {
+          error:
+            "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
+            "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'",
+        }
+
+        const result = queryParser.getPotentialVehicles()
+
+        expect(result).toEqual(expected)
+      })
+
+      it('should return an error on multiple lookups when only state param appears twice', () => {
+        const searchParams = new URLSearchParams(
+          'plate_id=ABC1234&state=NY&state=CA'
         )
         const queryParser = new QueryParser(searchParams)
 

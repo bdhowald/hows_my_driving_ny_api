@@ -45,7 +45,7 @@ class QueryParser {
    * @param fieldsFromQuery
    */
   findFilterFields = (fieldsFromQuery?: string | string[] | undefined) => {
-    const possibleFilterFields = fieldsFromQuery ?? this.query['fields']
+    const possibleFilterFields = fieldsFromQuery ?? this.query['fields'] ?? this.query['fields[]']
 
     const returnFields: { [key: string]: object } = {}
 
@@ -76,6 +76,8 @@ class QueryParser {
             returnFields[field] = this.findFilterFields(
               subFieldsWithoutParentheses.replace(/[\(|\)]/g, '')
             )
+          } else {
+            returnFields[field] = {}
           }
         }
       } else {
@@ -231,38 +233,22 @@ class QueryParser {
     }
   }
 
-  private getPlateWithLegacyFormat = (): string | undefined => {
-    if (!this.query.plateId) {
-      return undefined
-    } else if (Array.isArray(this.query.plateId)) {
-      throw new Error('Cannot query with multiple plate_ids and states.')
-    } else {
-      return this.query.plateId
-    }
-  }
+  private getPlateWithLegacyFormat = (): string | undefined =>
+    // We check for multiple plateIds earlier, so cannot be string[]
+    this.query.plateId as string | undefined
 
   private getPlateTypesWithLegacyFormat = (): string[] | undefined => {
     if (!this.query.plateTypes) {
       return undefined
     }
-    let arr: string[]
-    if (Array.isArray(this.query.plateTypes)) {
-      arr = this.query.plateTypes
-    } else {
-      arr = this.query.plateTypes.split(',')
-    }
+    // We check for multiple plateIds earlier, so cannot be string[]
+    const arr: string[] = (this.query.plateTypes as string).split(',')
     return arr.map((item: any) => item.trim())
   }
 
-  private getStateWithLegacyFormat = (): string | undefined => {
-    if (!this.query.state) {
-      return undefined
-    } else if (Array.isArray(this.query.state)) {
-      throw new Error('Cannot query with multiple plate_ids and states.')
-    } else {
-      return this.query.state
-    }
-  }
+  private getStateWithLegacyFormat = (): string | undefined =>
+    // We check for multiple plateIds earlier, so cannot be string[]
+    this.query.state as string | undefined
 
   getPotentialVehicles = (): ParsedQueryStringForApiLookup => {
     const apiLookupValidationErrors = this.validateApiLookupParams()
