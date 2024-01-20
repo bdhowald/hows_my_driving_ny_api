@@ -29,11 +29,11 @@ const handleAxiosErrors = (error: AxiosError) => {
     )
   } else {
     // Something happened in setting up the request that triggered an Error
-    console.log('Error', error.message)
+    console.error('Error', error.message)
   }
   console.log(error.config)
 
-  return { data: [] }
+  return new Error(error.message)
 }
 
 const makeOpenDataRequestURL = (
@@ -43,18 +43,12 @@ const makeOpenDataRequestURL = (
   state: string,
   plateTypes: string[] | undefined
 ) => {
-  const appToken = process.env.NYC_OPEN_DATA_APP_TOKEN
-
-  if (!appToken) {
-    throw Error('NYC Open Data app token is missing.')
-  }
-
   const plateField = isFiscalYearRequest ? 'plate_id' : 'plate'
   const plateTypeField = isFiscalYearRequest ? 'plate_type' : 'license_type'
   const stateField = isFiscalYearRequest ? 'registration_state' : 'state'
 
   const queryParams = new URLSearchParams({
-    $$app_token: appToken,
+    $$app_token: process.env.NYC_OPEN_DATA_APP_TOKEN as string,
     $limit: '10000',
     [plateField]: encodeURIComponent(plate.toUpperCase()),
     [stateField]: state.toUpperCase(),
@@ -83,7 +77,7 @@ const makeOpenDataRequestURL = (
    */
 }
 
-export default async (
+const makeOpenDataVehicleRequest = async (
   plate: string,
   state: string,
   plateTypes?: string[] | undefined
@@ -95,6 +89,12 @@ export default async (
    *   : {}
    */
 
+  const appToken = process.env.NYC_OPEN_DATA_APP_TOKEN
+
+  if (!appToken) {
+    throw Error('NYC Open Data app token is missing.')
+  }
+
   let rectifiedPlate = plate
 
   try {
@@ -104,8 +104,14 @@ export default async (
     if (possibleMedallionPlate) {
       rectifiedPlate = possibleMedallionPlate
     }
-  } catch (error) {
-    console.error(error)
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const nonAxiosError = handleAxiosErrors(error)
+      throw nonAxiosError
+    } else {
+      console.error(error)
+      throw error
+    }
   }
 
   // Fiscal Year Databases
@@ -136,15 +142,11 @@ export default async (
   return await Promise.all(promises)
 }
 
-const retrievePossibleMedallionVehiclePlate = async (plate: string) => {
-  const appToken = process.env.NYC_OPEN_DATA_APP_TOKEN
-
-  if (!appToken) {
-    throw Error('NYC Open Data app token is missing.')
-  }
-
+const retrievePossibleMedallionVehiclePlate = async (
+  plate: string
+): Promise<string | undefined> => {
   const medallionEndpointSearchParams = new URLSearchParams({
-    $$app_token: appToken,
+    $$app_token: process.env.NYC_OPEN_DATA_APP_TOKEN as string,
     $group: 'dmv_license_plate_number',
     $limit: '10000',
     $select: 'dmv_license_plate_number, max(last_updated_date)',
@@ -156,29 +158,27 @@ const retrievePossibleMedallionVehiclePlate = async (plate: string) => {
     MEDALLION_DATABASE_ENDPOINT
   )
 
-  try {
-    const medallionEndpointResponse = await axios.get(
-      medallionUrlObject.toString()
-    )
+  const medallionEndpointResponse = await axios.get(
+    medallionUrlObject.toString()
+  )
 
-    const medallionResults = camelizeKeys(
-      medallionEndpointResponse.data
-    ) as MedallionReponse[]
+  const medallionResults = camelizeKeys(
+    medallionEndpointResponse.data
+  ) as MedallionReponse[]
 
-    if (!medallionResults.length) {
-      return plate
-    }
-
-    const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
-      const previousDate = new Date(prev.maxLastUpdatedDate)
-      const currentDate = new Date(cur.maxLastUpdatedDate)
-      return currentDate > previousDate ? cur : prev
-    })
-
-    return currentMedallionHolder.dmvLicensePlateNumber
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      handleAxiosErrors(error)
-    }
+  if (!medallionResults.length) {
+    return undefined
   }
+
+  console.log(medallionResults)
+
+  const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
+    const previousDate = new Date(prev.maxLastUpdatedDate)
+    const currentDate = new Date(cur.maxLastUpdatedDate)
+    return currentDate > previousDate ? cur : prev
+  })
+
+  return currentMedallionHolder.dmvLicensePlateNumber
 }
+
+export default makeOpenDataVehicleRequest

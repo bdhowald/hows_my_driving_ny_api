@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError, AxiosHeaders } from 'axios'
 
 import {
   rawFiscalYearDatabaseViolationFactory,
@@ -8,7 +8,10 @@ import { RawViolation } from 'types/violations'
 
 import makeOpenDataVehicleRequest from '.'
 
-jest.mock('axios')
+jest.mock('axios', () => ({
+  ...jest.requireActual('axios'),
+  get: jest.fn(),
+}));
 
 describe('makeOpenDataVehicleRequest', () => {
   describe('querying various open data tables', () => {
@@ -83,7 +86,7 @@ describe('makeOpenDataVehicleRequest', () => {
       `${openDataHost}/resource/uvbq-3m68.json?${openParkingAndCameraViolationsDatabaseQueryParams.toString()}`,
     ]
 
-    it('return a response even when no violations found', async () => {
+    it('return a response even when no violations found querying without plate types', async () => {
       const medallionEndpointResponse = { data: [] }
       const fiscalYear2014EndpointResponse = { data: [] }
       const fiscalYear2015EndpointResponse = { data: [] }
@@ -203,7 +206,120 @@ describe('makeOpenDataVehicleRequest', () => {
       })
     })
 
-    it('return a response when violations are found', async () => {
+    it('should use the most recent identified medallion plate', async () => {
+      const rawOpenParkingAndCameraViolation =
+        rawOpenParkingAndCameraViolationFactory.build()
+
+      const rawFiscalYearDatabaseViolation: RawViolation =
+        rawFiscalYearDatabaseViolationFactory.build()
+
+      const identifiedMedallionPlate = "1E65H"
+
+      const fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate = new URLSearchParams({
+        $$app_token: 'token',
+        $limit: '10000',
+        plate_id: identifiedMedallionPlate,
+        registration_state: state,
+      })
+  
+      const openParkingAndCameraViolationsDatabaseQueryParamsWithIdentifiedMedallionPlate =
+        new URLSearchParams({
+          $$app_token: 'token',
+          $limit: '10000',
+          plate: identifiedMedallionPlate,
+          state: state,
+        })
+
+      const openDataEndpointsWithIdentifiedMedallionPlate = [
+        `${openDataHost}/resource/rhe8-mgbb.json?${medallionDatabaseQueryParams.toString()}`,
+        `${openDataHost}/resource/jt7v-77mi.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/c284-tqph.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/kiv2-tbus.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/2bnn-yakx.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/a5td-mswe.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/faiq-9dfq.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/p7t3-5i9s.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/uvbq-3m68.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+      ]
+
+      const medallionEndpointResponse = {
+        data: [
+          {
+            dmv_license_plate_number: "1E65F",
+            max_last_updated_date: "2022-01-20T00:00:00.000"
+          },
+          {
+            dmv_license_plate_number: "1E65H",
+            max_last_updated_date: "2024-01-20T00:00:00.000"
+          },
+          {
+            dmv_license_plate_number: "1E65G",
+            max_last_updated_date: "2023-01-19T00:00:00.000"
+          },
+        ]
+      }
+      const fiscalYear2014EndpointResponse = { data: [] }
+      const fiscalYear2015EndpointResponse = { data: [] }
+      const fiscalYear2016EndpointResponse = { data: [] }
+      const fiscalYear2017EndpointResponse = { data: [] }
+      const fiscalYear2018EndpointResponse = { data: [] }
+      const fiscalYear2019EndpointResponse = {
+        data: [rawFiscalYearDatabaseViolation],
+      }
+      const fiscalYear2020EndpointResponse = { data: [] }
+      const fiscalYear2021EndpointResponse = { data: [] }
+      const fiscalYear2022EndpointResponse = { data: [] }
+      const fiscalYear2023EndpointResponse = { data: [] }
+      const fiscalYear2024EndpointResponse = { data: [] }
+      const openParkingAndCameraViolationsEndpointResponse = {
+        data: [rawOpenParkingAndCameraViolation],
+      }
+
+      ;(axios.get as jest.Mock)
+        .mockResolvedValueOnce(medallionEndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2014EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2015EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2016EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2017EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2018EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2019EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2020EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2021EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2022EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2023EndpointResponse)
+        .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
+        .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
+
+      const result = makeOpenDataVehicleRequest(plate, state)
+
+      expect(await result).toEqual(
+        // There should be one for every request except the first (medallion database).
+        [
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [rawFiscalYearDatabaseViolation] },
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [] },
+          { data: [rawOpenParkingAndCameraViolation] },
+        ]
+      )
+
+      openDataEndpointsWithIdentifiedMedallionPlate.map((endpoint, index) => {
+        expect(axios.get).toHaveBeenNthCalledWith(index + 1, endpoint)
+      })
+    })
+
+    it('return a response when violations are found querying with plate types', async () => {
       const rawOpenParkingAndCameraViolation =
         rawOpenParkingAndCameraViolationFactory.build()
 
@@ -302,6 +418,101 @@ describe('makeOpenDataVehicleRequest', () => {
 
       openDataEndpointsWithPlateTypes.map((endpoint, index) => {
         expect(axios.get).toHaveBeenNthCalledWith(index + 1, endpoint)
+      })
+    })
+
+    describe('handling open data errors', () => {
+      it('should throw an error if process.env.NYC_OPEN_DATA_APP_TOKEN is missing', async () => {
+        // store value
+        const nycOpenDataToken = process.env.NYC_OPEN_DATA_APP_TOKEN
+  
+        // delete value from process.env
+        delete process.env['NYC_OPEN_DATA_APP_TOKEN']
+  
+        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(
+          new Error('NYC Open Data app token is missing.')
+        )
+  
+        // restore value
+        process.env.NYC_OPEN_DATA_APP_TOKEN = nycOpenDataToken
+      })
+
+      it('should log and rethrow a non-axios error', async () => {
+        const nonAxiosError = new Error('Sorry, that did not work.')
+
+        ;(axios.get as jest.Mock).mockRejectedValueOnce(nonAxiosError)
+
+        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(nonAxiosError.message))
+      })
+
+      it('should log and rethrow an axios error with no request or response object', async () => {
+        const axiosError = new AxiosError(
+          'Sorry, that did not work.',
+          '401',
+        )
+
+        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+
+        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+      })
+
+      it('should log and rethrow an axios error with a response object', async () => {
+        const axiosError = new AxiosError(
+          'Sorry, that did not work.',
+          '401',
+          undefined,
+          {},
+          {
+            data: { errors: [{ detail: 'a' }] },
+            status: 401,
+            statusText:'Unauthorized',
+            headers: {},
+            config: {
+              headers: new AxiosHeaders({
+                Accept: 'application/json, text/plain, */*',
+                'User-Agent': 'axios/1.4.0',
+                'Accept-Encoding': 'gzip, compress, deflate, br'
+              })
+            }
+          }
+        )
+
+        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+
+        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+      })
+
+      it('should log and rethrow an axios error with a request object', async () => {
+        const errorMessage = 'Sorry, that did not work.'
+        const simpleError = new Error(errorMessage)
+
+        const axiosError = new AxiosError(
+          errorMessage,
+          '401',
+          {
+            headers: new AxiosHeaders({
+              server: 'nginx',
+              date: 'Sat, 13 Jul 2022 21:29:46 GMT',
+              'content-type': 'application/json; charset=utf-8',
+              'transfer-encoding': 'chunked',
+              connection: 'close',
+              'access-control-allow-origin': '*',
+              'x-error-code': 'not_found',
+              'x-error-message': 'No service found for this URL.',
+              'cache-control': 'private, no-cache, must-revalidate',
+              age: '0',
+              'x-socrata-region': 'aws-us-east-1-fedramp-prod',
+              'strict-transport-security': 'max-age=31536000; includeSubDomains',
+              'x-socrata-requestid': '5bd844a4a5b672caaba5cd3273d5927b'
+            }),
+            method: 'get'
+          },
+          {},
+        )
+
+        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+
+        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(simpleError)
       })
     })
   })
