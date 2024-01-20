@@ -183,16 +183,11 @@ export const handleExistingLookup = async (
       vehicleResponse
     ) as VehicleResponse
 
-    if (
-      vehicleResponse.vehicle?.statistics &&
-      decamelizedVehicleResponse.vehicle?.statistics
-    ) {
-      const decamelizedStatistics = decamelizeKeysOneLevel(
-        vehicleResponse.vehicle.statistics
-      )
+    const decamelizedStatistics = decamelizeKeysOneLevel(
+      (vehicleResponse.vehicle as Record<any, any>).statistics
+    ) as Record<any, any>
 
-      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
-    }
+    (decamelizedVehicleResponse.vehicle as Record<any, any>).statistics = decamelizedStatistics
 
     return decamelizedVehicleResponse
   }) as VehicleResponse[]
@@ -243,6 +238,13 @@ export const handleTwitterRequestChallenge = (
 export const handleTwitterWebhookEvent = (request: http.IncomingMessage) => {
   const body: any[] = []
 
+  const consumerSecret = process.env.TWITTER_CONSUMER_SECRET
+
+  if (!consumerSecret) {
+    console.error('No consumer secret to encrypt challenge responses')
+    throw Error('Server Error')
+  }
+
   request
     .on('data', (chunk: any) => {
       body.push(chunk)
@@ -251,10 +253,7 @@ export const handleTwitterWebhookEvent = (request: http.IncomingMessage) => {
       // at this point, `body` has the entire request body stored in it as a string
       const completeRequestBody = Buffer.concat(body).toString()
 
-      const hmac = createHmac(
-        'sha256',
-        process.env.TWITTER_CONSUMER_SECRET ?? ''
-      )
+      const hmac = createHmac('sha256', consumerSecret)
       const expectedSHA =
         'sha256=' + hmac.update(completeRequestBody).digest('base64')
 
