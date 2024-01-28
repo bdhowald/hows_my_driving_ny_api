@@ -1050,6 +1050,38 @@ describe('getAndProcessApiLookup', () => {
       jest.useRealTimers()
     })
 
+    it('should throw an error if an open data response is missing the url it is from', async () => {
+      const plate = 'ABC1234'
+
+      const potentialVehicle: PotentialVehicle = {
+        originalString: `${plate}:${state}`,
+        plate,
+        state,
+        validPlate: true,
+      }
+
+      const openDataServiceResponse = [
+        {
+          config: {},
+          data: [],
+        },
+      ]
+
+      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+
+      await expect(
+        getAndProcessApiLookup(
+          potentialVehicle,
+          undefined,
+          externalData
+        )
+      ).rejects.toEqual(
+        new Error('Missing response url')
+      )
+    })
+
     it('should return an error response if one of the violations databases returns an error', async () => {
       jest.useFakeTimers()
 
