@@ -17,6 +17,7 @@ import {
   FavoriteEvent,
   FollowEvent,
   Media,
+  MediaAttachment,
   TweetCreateEvent,
   TwitterDatabaseEvent,
   TwitterMediaObject,
@@ -33,14 +34,10 @@ import {
 
 type AssembleResponseTypeArguments = {
   // The prefix string for every tweet about this summary type after the first tweet
-  continuedFormatString?: string | undefined
-
-  // The placeholder to use when a summary data type field is missing
-  // e.g. 'No year available' when a violation has no datetime
-  defaultDescription: string
+  continuedFormatString: string
 
   // The prefix string for the first tweet about this summary type
-  prefixFormatString?: string | undefined
+  prefixFormatString: string
 
   // The summary data (e.g. years, boroughs, violation types)
   summaryDataSubset:
@@ -233,7 +230,6 @@ const formPlateLookupTweets = (
 
   const totalViolationsResponsePartArguments: AssembleResponseTypeArguments = {
     continuedFormatString: `Total parking and camera violation tickets for ${plateHashTagString}, cont'd:\n\n`,
-    defaultDescription: 'No Violation Description Available',
     prefixFormatString: `Total parking and camera violation tickets for ${plateHashTagString}: ${totalViolations}\n\n`,
     summaryDataSubset: frequencyData.violationTypes,
   }
@@ -245,7 +241,6 @@ const formPlateLookupTweets = (
   if (Object.keys(frequencyData.years).length) {
     const yearsResponsePartArguments: AssembleResponseTypeArguments = {
       continuedFormatString: `Violations by year for ${plateHashTagString}, cont'd:\n\n`,
-      defaultDescription: 'No Year Available',
       prefixFormatString: `Violations by year for ${plateHashTagString}:\n\n`,
       summaryDataSubset: frequencyData.years,
     }
@@ -256,7 +251,6 @@ const formPlateLookupTweets = (
   if (Object.keys(frequencyData.boroughs).length) {
     const boroughsResponsePartArguments: AssembleResponseTypeArguments = {
       continuedFormatString: `Violations by borough for ${plateHashTagString}, cont'd:\n\n`,
-      defaultDescription: 'No Borough Available',
       prefixFormatString: `Violations by borough for ${plateHashTagString}:\n\n`,
       summaryDataSubset: frequencyData.boroughs,
     }
@@ -298,6 +292,14 @@ const formPlateLookupTweets = (
 
       // If violation string so far and new part are less or
       // equal than 280 characters, append to existing tweet string.
+
+      curString += fineTypeSummary
+
+      // The below is not needed since the maximum size of an integer
+      // converted into dollars for the current fine fields would never
+      // exceed 280 characters.
+      //
+      /*
       if (potentialResponseLength <= STATUS_MAX_LENGTH) {
         curString += fineTypeSummary
       } else {
@@ -306,58 +308,56 @@ const formPlateLookupTweets = (
         curString = `Known fines for ${plateHashTagString}, cont'd:\n\n`
         curString += fineTypeSummary
       }
+      */
     })
 
     // add to container
     responseChunks.push(curString)
   }
 
-  if (cameraData) {
-    const thresholds = Object.entries(CAMERA_THRESHOLDS) as [
-      (
-        | 'cameraViolations'
-        | 'redLightCameraViolations'
-        | 'schoolZoneSpeedCameraViolations'
-      ),
-      number
-    ][]
-    thresholds.forEach(([thresholdName, thresholdValue]) => {
-      if (thresholdName === 'cameraViolations') {
-        return
+  const thresholds = Object.entries(CAMERA_THRESHOLDS) as [
+    (
+      | 'cameraViolations'
+      | 'redLightCameraViolations'
+      | 'schoolZoneSpeedCameraViolations'
+    ),
+    number
+  ][]
+  thresholds.forEach(([thresholdName, thresholdValue]) => {
+    if (thresholdName === 'cameraViolations') {
+      return
+    }
+
+    const thresholdData = cameraData[thresholdName]
+    if (
+      thresholdData.maxStreak >= thresholdValue &&
+      thresholdData.streakEnd &&
+      thresholdData.streakStart
+    ) {
+      let humanReadableCameraTypeName: string | undefined
+      
+      if (thresholdName === 'redLightCameraViolations') {
+        humanReadableCameraTypeName = 'red light'
+      } else {
+        humanReadableCameraTypeName = 'school zone speed'
       }
 
-      const thresholdData = cameraData[thresholdName]
-      if (thresholdData) {
-        if (
-          thresholdData.maxStreak >= thresholdValue &&
-          thresholdData.streakEnd &&
-          thresholdData.streakStart
-        ) {
-          const humanReadableCameraTypeName =
-            thresholdName === 'redLightCameraViolations'
-              ? 'red light'
-              : thresholdName === 'schoolZoneSpeedCameraViolations'
-              ? 'school zone speed'
-              : 'unknown camera type'
+      const formattedStreakStartDate = DateTime.fromISO(
+        thresholdData.streakStart
+      ).toFormat('LLLL dd, y')
+      const formattedStreakEndDate = DateTime.fromISO(
+        thresholdData.streakEnd
+      ).toFormat('LLLL dd, y')
 
-          const formattedStreakStartDate = DateTime.fromISO(
-            thresholdData.streakStart
-          ).toFormat('LLLL dd, y')
-          const formattedStreakEndDate = DateTime.fromISO(
-            thresholdData.streakEnd
-          ).toFormat('LLLL dd, y')
+      const dvaaString =
+        'Under the Dangerous Vehicle Abatement Act, this vehicle ' +
+        `could have been booted or impounded due to its ${thresholdData.maxStreak} ` +
+        `${humanReadableCameraTypeName} camera violations (>= ${thresholdValue}/year) ` +
+        `from ${formattedStreakStartDate} to ${formattedStreakEndDate}.\n`
 
-          const dvaaString =
-            'Under the Dangerous Vehicle Abatement Act, this vehicle ' +
-            `could have been booted or impounded due to its ${thresholdData.maxStreak} ` +
-            `${humanReadableCameraTypeName} camera violations (>= ${thresholdValue}/year) ` +
-            `from ${formattedStreakStartDate} to ${formattedStreakEndDate}.\n`
-
-          responseChunks.push(dvaaString)
-        }
-      }
-    })
-  }
+      responseChunks.push(dvaaString)
+    }
+  })
 
   const uniqueLink = getWebsitePlateLookupLink(uniqueIdentifier)
 
@@ -412,18 +412,19 @@ const handleDirectMessageEvent = (
 ) => {
   if (directMessageEvent.type == 'message_create') {
     const messageCreateData = directMessageEvent.messageCreate
-    let photoUrl: string | undefined
+    let mediaType: string | undefined
+    let mediaUrl: string | undefined
 
     const senderId = messageCreateData.senderId
     const sender = users[senderId]
 
-    if (messageCreateData.messageData) {
-      const messageData = messageCreateData.messageData
+    const messageData = messageCreateData.messageData
 
-      if (messageData.attachment?.media?.type === 'photo') {
-        photoUrl = messageData.attachment.media.mediaUrlHttps
-      }
+    if (messageData.attachment?.media) {
+      mediaType = messageData.attachment.media.type
+      mediaUrl = messageData.attachment.media.mediaUrlHttps
     }
+
 
     if (
       sender &&
@@ -441,11 +442,11 @@ const handleDirectMessageEvent = (
         userId: BigInt(sender.id),
       }
 
-      const mediaObjects: TwitterMediaObject[] | undefined = photoUrl
+      const mediaObjects: TwitterMediaObject[] | undefined = mediaType && mediaUrl
         ? [
             {
-              type: 'photo',
-              url: photoUrl,
+              type: mediaType,
+              url: mediaUrl,
             },
           ]
         : undefined
@@ -481,14 +482,13 @@ const handleFollowEvent = (followEvent: FollowEvent) => {
 /**
  * Creates tweets by parsing response text into chunks that fall below the maxt tweet length.
  *
- * @param {AssembleResponseTypeArguments} assembleResponseTypeArguments
+ * @param assembleResponseTypeArguments
  * @returns
  */
 const handleResponsePartFormation = (
   assembleResponseTypeArguments: AssembleResponseTypeArguments
 ): string[] => {
   const {
-    defaultDescription,
     continuedFormatString,
     prefixFormatString,
     summaryDataSubset,
@@ -497,11 +497,7 @@ const handleResponsePartFormation = (
   const responseContainer: string[] = []
 
   // # Initialize current string to prefix
-  let curString = ''
-
-  if (prefixFormatString) {
-    curString += prefixFormatString
-  }
+  let curString = prefixFormatString
 
   const keyWithMostViolations:
     | keyof FrequencyData['boroughs']
@@ -526,7 +522,7 @@ const handleResponsePartFormation = (
     const description =
       key.replace(/\b[a-z]/g, (firstLetterOfWord) =>
         firstLetterOfWord.toUpperCase()
-      ) || defaultDescription
+      )
 
     const countLength = violationCountForKey.toString().length
 
@@ -548,19 +544,17 @@ const handleResponsePartFormation = (
       curString += nextPart
     } else {
       responseContainer.push(curString)
-      if (continuedFormatString) {
-        curString = continuedFormatString
-      }
+
+      // Start with the continued Format string for the next response part.
+      curString = continuedFormatString
       curString += nextPart
     }
   })
 
-  // If we finish the list with a non-empty string,
-  // append that string to response parts
-  if (curString.length !== 0) {
-    // Append ready string into parts for response.
-    responseContainer.push(curString)
-  }
+  // We will always finish the list with a non-empty string,
+  // so append that string to response parts
+
+  responseContainer.push(curString)
 
   // Return parts
   return responseContainer
@@ -569,14 +563,14 @@ const handleResponsePartFormation = (
 /**
  * Parse tweet create event and save event and media to database
  *
- * @param {TweetCreateEvent} tweetCreateEvent
+ * @param tweetCreateEvent
  */
 const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
   if (!tweetCreateEvent.retweetedStatus && tweetCreateEvent.user?.screenName) {
     let text: string | undefined
     let userMentionIds: string | undefined
     let userMentions: string | undefined
-    let photoUrls: string[] | undefined
+    let mediaAttachments: MediaAttachment[] | undefined
 
     if (tweetCreateEvent.extendedTweet) {
       const extendedTweet = tweetCreateEvent.extendedTweet
@@ -591,7 +585,7 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentionIds = userMentionData?.userMentionIds
       userMentions = userMentionData?.userMentions
 
-      photoUrls = parseExtendedEntitiesForMediaUrls(
+      mediaAttachments = parseExtendedEntitiesForMediaTypesAndUrls(
         extendedTweet.extendedEntities
       )
     } else {
@@ -605,10 +599,8 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentionIds = userMentionData?.userMentionIds
       userMentions = userMentionData?.userMentions
 
-      if (tweetCreateEvent.extendedEntities) {
-        const extendedEntities = tweetCreateEvent.extendedEntities
-        photoUrls = parseExtendedEntitiesForMediaUrls(extendedEntities)
-      }
+      const extendedEntities = tweetCreateEvent.extendedEntities
+      mediaAttachments = parseExtendedEntitiesForMediaTypesAndUrls(extendedEntities)
     }
 
     const twitterDatabaseEvent: TwitterDatabaseEvent = {
@@ -629,10 +621,10 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentionIds,
     }
 
-    const mediaObjects: TwitterMediaObject[] | undefined = photoUrls?.map(
-      (photoUrl) => ({
-        type: 'photo',
-        url: photoUrl,
+    const mediaObjects: TwitterMediaObject[] | undefined = mediaAttachments?.map(
+      (mediaAttachment) => ({
+        type: mediaAttachment.type,
+        url: mediaAttachment.mediaUrlHttps,
       })
     )
 
@@ -700,7 +692,7 @@ const parseEntitiesForUserMentionData = (
 ): { userMentionIds: string; userMentions: string } | undefined => {
   if (entities.userMentions?.length) {
     const userMentionIds = entities.userMentions
-      .map((mention: UserMention) => mention.idStr)
+      .map((mention: UserMention) =>  tweetText?.includes(mention.screenName) ? mention.idStr : '')
       .join(' ')
       .trim()
 
@@ -719,23 +711,25 @@ const parseEntitiesForUserMentionData = (
   return undefined
 }
 
-const parseExtendedEntitiesForMediaUrls = (
+const parseExtendedEntitiesForMediaTypesAndUrls = (
   extendedEntities: { media: Media[] } | undefined
-): string[] | undefined => {
+): MediaAttachment[] => {
   if (!extendedEntities) {
-    return undefined
+    return []
   }
 
   if (extendedEntities.media) {
     const mediaObjects = extendedEntities.media
 
-    const urls = mediaObjects
-      .map((mediaObject) =>
-        mediaObject.type === 'photo' ? mediaObject.mediaUrlHttps : undefined
-      )
-      .filter((url): url is string => url !== undefined)
+    const typesAndUrls = mediaObjects
+      .map((mediaObject) => ({
+        mediaUrlHttps: mediaObject.mediaUrlHttps,
+        type: mediaObject.type,
+      }))
+      .filter(({ mediaUrlHttps }) => !!mediaUrlHttps)
 
-    return urls
+
+    return typesAndUrls
   }
   return []
 }

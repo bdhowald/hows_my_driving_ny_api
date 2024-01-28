@@ -22,11 +22,8 @@ export type DirectMessageEvent = {
   id: string
   messageCreate: {
     messageData: {
-      attachment: {
-        media: {
-          mediaUrlHttps: string
-          type: string
-        }
+      attachment?: {
+        media: MediaAttachment
       }
       entities: {
         hashtags: {
@@ -144,6 +141,11 @@ export type Media = {
     durationMillis: number
     variants: VideoVariant[]
   }
+}
+
+export type MediaAttachment = {
+  mediaUrlHttps: string
+  type: string
 }
 
 type MediaSize = {
