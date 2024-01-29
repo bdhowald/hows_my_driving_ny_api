@@ -78,6 +78,8 @@ const createServer = () =>
         } else if (request.method == 'GET') {
           console.log('Getting a challenge request.')
 
+          console.log('kjsdhfksdjfhksdjfhsdkjfhsdkj')
+
           try {
             const responseChallenge = handleTwitterRequestChallenge(request)
             returnResponse(
@@ -86,29 +88,36 @@ const createServer = () =>
               responseChallenge
             )
           } catch (error) {
+            console.log(error)
             const body = {
               error: 'Error responding to challenge request',
             }
             returnResponse(
               response,
-              HttpStatusCode.InternalServerError,
+              HttpStatusCode.Ok,
               body
             )
           }
+        } else {
+          console.log('Unknown webhook request from Twitter')
+
+          const body = {
+            error: 'Unknown request type',
+          }
+
+          returnResponse(
+            response,
+            HttpStatusCode.Ok,
+            body,
+          )
         }
       } else if (request.url?.match(EXISTING_LOOKUP_PATH)) {
         const result = await handleExistingLookup(request)
 
-        if ('errorCode' in result) {
-          returnResponse(response, HttpStatusCode.BadRequest, result)
-        }
         returnResponse(response, HttpStatusCode.Ok, result)
       } else if (request.url?.match(API_LOOKUP_PATH)) {
         const result = await handleApiLookup(request)
 
-        if ('errorCode' in result && result.errorCode) {
-          returnResponse(response, result.errorCode, result)
-        }
         returnResponse(response, HttpStatusCode.Ok, result)
       }
     }
