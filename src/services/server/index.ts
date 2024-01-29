@@ -32,26 +32,26 @@ const returnResponse = (
   )
 }
 
-const stripReturnData = (obj: any, selectedFields: any) => {
-  // Return only what we want.
-  const fieldNames = Object.getOwnPropertyNames(obj)
+// const stripReturnData = (obj: any, selectedFields: any) => {
+//   // Return only what we want.
+//   const fieldNames = Object.getOwnPropertyNames(obj)
 
-  if (selectedFields && Object.keys(selectedFields).length > 0) {
-    fieldNames.forEach((field) => {
-      if (field in selectedFields) {
-        if (
-          obj[field] != undefined &&
-          Object.keys(selectedFields[field]).length > 0
-        ) {
-          stripReturnData(obj[field], selectedFields[field])
-        }
-      } else {
-        delete obj[field]
-      }
-    })
-  }
-  return obj
-}
+//   if (selectedFields && Object.keys(selectedFields).length > 0) {
+//     fieldNames.forEach((field) => {
+//       if (field in selectedFields) {
+//         if (
+//           obj[field] != undefined &&
+//           Object.keys(selectedFields[field]).length > 0
+//         ) {
+//           stripReturnData(obj[field], selectedFields[field])
+//         }
+//       } else {
+//         delete obj[field]
+//       }
+//     })
+//   }
+//   return obj
+// }
 
 const createServer = () =>
   http.createServer(
@@ -78,8 +78,6 @@ const createServer = () =>
         } else if (request.method == 'GET') {
           console.log('Getting a challenge request.')
 
-          console.log('kjsdhfksdjfhksdjfhsdkjfhsdkj')
-
           try {
             const responseChallenge = handleTwitterRequestChallenge(request)
             returnResponse(
@@ -89,6 +87,7 @@ const createServer = () =>
             )
           } catch (error) {
             console.log(error)
+
             const body = {
               error: 'Error responding to challenge request',
             }
