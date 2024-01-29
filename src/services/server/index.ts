@@ -119,6 +119,18 @@ const createServer = () =>
         const result = await handleApiLookup(request)
 
         returnResponse(response, HttpStatusCode.Ok, result)
+      } else {
+        console.log('Unknown request path')
+
+        const body = {
+          error: 'Unknown request type',
+        }
+
+        returnResponse(
+          response,
+          HttpStatusCode.NotFound,
+          body,
+        )
       }
     }
   )

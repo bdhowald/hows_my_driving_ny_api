@@ -124,4 +124,10 @@ describe('createServer', () => {
 
     expect(handleTwitterWebhookEvent as jest.Mock).not.toHaveBeenCalled()
   })
+
+  it('should handle an unknown request path', async () => {
+    const response = await axios.get(`http://localhost:${serverPort}/api/unknown`).catch((_) => null)
+
+    expect(response).toBeNull()
+  })
 })
