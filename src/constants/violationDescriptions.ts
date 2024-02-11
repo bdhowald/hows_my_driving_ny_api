@@ -100,6 +100,7 @@ export enum HumanizedDescription {
   SellingOrOfferingMerchandiseFromMeteredParking = 'Selling or Offering Merchandise From Metered Parking',
   StreetStorageOfCommercialVehicleOverThreeHours = 'Street Storage of Commercial Vehicle Over 3 Hours',
   UnauthorizedPassengerPickUp = 'Unauthorized Passenger Pick-Up',
+  WeighInMotionViolation = 'Weigh in Motion Violation'
 }
 
 // humanized names for fiscal year database violations
@@ -203,7 +204,16 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '53': HumanizedDescription.NoStandingSafetyZone,
   '55': HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway,
   '56': HumanizedDescription.NoStoppingDividedHighway,
-  '57': HumanizedDescription.NoParkingBlueZone,
+  '57': [
+    {
+      description: HumanizedDescription.NoParkingBlueZone,
+      startDate: new Date(1970, 0, 1),
+    },
+    {
+      description: HumanizedDescription.WeighInMotionViolation,
+      startDate: new Date(2023, 9, 1),
+    },
+  ],
   '58': HumanizedDescription.NoParkingOnMarginalStreetOrWaterfront,
   '59': HumanizedDescription.NoParkingOnMarginalStreetOrWaterfront,
   '60': HumanizedDescription.NoAngleParking,
@@ -420,6 +430,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   'PHTO SCHOOL ZN SPEED VIOLATION':
     HumanizedDescription.SchoolZoneSpeedCameraViolation,
   '': HumanizedDescription.NoViolationDescriptionAvailable,
+  'WEIGH IN MOTION VIOLATION': HumanizedDescription.WeighInMotionViolation,
 }
 
 // humanized descriptions for open parking and camera violations database violations
@@ -575,6 +586,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   'VIN OBSCURED': HumanizedDescription.ImproperDisplayOfRegistration,
   'WASH/REPAIR VEHCL-REPAIR ONLY':
     HumanizedDescription.NoParkingOnStreetToWashOrRepairVehicle,
+  'WEIGH IN MOTION VIOLATION': HumanizedDescription.WeighInMotionViolation,
   'WRONG WAY': HumanizedDescription.NoParkingOppositeStreetDirection,
 }
 
@@ -648,6 +660,7 @@ export const violationsToCodes: Record<
   [HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway]: '55',
   [HumanizedDescription.NoStoppingDividedHighway]: '56',
   [HumanizedDescription.NoParkingBlueZone]: '57',
+  [HumanizedDescription.WeighInMotionViolation]: '57',
   [HumanizedDescription.NoParkingOnMarginalStreetOrWaterfront]: '58',
   [HumanizedDescription.NoAngleParking]: '60',
   [HumanizedDescription.NoParkingOppositeStreetDirection]: '61',
