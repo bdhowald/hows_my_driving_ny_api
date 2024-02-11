@@ -214,6 +214,7 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   "VIN OBSCURED": "Vehicle Identification Number Obscured",
   "WASH/REPAIR VEHCL-REPAIR ONLY":
     "No Parking on Street to Wash or Repair Vehicle",
+  "WEIGH IN MOTION VIOLATION": "Weigh in Motion Violation",
   "WRONG WAY": "No Parking Opposite Street Direction",
 }
 
@@ -299,7 +300,16 @@ const fiscalYearReadableViolationDescriptions = {
   53: "No Standing - Safety Zone",
   55: "No Stopping in Tunnel or on Elevated Highway",
   56: "No Stopping - Divided Highway",
-  57: "No Parking - Blue Zone",
+  57: [
+    {
+      description: "No Parking - Blue Zone",
+      startDate: new Date(1970, 0, 1),
+    },
+    {
+      description: "Weigh in Motion Violation",
+      startDate: new Date(2023, 9, 1),
+    },
+  ],
   58: "No Parking on Marginal Street or Waterfront",
   59: "No Angle Parking",
   60: "No Angle Parking",
@@ -532,6 +542,7 @@ const namesToCodes = {
   "No Stopping in Tunnel or on Elevated Highway": "55",
   "No Stopping - Divided Highway": "56",
   "No Parking - Blue Zone": "57",
+  "Weigh in Motion Violation": "57",
   "No Parking on Marginal Street or Waterfront": "58",
   "No Angle Parking": "60",
   "No Parking Opposite Street Direction": "61",
