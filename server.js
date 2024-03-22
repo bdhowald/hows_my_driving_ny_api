@@ -1448,17 +1448,16 @@ const getSearchQueryStringAndArgs = (
   }
 
   if (lookupSource === EXISTING_LOOKUP_SOURCE) {
-    baseFrequencyQueryString += " and unique_identifier <> ? and created_at < ?"
+    baseFrequencyQueryString += " and created_at <= ?"
     baseFrequencyQueryArgs = [
       ...baseFrequencyQueryArgs,
-      existingIdentifier,
       existingLookupCreatedAt,
     ]
 
     baseNumTicketsQueryString +=
       " and unique_identifier <> ? and created_at < ?"
     baseNumTicketsQueryArgs = [
-      ...baseFrequencyQueryArgs,
+      ...baseNumTicketsQueryArgs,
       existingIdentifier,
       existingLookupCreatedAt,
     ]
@@ -1565,13 +1564,14 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
           let frequency = countTowardsFrequency ? 1 : 0
           let previousCount = null
           let previousDate = null
-          let previousLookup
+          let previousLookup = null
 
           const frequencyResult = results?.[0]?.[0]
           const previousLookupResult = results?.[1]?.[0]
 
-          if (frequencyResult && previousLookupResult) {
-            frequency = frequencyResult.frequency + frequency
+          frequency = frequencyResult.frequency + frequency
+
+          if (previousLookupResult) {
             previousCount = previousLookupResult.num_tickets
             previousDate = previousLookupResult.created_at
 
@@ -2411,6 +2411,7 @@ const normalizeViolations = async (requestPathname, violations) => {
         ? null
         : parseFloat(violation.amount_due),
       date_first_observed: violation.date_first_observed || null,
+      days_parking_in_effect: violation.days_parking_in_effect || null,
       feet_from_curb: violation.feet_from_curb || null,
       fine_amount: isNaN(parseFloat(violation.fine_amount))
         ? null
