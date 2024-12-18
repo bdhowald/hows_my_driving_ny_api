@@ -244,7 +244,7 @@ const getHumanizedDescription = (
           )
           if (
             violationDateTimes &&
-            DateTime.fromJSDate(possibleDescription.startDate) <
+            DateTime.fromJSDate(possibleDescription.startDate) <=
               violationDateTimes.formattedTimeUtc
           ) {
             descriptionForUpdatedViolatedCode = possibleDescription.description

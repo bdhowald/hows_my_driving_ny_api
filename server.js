@@ -1504,7 +1504,7 @@ const getReadableViolationDescription = (violation) => {
         // Some violation codes have applied to multiple violations.
         violationDescriptionDefinition.forEach((possibleDescription) => {
           if (
-            Date.parse(possibleDescription.startDate) <
+            Date.parse(possibleDescription.startDate) <=
             Date.parse(violation.issue_date)
           ) {
             fiscalYearReadableDescription = possibleDescription.description
