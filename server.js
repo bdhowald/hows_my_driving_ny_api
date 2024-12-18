@@ -247,6 +247,16 @@ const fiscalYearReadableViolationDescriptions = {
   ],
   13: "No Standing - Taxi Stand",
   14: "No Standing - Day/Time Limits",
+  15: [
+    {
+      description: "No Standing - Off-Street Lot",
+      startDate: new Date(1970, 0, 1),
+    },
+    {
+      description: "Mobile MTA Double Parking Violation",
+      startDate: new Date(2024, 7, 19),
+    },
+  ],
   16: "No Standing - Except Truck Loading/Unloading",
   "16A": "No Standing - Except Truck Loading/Unloading",
   17: "No Parking - Except Authorized Vehicles",
@@ -284,7 +294,16 @@ const fiscalYearReadableViolationDescriptions = {
   39: "Overtime Parking - Time Limit Posted",
   40: "Fire Hydrant",
   42: "Expired Meter - Commercial Meter Zone",
-  43: "Expired Meter - Commercial Meter Zone",
+  43: [
+    {
+      description: "Expired Meter - Commercial Meter Zone",
+      startDate: new Date(1970, 0, 1),
+    },
+    {
+      description: "Mobile MTA Bus Stop Violation",
+      startDate: new Date(2024, 7, 19),
+    },
+  ],
   44: "Overtime Parking - Commercial Meter Zone",
   45: "No Stopping - Traffic Lane",
   46: "Double Parking",
