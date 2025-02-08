@@ -23,12 +23,12 @@ const getBoroughService = async (streetAddress: string | undefined): Promise<Bor
 
   let potentialBorough: string | Borough | undefined
 
-  const results: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
+  const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
     streetWithoutDirections
   )
 
-  if (results.length) {
-    potentialBorough = results[0].borough
+  if (result.length) {
+    potentialBorough = result[0].borough
   } else {
     const geocodeFromGoogle: DatabaseGeocode | undefined =
       await getGoogleGeocode(streetWithoutDirections)

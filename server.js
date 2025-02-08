@@ -4,7 +4,7 @@ import { createHmac } from "crypto"
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
-import mysql from "mysql"
+import * as mysql from 'mysql2/promise'
 
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 
@@ -723,15 +723,15 @@ class PlateLookup {
   }
 }
 
-const initializeConnection = (config) => {
+const initializeConnection = async (config) => {
   const addDisconnectHandler = (connection) => {
-    connection.on("error", (error) => {
+    connection.on("error", async (error) => {
       if (error instanceof Error) {
         if (error.code === "PROTOCOL_CONNECTION_LOST") {
           console.error(error.stack)
           console.log("Lost connection. Reconnecting...")
 
-          initializeConnection(connection.config)
+          await initializeConnection(connection.config)
         } else if (error.fatal) {
           throw error
         }
@@ -739,7 +739,7 @@ const initializeConnection = (config) => {
     })
   }
 
-  const connection = mysql.createConnection(config)
+  const connection = await mysql.createConnection(config)
 
   connection.promiseQuery = (sql, values) => {
     return new Promise((resolve, reject) => {
@@ -817,12 +817,7 @@ const createNewLookup = async (
     unique_identifier: uniqueIdentifier,
   }
 
-  insertNewLookup(newLookup, (error, results, fields) => {
-    if (error) {
-      console.log(`error thrown at: ${new Date()}`)
-      throw error
-    }
-  })
+  await insertNewLookup(newLookup)
 }
 
 /**
@@ -1393,20 +1388,15 @@ const getGeocodeFromDatabase = async (
   const geocodeSQLString =
     'select borough from geocodes WHERE lookup_string = ?'
 
-  return new Promise((resolve, reject) => {
-    const callback = (error,results) => {
-      if (error) {
-        reject(error)
-      }
-      if (results) {
-        resolve(results)
-      }
-    }
+  const valuesString = [`${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`]
 
-    const valuesString = [`${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`]
-
-    return connection.query(geocodeSQLString, valuesString, callback)
-  })
+  try {
+    const result = await connection.query(geocodeSQLString, valuesString)
+    return result[0]
+  } catch(error) {
+    console.log(error)
+    throw error
+  }
 }
 
 /**
@@ -1466,24 +1456,21 @@ const getPlateHashTagString = (plate, state) => {
 }
 
 const getPreviousQueryResult = async (identifier) => {
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
-  return new Promise((resolve, reject) => {
-    databaseConnection.query(
+  try {
+    const result = await databaseConnection.query(
       "select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?",
       [identifier],
-      (error, results, _) => {
-        // Close database connection
-        databaseConnection.end(closeConnectionHandler)
-
-        if (error) {
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
-        return resolve(results[0])
-      }
     )
-  })
+    const rows = result[0]
+    return rows[0]
+  } catch(error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.end()
+  }
 }
 
 const getReadableViolationDescription = (violation) => {
@@ -1659,92 +1646,84 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
 
     const summaryData = getAggregateFrequencySummaryData(violations)
 
-    return await new Promise((resolve, reject) => {
-      queryDatabaseForLookups(
-        searchQueryData.query_string,
-        searchQueryData.query_args,
-        async (error, results, fields) => {
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
-          }
+    const rows = await queryDatabaseForLookups(
+      searchQueryData.query_string,
+      searchQueryData.query_args,
+    )
 
-          const countTowardsFrequency = !["api", "existing_lookup"].includes(lookupSource)
-          let frequency = countTowardsFrequency ? 1 : 0
-          let previousCount = null
-          let previousDate = null
-          let previousLookup = null
+    const countTowardsFrequency = !["api", "existing_lookup"].includes(lookupSource)
+    let frequency = countTowardsFrequency ? 1 : 0
+    let previousCount = null
+    let previousDate = null
+    let previousLookup = null
 
-          const frequencyResult = results?.[0]?.[0]
-          const previousLookupResult = results?.[1]?.[0]
+    const frequencyResult = rows?.[0]?.[0]
+    const previousLookupResult = rows?.[1]?.[0]
 
-          frequency = frequencyResult.frequency + frequency
+    frequency = frequencyResult.frequency + frequency
 
-          if (previousLookupResult) {
-            previousCount = previousLookupResult.num_tickets
-            previousDate = previousLookupResult.created_at
+    if (previousLookupResult) {
+      previousCount = previousLookupResult.num_tickets
+      previousDate = previousLookupResult.created_at
 
-            previousLookup = new PlateLookup(previousDate, previousCount)
-          }
+      previousLookup = new PlateLookup(previousDate, previousCount)
+    }
 
-          const uniqueIdentifier =
-            existingIdentifier || (await obtainUniqueIdentifier())
+    const uniqueIdentifier =
+      existingIdentifier || (await obtainUniqueIdentifier())
 
-          if (lookupSource !== EXISTING_LOOKUP_SOURCE) {
-            createNewLookup(
-              plate,
-              state,
-              plateTypes,
-              violations.length,
-              lookupSource,
-              uniqueIdentifier,
-              cameraStreakData,
-              fingerprintID,
-              mixpanelID
-            )
-          }
-
-          const tweetParts = formPlateLookupTweets(
-            summaryData.boroughs,
-            frequency,
-            fineData,
-            plate,
-            state,
-            plateTypes,
-            uniqueIdentifier,
-            summaryData.violation_types,
-            summaryData.years,
-            cameraStreakData,
-            existingLookupCreatedAt,
-            previousLookup
-          )
-
-          const fullVehicleLookup = {
-            camera_streak_data: cameraStreakData,
-            fines: fineData,
-            plate,
-            plate_types: plateTypes,
-            previous_lookup_date: previousDate,
-            previous_violation_count: previousCount,
-            rectified_plate: rectifiedPlate,
-            statistics: summaryData,
-            state,
-            times_queried: frequency,
-            tweet_parts: tweetParts.flat(),
-            unique_identifier: uniqueIdentifier,
-            violations,
-            violations_count: violations.length,
-          }
-
-          const returnObject = {
-            successful_lookup: true,
-            vehicle: stripReturnData(fullVehicleLookup, selectedFields),
-          }
-
-          resolve(returnObject)
-        }
+    if (lookupSource !== EXISTING_LOOKUP_SOURCE) {
+      createNewLookup(
+        plate,
+        state,
+        plateTypes,
+        violations.length,
+        lookupSource,
+        uniqueIdentifier,
+        cameraStreakData,
+        fingerprintID,
+        mixpanelID
       )
-    })
+    }
+
+    const tweetParts = formPlateLookupTweets(
+      summaryData.boroughs,
+      frequency,
+      fineData,
+      plate,
+      state,
+      plateTypes,
+      uniqueIdentifier,
+      summaryData.violation_types,
+      summaryData.years,
+      cameraStreakData,
+      existingLookupCreatedAt,
+      previousLookup
+    )
+
+    const fullVehicleLookup = {
+      camera_streak_data: cameraStreakData,
+      fines: fineData,
+      plate,
+      plate_types: plateTypes,
+      previous_lookup_date: previousDate,
+      previous_violation_count: previousCount,
+      rectified_plate: rectifiedPlate,
+      statistics: summaryData,
+      state,
+      times_queried: frequency,
+      tweet_parts: tweetParts.flat(),
+      unique_identifier: uniqueIdentifier,
+      violations,
+      violations_count: violations.length,
+    }
+
+    const returnObject = {
+      successful_lookup: true,
+      vehicle: stripReturnData(fullVehicleLookup, selectedFields),
+    }
+
+    return returnObject
   } else {
     return {
       vehicle: {},
@@ -1956,7 +1935,7 @@ const handleBlockEvent = (event) => {
   console.log(`handleBlockEvent is a stub method: ${JSON.stringify(event)}`)
 }
 
-const handleDirectMessageEvent = (event, users) => {
+const handleDirectMessageEvent = async (event, users) => {
   if (event.type === "message_create") {
     const messageCreateData = event.message_create
     let photoURL = null
@@ -2004,48 +1983,39 @@ const handleDirectMessageEvent = (event, users) => {
 
       console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
 
-      const databaseConnection = instantiateConnection()
+      const databaseConnection = await instantiateConnection()
 
-      databaseConnection.query(
-        "insert into twitter_events set ?",
-        newEvent,
-        (error, results, fields) => {
-          if (error) {
-            // Close database connection
-            databaseConnection.end(closeConnectionHandler)
+      try {
+        const insertTwitterEventResponse = await databaseConnection.query(
+          "insert into twitter_events set ?",
+          newEvent,
+        )
+        const insertTwitterEventResult = insertTwitterEventResponse[0]
 
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
+        if (rows && photoURL) {
+          const insertID = insertTwitterEventResult.insertId
+
+          const mediaObject = {
+            url: photoURL,
+            type: "photo",
+            twitter_event_id: insertID,
           }
 
-          if (results && photoURL != null) {
-            const insertID = results.insertId
+          const insertTwitterMediaObjectsResponse = await databaseConnection.query(
+            "insert into twitter_media_objects set ?",
+            mediaObject,
+          )
 
-            const mediaObject = {
-              url: photoURL,
-              type: "photo",
-              twitter_event_id: insertID,
-            }
+          const insertTwitterMediaObjectsResult = insertTwitterMediaObjectsResponse[0]
 
-            databaseConnection.query(
-              "insert into twitter_media_objects set ?",
-              mediaObject,
-              (error, results, fields) => {
-                // Close database connection
-                databaseConnection.end(closeConnectionHandler)
-
-                if (error) {
-                  console.log(`error thrown at: ${new Date()}`)
-                  throw error
-                }
-              }
-            )
-          } else {
-            // Close database connection
-            databaseConnection.end(closeConnectionHandler)
-          }
+          return (!!insertTwitterMediaObjectsResult)
         }
-      )
+      } catch {
+        console.log(error)
+        throw error
+      } finally {
+        databaseConnection.close()
+      }
     }
   }
 }
@@ -2064,83 +2034,77 @@ const handleDirectMessageMarkReadEvent = (event) => {
     )}`
   )
 }
-const handleFavoriteEvent = (event) => {
+const handleFavoriteEvent = async (event) => {
   const favoritedStatusId =
     event && event.favorited_status && event.favorited_status.id_str
   const userId = event && event.user && event.user.id_str
 
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
   if (favoritedStatusId && userId) {
-    databaseConnection.query(
-      "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false",
-      [favoritedStatusId, userId],
-      (error, results, fields) => {
-        if (error) {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
+    try {
+      const result = databaseConnection.query(
+        "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where event_id = ? and user_id = ? and favorited = false",
+        [favoritedStatusId, userId],
+      )
+      const rows = result[0]
 
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
+      if (rows?.[0]) {
+        const inReplyToMessageId = rows[0].in_reply_to_message_id
 
-        if (results && results[0]) {
-          const inReplyToMessageId = results[0].in_reply_to_message_id
-          console.log(
-            `Setting responded_to to false for event_id: ${inReplyToMessageId}`
-          )
-          respondToNonFollowerFavorite(
-            favoritedStatusId,
-            inReplyToMessageId,
-            userId
-          )
-        } else {
-          console.log("No message matches.")
-          console.log(`favorited status id: ${favoritedStatusId}`)
-          console.log(`favoriting user id: ${userId}`)
-        }
+        console.log(
+          `Setting responded_to to false for event_id: ${inReplyToMessageId}`
+        )
 
-        // Close database connection
-        databaseConnection.end(closeConnectionHandler)
+        respondToNonFollowerFavorite(
+          favoritedStatusId,
+          inReplyToMessageId,
+          userId
+        )
+      } else {
+        console.log("No message matches.")
+        console.log(`favorited status id: ${favoritedStatusId}`)
+        console.log(`favoriting user id: ${userId}`)
       }
-    )
+    } catch(error) {
+      console.log(error)
+      throw error
+    } finally {
+      databaseConnection.end()
+    }
   }
 }
 
-const handleFollowEvent = (event) => {
+const handleFollowEvent = async (event) => {
   const userId = event && event.source && event.source.id
 
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
   console.log(`userId: ${userId}`)
 
   if (userId) {
-    databaseConnection.query(
-      "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false",
-      [userId],
-      (error, results, fields) => {
-        if (error) {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
+    try {
+      const result = await databaseConnection.query(
+        "select CAST(in_reply_to_message_id as CHAR(20)) as in_reply_to_message_id from non_follower_replies where user_id = ? and favorited = false",
+        [userId],
+      )
+      const rows = result[0]
 
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
-
-        if (results && results.length > 0) {
-          results.forEach((result) => {
-            const inReplyToMessageId = results[0].in_reply_to_message_id
-            respondToReplyForNewFollower(inReplyToMessageId, userId)
-          })
-        } else {
-          console.log("No messages match.")
-          console.log(`following user id: ${userId}`)
-        }
-
-        // Close database connection
-        databaseConnection.end(closeConnectionHandler)
+      if (rows) {
+        rows.forEach((result) => {
+          const inReplyToMessageId = result[0].in_reply_to_message_id
+          respondToReplyForNewFollower(inReplyToMessageId, userId)
+        })
+      } else {
+        console.log("No messages match.")
+        console.log(`following user id: ${userId}`)
       }
-    )
+    } catch(error) {
+      console.log(error)
+      throw error
+    } finally {
+      databaseConnection.end()
+    }
   }
 }
 
@@ -2230,7 +2194,7 @@ const handleResponsePartFormation = (
   return responseContainer
 }
 
-const handleTweetCreateEvent = (event) => {
+const handleTweetCreateEvent = async (event) => {
   if (
     !event.retweeted_status &&
     event.user &&
@@ -2328,50 +2292,41 @@ const handleTweetCreateEvent = (event) => {
     console.log(`new TwitterEvent: ${JSON.stringify(newEvent)}`)
     console.log("\n\n")
 
-    const databaseConnection = instantiateConnection()
+    const databaseConnection = await instantiateConnection()
 
-    databaseConnection.query(
-      "insert into twitter_events set ?",
-      newEvent,
-      (error, results, fields) => {
-        if (error) {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
+    try {
+      const insertTwitterEventResponse = await databaseConnection.query(
+        "insert into twitter_events set ?",
+        newEvent,
+      )
+      const insertTwitterEventResult = insertTwitterEventResponse[0]
 
-          console.log(`error thrown at: ${new Date()}`)
-          throw error
-        }
+      if (insertTwitterEventResult && photoURLs.length > 0) {
+        const insertID = insertTwitterEventResult.insertId
 
-        if (results && photoURLs.length > 0) {
-          const insertID = results.insertId
+        const mediaObjects = photoURLs.map((photoURL) => {
+          return {
+            url: photoURL,
+            type: "photo",
+            twitter_event_id: insertID,
+          }
+        })
 
-          const mediaObjects = photoURLs.map((photoURL) => {
-            return {
-              url: photoURL,
-              type: "photo",
-              twitter_event_id: insertID,
-            }
-          })
+        const insertTwitterMediaObjectsResponse = await databaseConnection.query(
+          "insert into twitter_media_objects set ?",
+          mediaObjects,
+        )
 
-          databaseConnection.query(
-            "insert into twitter_media_objects set ?",
-            mediaObjects,
-            (error, results, fields) => {
-              // Close database connection
-              databaseConnection.end(closeConnectionHandler)
+        const insertTwitterMediaObjectsResult = insertTwitterMediaObjectsResponse[0]
 
-              if (error) {
-                console.log(`error thrown at: ${new Date()}`)
-                throw error
-              }
-            }
-          )
-        } else {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
-        }
+        return (!!insertTwitterMediaObjectsResult)
       }
-    )
+    } catch(error) {
+      console.log(error)
+      throw error
+    } finally {
+      databaseConnection.end()
+    }
   }
 }
 
@@ -2406,25 +2361,25 @@ const insertGeocodeIntoDatabase = async (connection, geocode) => {
   })
 }
 
-const insertNewLookup = (newLookup, callback) => {
-  const databaseConnection = instantiateConnection()
+const insertNewLookup = async (newLookup) => {
+  const databaseConnection = await instantiateConnection()
 
-  const newCallback = () => {
-    // execute existing callback
-    callback()
-
-    // Close database connection
-    databaseConnection.end(closeConnectionHandler)
+  try {
+    const result = await databaseConnection.query("insert into plate_lookups set ?", newLookup)
+    return result[0]
+  } catch(error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.end()
   }
-
-  databaseConnection.query("insert into plate_lookups set ?", newLookup, newCallback)
 }
 
 /**
  * Instantiate a connection to the mysql database
  */
-const instantiateConnection = () =>
-  initializeConnection({
+const instantiateConnection = async () =>
+  await initializeConnection({
     host: '127.0.0.1',
     user: process.env.MYSQL_DATABASE_USER ?? '',
     password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
@@ -2516,7 +2471,13 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
 
   promises.push(axios.get(urlObject.toString()).catch(handleAxiosErrors))
 
+  const startTime = new Date()
+
+  console.log('about to make violations calls')
+
   const responses = await Promise.all(promises)
+
+  console.log(`violations calls took ${(new Date() - startTime)/1000.0} seconds`)
 
   return responses
 }
@@ -2674,28 +2635,16 @@ const normalizeViolations = async (requestPathname, violations) => {
 }
 
 const obtainUniqueIdentifier = async () => {
-  const identifierAlreadyExists = (identifier) => {
-    return new Promise((resolve, reject) => {
-      const databaseConnection = instantiateConnection()
+  const identifierAlreadyExists = async (identifier) => {
+    const databaseConnection = await instantiateConnection()
 
-      databaseConnection.query(
-        "select count(*) as count from plate_lookups where unique_identifier = ?",
-        [identifier],
-        (error, results, fields) => {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
+    const result = await databaseConnection.query(
+      "select count(*) as count from plate_lookups where unique_identifier = ?",
+      [identifier],
+    )
+    const rows = result[0]
 
-          if (error) {
-            console.log(`error thrown at: ${new Date()}`)
-            throw error
-          }
-
-          return resolve(
-            !!(results && results[0] && results[0] && results[0].count !== 0)
-          )
-        }
-      )
-    })
+    return !!(rows[0].count !== 0)
   }
 
   const getUniqueIdentifier = () => Math.random().toString(36).substring(2, 10)
@@ -2708,48 +2657,45 @@ const obtainUniqueIdentifier = async () => {
   ) {
     uniqueIdentifier = getUniqueIdentifier()
   }
+
   return uniqueIdentifier
 }
 
-const queryDatabaseForLookups = (queryString, queryArgs, callback) => {
-  const databaseConnection = instantiateConnection()
+const queryDatabaseForLookups = async (queryString, queryArgs) => {
+  const databaseConnection = await instantiateConnection()
 
-  const newCallback = (error, results, fields) => {
-    // execute existing callback
-    callback(error, results, fields)
-
-    // Close database connection
-    databaseConnection.end(closeConnectionHandler)
+  try {
+    const result = await databaseConnection.query(queryString, queryArgs)
+    return result[0]
+  } catch(error) {
+    console.log(`error thrown at: ${new Date()}`)
+    throw error
   }
-
-  databaseConnection.query(queryString, queryArgs, newCallback)
 }
 
-const respondToReplyForNewFollower = (inReplyToMessageId, userId) => {
+const respondToReplyForNewFollower = async (inReplyToMessageId, userId) => {
   console.log(`inReplyToMessageId: ${inReplyToMessageId}`)
   console.log(`userId: ${userId}`)
 
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
-  databaseConnection.query(
-    `
-    update non_follower_replies set favorited = true where user_id = ?;
-    update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ?
-  `,
-    [userId, inReplyToMessageId],
-    (error, results, fields) => {
-      // Close database connection
-      databaseConnection.end(closeConnectionHandler)
-
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
-      }
-    }
-  )
+  try {
+    await databaseConnection.query(
+      `
+      update non_follower_replies set favorited = true where user_id = ?;
+      update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ?
+    `,
+      [userId, inReplyToMessageId],
+    )
+  } catch(error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.end()
+  }
 }
 
-const respondToNonFollowerFavorite = (
+const respondToNonFollowerFavorite = async (
   favoritedStatusId,
   inReplyToMessageId,
   userId
@@ -2758,24 +2704,20 @@ const respondToNonFollowerFavorite = (
     `Updating twitter_events, setting user_favorited_non_follower_reply = true and responded_to = false for event ${inReplyToMessageId}`
   )
 
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
-  databaseConnection.query(
-    `
-    update non_follower_replies set favorited = true where event_id = ? and user_id = ?;
-    update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ? and is_duplicate = false
-  `,
-    [favoritedStatusId, userId, inReplyToMessageId],
-    (error, results, fields) => {
-      // Close database connection
-      databaseConnection.end(closeConnectionHandler)
-
-      if (error) {
-        console.log(`error thrown at: ${new Date()}`)
-        throw error
-      }
-    }
-  )
+  try {
+    await databaseConnection.query(
+      `
+      update non_follower_replies set favorited = true where event_id = ? and user_id = ?;
+      update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where event_id = ? and is_duplicate = false`,
+    )
+  } catch(error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.end()
+  }
 }
 
 
@@ -2795,15 +2737,15 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
 
   let potentialBorough
 
-  const databaseConnection = instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
-  const results = await getGeocodeFromDatabase(
+  const result = await getGeocodeFromDatabase(
     databaseConnection,
     streetWithoutDirections
   )
 
-  if (results.length) {
-    potentialBorough = results[0].borough
+  if (result.length) {
+    potentialBorough = result[0].borough
   } else {
     const geocodeFromGoogle = await getGoogleGeocode(streetWithoutDirections)
 
@@ -2817,7 +2759,7 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
   }
 
   // Close database connection
-  databaseConnection.end(closeConnectionHandler)
+  databaseConnection.end()
 
   if (potentialBorough) {
     return potentialBorough
@@ -2895,9 +2837,13 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
   )
 
   try {
+    console.log(`calling ${medallionUrlObject}...`)
+    const startTime = new Date()
     const medallionEndpointResponse = await axios
       .get(medallionUrlObject)
       .catch(handleAxiosErrors)
+
+    console.log(`medallion call took ${(new Date() - startTime)/1000.0} seconds`)
 
     const medallionResults = medallionEndpointResponse.data
 

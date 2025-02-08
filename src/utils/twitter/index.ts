@@ -406,7 +406,7 @@ const getWebsitePlateLookupLink = (uniqueIdentifier: string) =>
  *
  * @param {DirectMessageEvent} directMessageEvent
  */
-const handleDirectMessageEvent = (
+const handleDirectMessageEvent = async (
   directMessageEvent: DirectMessageEvent,
   users: DirectMessageCreateAccountActivityApiObject['users']
 ) => {

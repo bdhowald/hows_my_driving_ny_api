@@ -1,11 +1,11 @@
-import { MysqlError } from 'mysql'
+import * as mysql from 'mysql2/promise'
 import { decamelizeKeys } from 'humps'
 
 import LookupSource from 'constants/lookupSources'
 import PlateLookup from 'constants/plateLookup'
 import { DatabaseGeocode } from 'types/geocoding'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
-import { instantiateConnection } from 'services/databaseService'
+import { getConnectionPool, instantiateConnection } from 'services/databaseService'
 
 import {
   createAndInsertNewLookup,
@@ -22,6 +22,12 @@ import {
 jest.mock('services/databaseService')
 
 describe('databaseQueries', () => {
+
+  afterAll(() => {
+    const connectionPool = getConnectionPool()
+    connectionPool?.end()
+  })
+
   const plate = 'ABC1234'
   const state = 'NY'
 
@@ -107,14 +113,16 @@ describe('databaseQueries', () => {
         .mockReturnValueOnce(randomValueThatWillEvaluateToNewUniqueIdentifier)
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [{ count: 0 }])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ count: 0 }],
+        ],
       )
 
       await createAndInsertNewLookup(createNewLookupArguments)
@@ -149,13 +157,11 @@ describe('databaseQueries', () => {
         1,
         'select count(*) as count from plate_lookups where unique_identifier = ?',
         [newUniqueIdentifier],
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into plate_lookups set ?',
         decamelizeKeys(newLookup),
-        expect.anything()
       )
 
       jest.useRealTimers()
@@ -171,14 +177,16 @@ describe('databaseQueries', () => {
         .mockReturnValueOnce(randomValueThatWillEvaluateToNewUniqueIdentifier)
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [{ count: 0 }])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ count: 0 }],
+        ],
       )
 
       const createNewLookupArgumentsWithoutPlateTypes = {
@@ -218,13 +226,11 @@ describe('databaseQueries', () => {
         1,
         'select count(*) as count from plate_lookups where unique_identifier = ?',
         [newUniqueIdentifier],
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into plate_lookups set ?',
         decamelizeKeys(newLookup),
-        expect.anything()
       )
 
       jest.useRealTimers()
@@ -232,19 +238,23 @@ describe('databaseQueries', () => {
 
     it('should keep trying until it gets a new unique identifier', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       // We expect two calls
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) =>
-          callback(null, [{ count: 1 }])
+        .mockResolvedValueOnce(
+          [
+            [{ count: 1 }],
+          ],
         )
-        .mockImplementationOnce((_, __, callback) =>
-          callback(null, [{ count: 0 }])
+        .mockResolvedValueOnce(
+          [
+            [{ count: 0 }],
+          ],
         )
 
       await createAndInsertNewLookup(createNewLookupArguments)
@@ -253,41 +263,30 @@ describe('databaseQueries', () => {
         1,
         'select count(*) as count from plate_lookups where unique_identifier = ?',
         expect.anything(),
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'select count(*) as count from plate_lookups where unique_identifier = ?',
         expect.anything(),
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         3,
         'insert into plate_lookups set ?',
         expect.anything(),
-        expect.anything()
       )
     })
 
     it('should handle a database error', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
-      const error: MysqlError = {
-        code: 'PROTOCOL_CONNECTION_LOST',
-        errno: 123,
-        fatal: true,
-        message: 'a fatal error',
-        name: 'someError',
-      }
+      const error = new Error('a fatal error')
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(error)
-      )
+      databaseConnection.query.mockRejectedValueOnce(error)
 
       expect(createAndInsertNewLookup(createNewLookupArguments)).rejects.toBe(error)
     })
@@ -308,17 +307,19 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [
-          [{ frequency }],
-          [{ created_at: date, num_violations: numViolations }],
-        ])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [
+            [{ frequency }],
+            [{ created_at: date, num_violations: numViolations }],
+          ],
+        ],
       )
 
       const expected = {
@@ -349,7 +350,6 @@ describe('databaseQueries', () => {
           'NY',
           'AGR,ARG,AYG,BOB,CMH,FPW,GSM,HAM,HIS,JWV,MCL,NLM,ORG,PAS,PHS,PPH,RGL,SOS,SPO,SRF,WUG',
         ],
-        expect.anything()
       )
     })
 
@@ -364,16 +364,21 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       const frequency = 0
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [[{ frequency }], []])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [
+            [{ frequency }],
+            []
+          ]
+        ]
       )
 
       const expected = {
@@ -401,7 +406,6 @@ describe('databaseQueries', () => {
           'NY',
           'AGR,ARG,AYG,BOB,CMH,FPW,GSM,HAM,HIS,JWV,MCL,NLM,ORG,PAS,PHS,PPH,RGL,SOS,SPO,SRF,WUG',
         ],
-        expect.anything()
       )
     })
 
@@ -416,17 +420,19 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [
-          [{ frequency }],
-          [{ created_at: date, num_violations: numViolations }],
-        ])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [
+            [{ frequency }],
+            [{ created_at: date, num_violations: numViolations }],
+          ],
+        ],
       )
 
       const expected = {
@@ -457,7 +463,6 @@ describe('databaseQueries', () => {
           'NY',
           'AGR,ARG,AYG,BOB,CMH,FPW,GSM,HAM,HIS,JWV,MCL,NLM,ORG,PAS,PHS,PPH,RGL,SOS,SPO,SRF,WUG',
         ],
-        expect.anything()
       )
     })
 
@@ -472,17 +477,19 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [
-          [{ frequency }],
-          [{ created_at: date, num_violations: numViolations }],
-        ])
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [
+            [{ frequency }],
+            [{ created_at: date, num_violations: numViolations }],
+          ],
+        ],
       )
 
       const expected = {
@@ -511,7 +518,6 @@ describe('databaseQueries', () => {
           'ABC1234',
           'NY',
         ],
-        expect.anything()
       )
     })
   })
@@ -528,14 +534,14 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [decamelizeKeys(expected)])
+      databaseConnection.query.mockResolvedValueOnce(
+        [[decamelizeKeys(expected)]]
       )
 
       const identifier = 'a1b2c3d4'
@@ -547,7 +553,6 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
         ['a1b2c3d4'],
-        expect.anything()
       )
     })
 
@@ -562,15 +567,13 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, [])
-      )
+      databaseConnection.query.mockResolvedValueOnce([[]])
 
       const identifier = 'a1b2c3d4'
 
@@ -581,7 +584,6 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
         ['a1b2c3d4'],
-        expect.anything()
       )
     })
   })
@@ -593,15 +595,16 @@ describe('databaseQueries', () => {
       const borough = {borough: 'Brooklyn'}
 
       const databaseConnection = {
-        end: jest.fn(),
-        query: jest.fn((_, __, callback) =>
-          callback(null, [borough])
-        ),
+        query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      ;(instantiateConnection as jest.Mock).mockResolvedValueOnce(
         databaseConnection
       )
+
+      databaseConnection.query
+        .mockResolvedValueOnce([[borough]])
 
       expect(await getBoroughFromDatabaseGeocode(address)).toEqual([borough])
 
@@ -620,18 +623,16 @@ describe('databaseQueries', () => {
       }
 
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValueOnce(
+      ;(instantiateConnection as jest.Mock).mockResolvedValueOnce(
         databaseConnection
       )
 
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) =>
-          callback(null, { insertId: '123' })
-        )
+        .mockResolvedValueOnce([{ insertId: '123' }])
 
       expect(await insertGeocodeIntoDatabase(geocode)).toBe(true)
 
@@ -668,18 +669,18 @@ describe('databaseQueries', () => {
 
     it('should create a twitter event and associated media objects', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) =>
-          callback(null, { insertId: newTwitterDatabaseEventId })
+        .mockResolvedValueOnce(
+          [{ insertId: newTwitterDatabaseEventId }]
         )
-        .mockImplementationOnce((_, __, callback) =>
-          callback(null, [{ insertId: 456 }, { insertId: 789 }])
+        .mockResolvedValueOnce(
+          [[{ insertId: 456 }, { insertId: 789 }]]
         )
 
       const result = await insertNewTwitterEventAndMediaObjects(
@@ -692,7 +693,6 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
         decamelizeKeys(twitterDatabaseEvent),
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
@@ -703,21 +703,18 @@ describe('databaseQueries', () => {
             twitterEventId: newTwitterDatabaseEventId,
           })
         ),
-        expect.anything()
       )
     })
 
     it('should create a twitter event when no media objects', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId: 123 })
-      )
+      databaseConnection.query.mockResolvedValueOnce([{ insertId: 123 }])
 
       const result = await insertNewTwitterEventAndMediaObjects(
         twitterDatabaseEvent
@@ -728,7 +725,6 @@ describe('databaseQueries', () => {
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
         decamelizeKeys(twitterDatabaseEvent),
-        expect.anything()
       )
     })
   })
@@ -741,19 +737,17 @@ describe('databaseQueries', () => {
 
     it('should update non-follower replies when given a user id and the id of a favorited status', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) => {
-          callback(null, [{ in_reply_to_message_id: inReplyToMessageId }])
-        })
-        .mockImplementationOnce((_, __, callback) => {
-          callback(null)
-        })
+        .mockResolvedValueOnce(
+          [[{ in_reply_to_message_id: inReplyToMessageId }]]
+        )
+        .mockResolvedValueOnce(null)
 
       const result = await updateNonFollowerReplies(userId, favoritedStatusId)
 
@@ -764,7 +758,6 @@ describe('databaseQueries', () => {
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
           'non_follower_replies where user_id = ? and favorited = false and event_id = ?;',
         [userId, favoritedStatusId],
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
@@ -772,25 +765,22 @@ describe('databaseQueries', () => {
           'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false ' +
           'where is_duplicate = false and event_id = ?;',
         [userId, favoritedStatusId, inReplyToMessageId],
-        expect.anything()
       )
     })
 
     it('should update non-follower replies when given a user id', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
-
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) => {
-          callback(null, [{ in_reply_to_message_id: inReplyToMessageId }])
-        })
-        .mockImplementationOnce((_, __, callback) => {
-          callback(null)
-        })
+        .mockResolvedValueOnce(
+          [[{ in_reply_to_message_id: inReplyToMessageId }]]
+        )
+        .mockResolvedValueOnce(null)
+
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       const result = await updateNonFollowerReplies(userId)
 
@@ -801,7 +791,6 @@ describe('databaseQueries', () => {
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
           'non_follower_replies where user_id = ? and favorited = false;',
         [userId],
-        expect.anything()
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
@@ -809,22 +798,19 @@ describe('databaseQueries', () => {
           'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false ' +
           'where is_duplicate = false and event_id = ?;',
         [userId, inReplyToMessageId],
-        expect.anything()
       )
     })
 
     it('should not update non-follower replies when given a user id that yields no results', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
 
       databaseConnection.query
-        .mockImplementationOnce((_, __, callback) => {
-          callback(null, [])
-        })
+        .mockResolvedValueOnce([[]])
 
       const result = await updateNonFollowerReplies(userId)
 
@@ -834,7 +820,6 @@ describe('databaseQueries', () => {
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
           'non_follower_replies where user_id = ? and favorited = false;',
         [userId],
-        expect.anything()
       )
     })
   })

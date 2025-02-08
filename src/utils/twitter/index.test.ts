@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 
 import AggregateFineData from 'models/aggregateFineData'
-import { instantiateConnection } from 'services/databaseService'
+import { getConnectionPool, instantiateConnection } from 'services/databaseService'
 
 import formPlateLookupTweets, {
   handleTwitterAccountActivityApiEvents, PlateLookupTweetArguments
@@ -10,6 +10,12 @@ import formPlateLookupTweets, {
 jest.mock('services/databaseService')
 
 describe('twitter', () => {
+
+  afterAll(() => {
+    const connectionPool = getConnectionPool()
+    connectionPool?.end()
+  })
+
   describe('formPlateLookupTweets', () => {
     it('should form the response parts for a never-queried vehicle with no violations', () => {
       jest.useFakeTimers()
@@ -1408,18 +1414,20 @@ describe('twitter', () => {
   })
 
   describe('handleTwitterAccountActivityApiEvents', () => {
-    it('should handle a direct message create Account Activity object of type message_create', () => {
+    it('should handle a direct message create Account Activity object of type message_create', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       const insertId = '12345'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ insertId }]
+        ]
       )
 
       const directMessageCreateAccountActivityApiObject = {
@@ -1514,27 +1522,37 @@ describe('twitter', () => {
         JSON.stringify(directMessageCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenCalledTimes(1)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
     })
 
-    it('should handle a direct message create Account Activity object with media attachments', () => {
+    it('should handle a direct message create Account Activity object with media attachments', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      )
+      .mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const directMessageCreateAccountActivityApiObject = {
@@ -1632,7 +1650,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: directMessageEvent.message_create.message_data.attachment.media.type,
         url: directMessageEvent.message_create.message_data.attachment.media.media_url_https,
       }
@@ -1641,34 +1659,37 @@ describe('twitter', () => {
         JSON.stringify(directMessageCreateAccountActivityApiObject)
       )
 
-      expect(databaseConnection.query).toHaveBeenCalledTimes(2)
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
 
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a direct message create Account Activity object of a type other than message_create', () => {
+    it('should handle a direct message create Account Activity object of a type other than message_create', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       const insertId = '12345'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ insertId }]
+        ]
       )
 
       const directMessageCreateAccountActivityApiObject = {
@@ -1693,21 +1714,27 @@ describe('twitter', () => {
         JSON.stringify(directMessageCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).not.toHaveBeenCalled()
+      expect(databaseConnection.release).not.toHaveBeenCalled()
     })
 
     it('should handle a direct message create Account Activity object against all odds intended for a different account', () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       const insertId = '12345'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ insertId }]
+        ]
       )
 
       const directMessageCreateAccountActivityApiObject = {
@@ -1749,15 +1776,21 @@ describe('twitter', () => {
       )
 
       expect(databaseConnection.query).not.toHaveBeenCalled()
+      expect(databaseConnection.release).not.toHaveBeenCalled()
     })
 
-    it('should handle a favorite event Account Activity object', () => {
+    it('should handle a favorite event Account Activity object', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
+
+      databaseConnection.query
+        .mockResolvedValueOnce(
+          [[]]
+        )
 
       const favoriteEventAccountActivityApiObject = {
         for_user_id: '976593574732222465',
@@ -1780,6 +1813,9 @@ describe('twitter', () => {
         JSON.stringify(favoriteEventAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id ' +
         'from non_follower_replies where user_id = ? and favorited = false and event_id = ?;',
@@ -1787,17 +1823,26 @@ describe('twitter', () => {
           BigInt(favoriteEventAccountActivityApiObject.favorite_events[0].user.id_str),
           BigInt(favoriteEventAccountActivityApiObject.favorite_events[0].favorited_status.id_str),
         ],
-        expect.anything(),
       )
     })
 
-    it('should handle a follow event Activity API object', () => {
+    it('should handle a follow event Activity API object', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
+
+      const inReplyToMessageId = '1234567809012'
+
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [
+            { in_reply_to_message_id: inReplyToMessageId }
+          ]
+        ]
+      )
 
       const followEventAccountActivityApiObject = {
         for_user_id: '976593574732222465',
@@ -1819,28 +1864,50 @@ describe('twitter', () => {
         JSON.stringify(followEventAccountActivityApiObject)
       )
 
-      expect(databaseConnection.query).toHaveBeenCalledWith(
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id ' +
         'from non_follower_replies where user_id = ? and favorited = false;',
         [
           BigInt(followEventAccountActivityApiObject.follow_events[0].source.id),
         ],
-        expect.anything(),
       )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'update non_follower_replies set favorited = true where user_id = ?; ' +
+        'update twitter_events set user_favorited_non_follower_reply = true, responded_to = false where is_duplicate = false and event_id = ?;',
+        [
+          BigInt(followEventAccountActivityApiObject.follow_events[0].source.id),
+          inReplyToMessageId,
+        ],
+      )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with an extended tweet field', () => {
+    it('should handle a tweet create event Account Activity object with an extended tweet field', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      )
+      .mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -1943,7 +2010,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: tweetCreateEvent.extended_tweet.extended_entities.media[0].type,
         url: tweetCreateEvent.extended_tweet.extended_entities.media[0].media_url_https,
       }
@@ -1952,32 +2019,37 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with an extended tweet field, but no photos', () => {
+    it('should handle a tweet create event Account Activity object with an extended tweet field, but no photos', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2043,25 +2115,36 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with no extended tweet field', () => {
+    it('should handle a tweet create event Account Activity object with no extended tweet field', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      ).mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2155,7 +2238,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: tweetCreateEvent.extended_entities.media[0].type,
         url: tweetCreateEvent.extended_entities.media[0].media_url_https,
       }
@@ -2164,33 +2247,30 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
     it('should handle a tweet create event Account Activity object that is a retweet by ignoring it', () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
       ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
-
-      const insertId = '12345'
-
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
-      )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
         tweet_create_events: [
@@ -2273,20 +2353,28 @@ describe('twitter', () => {
       )
 
       expect(databaseConnection.query).not.toHaveBeenCalled()
+      expect(databaseConnection.release).not.toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with an animated gif attachment', () => {
+    it('should handle a tweet create event Account Activity object with an animated gif attachment', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      ).mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2396,7 +2484,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: tweetCreateEvent.extended_entities.media[0].type,
         url: tweetCreateEvent.extended_entities.media[0].media_url_https,
       }
@@ -2405,32 +2493,42 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object not in response to another tweet', () => {
+    it('should handle a tweet create event Account Activity object not in response to another tweet', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      ).mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2540,7 +2638,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: tweetCreateEvent.extended_entities.media[0].type,
         url: tweetCreateEvent.extended_entities.media[0].media_url_https,
       }
@@ -2549,32 +2647,42 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with a user mention not in the text', () => {
+    it('should handle a tweet create event Account Activity object with a user mention not in the text', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      const insertId = '12345'
+      const twitterEventInsertId = '12345'
+      const twitterMediaObjectsInsertId = '54321'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          { insertId: twitterEventInsertId }
+        ]
+      ).mockResolvedValueOnce(
+        [
+          { insertId: twitterMediaObjectsInsertId }
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2681,7 +2789,7 @@ describe('twitter', () => {
       }
 
       const expectedTwitterMediaObject = {
-        twitter_event_id: insertId,
+        twitter_event_id: twitterEventInsertId,
         type: tweetCreateEvent.extended_entities.media[0].type,
         url: tweetCreateEvent.extended_entities.media[0].media_url_https,
       }
@@ -2690,32 +2798,37 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         2,
         'insert into twitter_media_objects set ?',
         [expectedTwitterMediaObject],
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
-    it('should handle a tweet create event Account Activity object with no user mentions', () => {
+    it('should handle a tweet create event Account Activity object with no user mentions', async () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
+        release: jest.fn(),
       }
 
-      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       const insertId = '12345'
 
-      databaseConnection.query.mockImplementationOnce((_, __, callback) =>
-        callback(null, { insertId })
+      databaseConnection.query.mockResolvedValueOnce(
+        [
+          [{ insertId }]
+        ]
       )
 
       const tweetCreateEventCreateAccountActivityApiObject = {
@@ -2761,16 +2874,19 @@ describe('twitter', () => {
         JSON.stringify(tweetCreateEventCreateAccountActivityApiObject)
       )
 
+      // Wait for async code to complete.
+      await new Promise(process.nextTick)
+
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
         expectedTwitterEvent,
-        expect.anything(),
       )
+
+      expect(databaseConnection.release).toHaveBeenCalled()
     })
 
     it('should log, but otherwise ignore an event it does not know how to handle', () => {
       const databaseConnection = {
-        end: jest.fn(),
         query: jest.fn(),
       }
 

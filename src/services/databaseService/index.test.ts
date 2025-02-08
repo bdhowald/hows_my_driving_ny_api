@@ -1,47 +1,28 @@
-import { MysqlError } from 'mysql'
-
-import { closeConnectionHandler, instantiateConnection } from '.'
+import { getConnectionPool, instantiateConnection } from '.'
 
 describe('databaseService', () => {
-  describe('closeConnectionHandler', () => {
-    const consoleErrorSpy = jest.spyOn(global.console, 'error')
 
-    beforeEach(() => {
-      consoleErrorSpy.mockReset()
-    })
-
-    it('should console.error an error', () => {
-      const error: MysqlError = {
-        code: 'PROTOCOL_CONNECTION_LOST',
-        errno: 123,
-        fatal: true,
-        message: 'a fatal error',
-        name: 'someError',
-      }
-
-      closeConnectionHandler(error)
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(error)
-    })
-
-    it('should silently close when no error', () => {
-      closeConnectionHandler()
-
-      expect(consoleErrorSpy).not.toHaveBeenCalled()
-    })
+  afterAll(() => {
+    const connectionPool = getConnectionPool()
+    connectionPool?.end()
   })
 
   describe('instantiateConnection', () => {
-    it('should instantiate a connection', () => {
-      const databaseConnection = instantiateConnection()
+    it('should instantiate a connection', async () => {
+      const databaseConnection = await instantiateConnection()
 
       // The connection is a plain object, so we can't test the
       // class of the returned object.
       expect(databaseConnection).toBeDefined()
       expect(databaseConnection.query).toBeDefined()
+    })
+  })
 
-      // Close database connection
-      databaseConnection.end(closeConnectionHandler)
+  describe('getConnectionPool', () => {
+    it('the connection pool should be defined', async () => {
+      const databaseConnection = await instantiateConnection()
+
+      expect(getConnectionPool()).not.toBeUndefined()
     })
   })
 })

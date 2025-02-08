@@ -1,5 +1,5 @@
 import axios from 'axios'
-import mysql, { MysqlError } from 'mysql'
+import * as mysql from 'mysql2/promise'
 
 import {
   rawFiscalYearDatabaseViolationFactory,
@@ -15,13 +15,6 @@ describe('app', () => {
   const serverPort = 1234
   const apiEndpoint = `http://localhost:${serverPort}/api/v1`
 
-  const closeConnectionHandler = (error: any) => {
-    if (error) {
-      console.error(error)
-      return
-    }
-  }
-
   const instantiateConnection = () => mysql.createConnection({
     host: '127.0.0.1',
     user: process.env.MYSQL_DATABASE_USER ?? '',
@@ -30,55 +23,43 @@ describe('app', () => {
     multipleStatements: true,
   })
 
-  const queryForPlate = (
+  const queryForPlate = async (
     plate: string, state: string, plateTypes: string
-  ) => new Promise((resolve, reject) => {
-    const databaseConnection = instantiateConnection()
+  ): Promise<mysql.QueryResult> => {
+    const databaseConnection = await instantiateConnection()
 
-    databaseConnection.query(
-      'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
-      [plate, state, plateTypes],
-      (
-        error: MysqlError | null,
-        results: any,
-      ) => {
-        // Close database connection
-        databaseConnection.end(closeConnectionHandler)
+    try {
+      const [rows, _] = await databaseConnection.query(
+        'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
+        [plate, state, plateTypes],
+      )
 
-        if (error) {
-          console.error(error)
-          reject(error)
-        }
-        if (results) {
-          return resolve(results)
-        }
-      }
-    )
-  })
+      databaseConnection.end()
 
-  const wipeTestDatabase = async () =>
-    new Promise<void>((resolve, reject) => {
-      const testDatabaseName = process.env.MYSQL_DATABASE_NAME ?? ''
+      return rows
+    } catch(error) {
+      console.log(error)
+      return []
+    }
+  }
 
-      if (!testDatabaseName.match(/test/)) {
-        throw new Error('database may not be a test database')
-      }
+  const wipeTestDatabase = async () => {
+    const testDatabaseName = process.env.MYSQL_DATABASE_NAME ?? ''
 
-      const databaseConnection = instantiateConnection()
+    if (!testDatabaseName.match(/test/)) {
+      throw new Error('database may not be a test database')
+    }
 
-      databaseConnection.query('truncate table plate_lookups', (error) => {
-        if (error) {
-          // Close database connection
-          databaseConnection.end(closeConnectionHandler)
+    const databaseConnection = await instantiateConnection()
 
-          reject(error)
-        }
-        // Close database connection
-        databaseConnection.end(closeConnectionHandler)
-
-        resolve()
-      })
-    })
+    try {
+      databaseConnection.query('truncate table plate_lookups')
+      databaseConnection.end()
+    } catch(error) {
+      console.log(error)
+      return []
+    }
+  }
 
   const server = createServer()
 

@@ -1,5 +1,4 @@
 import { Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
-import { instantiateConnection } from 'services/databaseService'
 import { getBoroughFromDatabaseGeocode } from 'utils/databaseQueries'
 
 import getBoroughService from '.'
