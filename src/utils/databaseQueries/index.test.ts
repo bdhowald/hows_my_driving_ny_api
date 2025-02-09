@@ -276,7 +276,7 @@ describe('databaseQueries', () => {
       )
     })
 
-    it('should handle a database error', async () => {
+    it('should handle a database error when obtaining a unique identifier', async () => {
       const databaseConnection = {
         query: jest.fn(),
         release: jest.fn(),
@@ -286,9 +286,65 @@ describe('databaseQueries', () => {
 
       const error = new Error('a fatal error')
 
+      // mock failed call to obtain unique identifier
       databaseConnection.query.mockRejectedValueOnce(error)
 
-      expect(createAndInsertNewLookup(createNewLookupArguments)).rejects.toBe(error)
+      await expect(createAndInsertNewLookup(createNewLookupArguments)).rejects.toBe(error)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select count(*) as count from plate_lookups where unique_identifier = ?',
+        [expect.any(String)],
+      )
+    })
+
+    it('should handle a database error when creating and inserting a new lookup', async () => {
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query
+        // mock successful call to obtain unique identifier
+        .mockResolvedValueOnce([[{count: 0}]])
+        // mock failed call to create and insert the lookup
+        .mockRejectedValueOnce(error)
+
+      await expect(createAndInsertNewLookup(createNewLookupArguments)).rejects.toBe(error)
+
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        1,
+        'select count(*) as count from plate_lookups where unique_identifier = ?',
+        [expect.any(String)],
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        2,
+        'insert into plate_lookups set ?',
+        expect.objectContaining({
+          'boot_eligible_under_dvaa_threshold': false,
+          'boot_eligible_under_rdaa_threshold': false,
+          'bus_lane_camera_violations': 1,
+          'count_towards_frequency': false,
+          'created_at': expect.any(Date),
+          'external_username': null,
+          'fingerprint_id': undefined,
+          'lookup_source': 'api',
+          'message_id': null,
+          'mixpanel_id': undefined,
+          'num_tickets': 17,
+          'observed': null,
+          'plate': 'ABC1234',
+          'plate_types': 'AGR,ARG,AYG,BOB,CMH,FPW,GSM,HAM,HIS,JWV,MCL,NLM,ORG,PAS,PHS,PPH,RGL,SOS,SPO,SRF,WUG',
+          'red_light_camera_violations': 2,
+          'responded_to': true,
+          'speed_camera_violations': 2,
+          'state': 'NY',
+          'unique_identifier': expect.any(String),
+        }),
+      )
     })
   })
 
@@ -520,6 +576,48 @@ describe('databaseQueries', () => {
         ],
       )
     })
+
+    it('should log an error if the previous lookup and frequency request fails', async () => {
+      const vehicleQueryProps: VehicleQueryProps = {
+        existingIdentifier: 'a1b2c3d4',
+        existingLookupCreatedAt: date,
+        lookupSource: LookupSource.Api,
+        plate,
+        plateTypes: undefined,
+        state,
+      }
+
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      await expect(
+        getPreviousLookupAndLookupFrequencyForVehicle(
+          vehicleQueryProps
+        )
+      ).rejects.toBe(error)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select count(*) as frequency from plate_lookups where plate = ? and ' +
+          'state = ? and count_towards_frequency = 1 and plate_types is null; ' +
+          'select num_tickets as num_violations, created_at from plate_lookups where ' +
+          'plate = ? and state = ? and count_towards_frequency = 1 and plate_types is null ' +
+          'ORDER BY created_at DESC LIMIT 1;',
+        [
+          'ABC1234',
+          'NY',
+          'ABC1234',
+          'NY',
+        ],
+      )
+    })
   })
 
   describe('getExistingLookupResult', () => {
@@ -586,6 +684,39 @@ describe('databaseQueries', () => {
         ['a1b2c3d4'],
       )
     })
+
+    it('should log an error if the existing lookup request fails', async () => {
+      const date = new Date()
+
+      const expected = {
+        createdAt: date,
+        plate,
+        plateTypes: nonEmptyPlateTypes,
+        state,
+      }
+
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockReturnValue(databaseConnection)
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      const identifier = 'a1b2c3d4'
+
+      await expect(
+        getExistingLookupResult(identifier)
+      ).rejects.toBe(error)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select plate, state, plate_types, created_at from plate_lookups where unique_identifier = ?',
+        ['a1b2c3d4'],
+      )
+    })
   })
 
   describe('getBoroughFromDatabaseGeocode', () => {
@@ -608,7 +739,31 @@ describe('databaseQueries', () => {
 
       expect(await getBoroughFromDatabaseGeocode(address)).toEqual([borough])
 
-      expect(databaseConnection.query).toHaveBeenCalledTimes(1)
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select borough from geocodes WHERE lookup_string = ?',
+        ['99 Schermerhorn Street New York NY New York NY'],
+      )
+    })
+
+    it('should log an error if the geocode request fails', async () => {
+      const address = '99 Schermerhorn Street New York NY'
+
+      const borough = {borough: 'Brooklyn'}
+
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockResolvedValueOnce(
+        databaseConnection
+      )
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      await expect(getBoroughFromDatabaseGeocode(address)).rejects.toBe(error)
     })
   })
 
@@ -636,7 +791,50 @@ describe('databaseQueries', () => {
 
       expect(await insertGeocodeIntoDatabase(geocode)).toBe(true)
 
-      expect(databaseConnection.query).toHaveBeenCalledTimes(1)
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'insert into geocodes set ?',
+        {
+          'borough': 'Brooklyn',
+          'geocoding_service': 'google',
+          'lookup_string': '99 Schermerhorn Street New York NY'
+        },
+      )
+    })
+
+    it('should log an error if the insert geocode request fails', async () => {
+      const address = '99 Schermerhorn Street New York NY'
+
+      const geocode: DatabaseGeocode = {
+        borough: 'Brooklyn',
+        geocoding_service: 'google',
+        lookup_string: address
+      }
+
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockResolvedValueOnce(
+        databaseConnection
+      )
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      await expect(
+        insertGeocodeIntoDatabase(geocode)
+      ).rejects.toBe(error)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'insert into geocodes set ?',
+        {
+          'borough': 'Brooklyn',
+          'geocoding_service': 'google',
+          'lookup_string': '99 Schermerhorn Street New York NY'
+        },
+      )
     })
   })
 
@@ -721,6 +919,30 @@ describe('databaseQueries', () => {
       )
 
       expect(result).toBe(true)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'insert into twitter_events set ?',
+        decamelizeKeys(twitterDatabaseEvent),
+      )
+    })
+
+    it('should log an error if the request to create a twitter event and associated media objects fails', async () => {
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      await expect(
+        insertNewTwitterEventAndMediaObjects(
+          twitterDatabaseEvent
+        )
+      ).rejects.toBe(error)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into twitter_events set ?',
@@ -815,6 +1037,29 @@ describe('databaseQueries', () => {
       const result = await updateNonFollowerReplies(userId)
 
       expect(result).toBe(true)
+
+      expect(databaseConnection.query).toHaveBeenCalledWith(
+        'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +
+          'non_follower_replies where user_id = ? and favorited = false;',
+        [userId],
+      )
+    })
+
+    it('should log an error if the request to update non-follower replies fails', async () => {
+      const databaseConnection = {
+        query: jest.fn(),
+        release: jest.fn(),
+      }
+
+      ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
+
+      const error = new Error('a fatal error')
+
+      databaseConnection.query.mockRejectedValueOnce(error)
+
+      await expect(
+        updateNonFollowerReplies(userId)
+      ).rejects.toBe(error)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'select CAST( in_reply_to_message_id as CHAR(20) ) as in_reply_to_message_id from ' +

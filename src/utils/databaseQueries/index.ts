@@ -128,7 +128,7 @@ export const createAndInsertNewLookup = async (
     uniqueIdentifier,
   }
 
-  insertNewLookup(newLookup)
+  await insertNewLookup(newLookup)
 
   return uniqueIdentifier
 }
