@@ -1673,7 +1673,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   }
 }
 
-const getViolationBorough = async (violation, index) => {
+const getViolationBorough = async (violation) => {
   if (violation.violation_county) {
     return Promise.resolve(violation.violation_county)
   }
@@ -2475,7 +2475,7 @@ const normalizeViolations = async (requestPathname, violations) => {
       reduction_amount: isNaN(parseFloat(violation.reduction_amount))
         ? null
         : parseFloat(violation.reduction_amount),
-      registration_state: violation.registration_state || null,
+      registration_state: violation.registration_state || violation.state || null,
       street_code1: violation.street_code1 || null,
       street_code2: violation.street_code2 || null,
       street_code3: violation.street_code3 || null,
@@ -2618,6 +2618,14 @@ const retrieveBoroughFromGeocode = (location) => {
         const borough = geocodeResult.address_components.find(
           (elem) => elem.types[2] === "sublocality_level_1"
         )
+
+        const potentiallyNewYorkCity = geocodeResult.address_components.find(
+          (elem) => elem.types.includes('administrative_area_level_1')
+        )
+
+        if (potentiallyNewYorkCity?.long_name !== 'New York') {
+          return "No Borough Available"
+        }
 
         if (!borough?.long_name) {
           return "No Borough Available"
