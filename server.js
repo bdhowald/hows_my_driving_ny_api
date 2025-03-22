@@ -84,6 +84,7 @@ const FINE_FIELDS = [
 ]
 const MAX_TWITTER_STATUS_LENGTH = 280
 
+const NEW_YORK = 'New York'
 const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
 
 const US_DOLLAR_FORMAT_OBJECT = new Intl.NumberFormat("en-US", {
@@ -1413,7 +1414,7 @@ const getGoogleGeocode = async (streetAddress) => {
       address: `${streetAddress} ${NEW_YORK_GOOGLE_PARAMS}`,
       components: {
         country: 'U.S.',
-        locality: 'New York',
+        locality: NEW_YORK,
       },
     },
   }
@@ -1430,7 +1431,12 @@ const getGoogleGeocode = async (streetAddress) => {
           addressComponent.types.indexOf(AddressType.sublocality) !== -1
       )
 
-      if (potentialBorough) {
+      const potentialCity = bestResponse.address_components.find(
+        (addressComponent) =>
+          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+      )
+
+      if (potentialBorough && potentialCity?.long_name === NEW_YORK) {
         return {
           lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
           borough: potentialBorough.long_name,
@@ -1735,7 +1741,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   }
 }
 
-const getViolationBorough = async (violation, index) => {
+const getViolationBorough = async (violation) => {
   if (violation.violation_county) {
     return Promise.resolve(violation.violation_county)
   }
@@ -2585,7 +2591,7 @@ const normalizeViolations = async (requestPathname, violations) => {
       reduction_amount: isNaN(parseFloat(violation.reduction_amount))
         ? null
         : parseFloat(violation.reduction_amount),
-      registration_state: violation.registration_state || null,
+      registration_state: violation.registration_state || violation.state || null,
       street_code1: violation.street_code1 || null,
       street_code2: violation.street_code2 || null,
       street_code3: violation.street_code3 || null,

@@ -102,7 +102,7 @@ describe('getBoroughService', () => {
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
-  it('should return the first borough queried from Google', async () => {
+  it('should return the first borough queried from Google as long as New York as the city is detected', async () => {
     const brooklyn = 'Brooklyn'
     const bronx = 'Bronx'
 
@@ -112,6 +112,11 @@ describe('getBoroughService', () => {
           {
             address_components: [
               {
+                long_name: 'New York',
+                short_name: 'NY',
+                types: [ 'administrative_area_level_1', 'political' ]
+              },
+              {
                 long_name: brooklyn,
                 short_name: 'Brooklyn',
                 types: ['political', 'sublocality', 'sublocality_level_1'],
@@ -120,6 +125,11 @@ describe('getBoroughService', () => {
           },
           {
             address_components: [
+              {
+                long_name: 'New York',
+                short_name: 'NY',
+                types: [ 'administrative_area_level_1', 'political' ]
+              },
               {
                 long_name: bronx,
                 short_name: 'Bronx',
@@ -139,6 +149,47 @@ describe('getBoroughService', () => {
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address)).toBe(brooklyn)
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
+  it("should return 'No Borough Available' if the returned 'borough' is not a real borough", async () => {
+    const brooklyn = 'Brooklyn'
+    const bronx = 'Bronx'
+
+    const googleMapsGeocodeResponse = {
+      data: {
+        results: [
+          {
+            address_components: [
+              {
+                long_name: 'New York',
+                short_name: 'NY',
+                types: [ 'administrative_area_level_1', 'political' ]
+              },
+              {
+                long_name: 'Strong Island',
+                short_name: 'Long Island',
+                types: ['political', 'sublocality', 'sublocality_level_1'],
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => googleMapsGeocodeResponse),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
+
+    expect(await getBoroughService(address)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)

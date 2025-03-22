@@ -77,7 +77,12 @@ const getGoogleGeocode = async (
           addressComponent.types.indexOf(AddressType.sublocality) !== -1
       )
 
-      if (potentialBorough) {
+      const potentialCity = bestResponse.address_components.find(
+        (addressComponent) =>
+          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+      )
+
+      if (potentialBorough && potentialCity?.long_name === 'New York') {
         return {
           lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
           borough: potentialBorough.long_name,
