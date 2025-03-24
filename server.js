@@ -608,7 +608,9 @@ const registrationTypesRegex =
   /^(AGC|AGR|AMB|APP|ARG|ATD|ATV|AYG|BOB|BOT|CBS|CCK|CHC|CLG|CMB|CME|CMH|COM|CSP|DLR|FAR|FPW|GAC|GSM|HAC|HAM|HIR|HIS|HOU|HSM|IRP|ITP|JCA|JCL|JSC|JWV|LMA|LMB|LMC|LOC|LTR|LUA|MCD|MCL|MED|MOT|NLM|NYA|NYC|NYS|OMF|OML|OMO|OMR|OMS|OMT|OMV|ORC|ORG|ORM|PAS|PHS|PPH|PSD|RGC|RGL|SCL|SEM|SNO|SOS|SPC|SPO|SRF|SRN|STA|STG|SUP|THC|TOW|TRA|TRC|TRL|USC|USS|VAS|VPL|WUG)$/
 
 const counties = {
+  BRONX: "Bronx",
   Bronx: "Bronx",
+  BROOK: "Brooklyn",
   Brook: "Brooklyn",
   BX: "Bronx",
   Bx: "Bronx",
@@ -616,6 +618,7 @@ const counties = {
   Bk: "Brooklyn",
   K: "Brooklyn",
   KINGS: "Brooklyn",
+  Kings: "Brooklyn",
   MAH: "Manhattan",
   MANHA: "Manhattan",
   MN: "Manhattan",
@@ -627,8 +630,11 @@ const counties = {
   Q: "Queens",
   QN: "Queens",
   QNS: "Queens",
+  QUEEN: "Queens",
+  Qns: "Queens",
   Queen: "Queens",
   R: "Staten Island",
+  RICH: "Staten Island",
   Rich: "Staten Island",
   ST: "Staten Island",
 }
@@ -2787,7 +2793,7 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
 //           return "No Borough Available"
 //         }
 
-//         // Get latidude & longitude from address.
+//         // Get latitude & longitude from address.
 //         // const { lat, lng } = geocodeResult.geometry.location
 //         const borough = geocodeResult.address_components.find(
 //           (elem) => elem.types[2] === "sublocality_level_1"
