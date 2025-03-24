@@ -130,6 +130,66 @@ const getFineDataForViolation = (violation: RawViolation) => {
   }
 }
 
+/**
+ * NYC Department of Finance (DOF) reuses violation codes over the years.
+ * Using the cutover dates for several of these violation code changes
+ * (inferred by some detective work), we can determine what the correct
+ * description was at the time this violation was issued.
+ * @param {string} violationCode - the NYC DOF code for this violation
+ * @param {string | undefined} violationIssueDate - date violation was issued
+ * @param {string | undefined} violationIssueTime - date violation was issued
+ * @returns {string | null}
+ */
+const determineViolationFromViolationCodeAndDate = (
+  violationCode: string,
+  violationIssueDate: string,
+  violationIssueTime: string,
+) => {
+  // The same violation codes or descriptions in the fiscal year
+  // databases are used to refer to different violation types depending
+  // on the date on which that code was used.
+
+  const violationCodeDefinition:
+    | HumanizedDescription
+    | Array<ViolationMultipleDescriptionCode> =
+    humanizedDescriptionsForFiscalYearDatabaseViolations[
+      violationCode as keyof typeof humanizedDescriptionsForFiscalYearDatabaseViolations
+    ]
+
+  if (Array.isArray(violationCodeDefinition)) {
+    // Iterate over the definitions to find the one that matches the
+    // time period of the violation.
+
+    let descriptionForUpdatedViolatedCode
+
+    violationCodeDefinition.forEach(
+      (possibleDescription: ViolationMultipleDescriptionCode) => {
+        const violationDateTimes = getFormattedTimes(
+          violationIssueDate,
+          violationIssueTime,
+        )
+        if (
+          violationDateTimes &&
+          DateTime.fromJSDate(possibleDescription.startDate) <=
+            violationDateTimes.formattedTimeUtc
+        ) {
+          descriptionForUpdatedViolatedCode = possibleDescription.description
+        }
+      }
+    )
+
+    if (descriptionForUpdatedViolatedCode) {
+      return descriptionForUpdatedViolatedCode
+    }
+
+    throw Error(
+      'Unrecognized time period for fiscal year violation description'
+    )
+  }
+
+  return violationCodeDefinition
+}
+
 const getFormattedTimes = (
   violationDate: string,
   violationTime: string
@@ -268,9 +328,26 @@ const getHumanizedDescription = (
     'violation' in violation ? violation.violation : undefined
 
   if (openParkingAndCameraViolationsDescriptionKey) {
-    return humanizedDescriptionsForOpenParkingAndCameraViolations[
+
+    const humanizedDescription: HumanizedDescription = humanizedDescriptionsForOpenParkingAndCameraViolations[
       openParkingAndCameraViolationsDescriptionKey
     ]
+
+    const inferredViolationCode = violationsToCodes[
+      humanizedDescription
+    ]
+
+    const inferredViolationDescription = determineViolationFromViolationCodeAndDate(
+      inferredViolationCode,
+      violation.issueDate,
+      violation.violationTime,
+    )
+
+    if (inferredViolationDescription) {
+      return inferredViolationDescription
+    }
+
+    return humanizedDescription
   }
 
   return HumanizedDescription.NoViolationDescriptionAvailable

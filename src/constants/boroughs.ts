@@ -8,7 +8,9 @@ export enum Borough {
 }
 
 const boroughAbbreviations: Record<string, Borough> = {
+  BRONX: Borough.Bronx,
   Bronx: Borough.Bronx,
+  BROOK: Borough.Brooklyn,
   Brook: Borough.Brooklyn,
   BX: Borough.Bronx,
   Bx: Borough.Bronx,
@@ -16,6 +18,7 @@ const boroughAbbreviations: Record<string, Borough> = {
   Bk: Borough.Brooklyn,
   K: Borough.Brooklyn,
   KINGS: Borough.Brooklyn,
+  Kings: Borough.Brooklyn,
   MAH: Borough.Manhattan,
   MANHA: Borough.Manhattan,
   MN: Borough.Manhattan,
@@ -27,8 +30,11 @@ const boroughAbbreviations: Record<string, Borough> = {
   Q: Borough.Queens,
   QN: Borough.Queens,
   QNS: Borough.Queens,
+  Qns: Borough.Queens,
+  QUEEN: Borough.Queens,
   Queen: Borough.Queens,
   R: Borough.StatenIsland,
+  RICH: Borough.StatenIsland,
   Rich: Borough.StatenIsland,
   ST: Borough.StatenIsland,
 }

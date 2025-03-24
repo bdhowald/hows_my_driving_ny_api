@@ -151,6 +151,181 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
+  test.each([
+    // violation code 15
+    // before 2024-08-19
+    {
+      archaicDescription: 'NO STANDING-OFF-STREET LOT',
+      humanizedDescription: 'No Standing - Off-Street Lot',
+      issueDate: '2024-08-18',
+      violationCode: '15',
+    },
+    // on or after 2024-08-19
+    {
+      archaicDescription: 'NO STANDING-OFF-STREET LOT',
+      humanizedDescription: 'Mobile MTA Double Parking Violation',
+      issueDate: '2024-08-19',
+      violationCode: '15',
+    },
+
+    // violation code 33
+    // before 2019-06-11
+    {
+      archaicDescription: 'FEEDING METER',
+      humanizedDescription: 'Feeding Meter',
+      issueDate: '2019-06-10',
+      violationCode: '33'
+    },
+    // on or after 2019-06-11
+    {
+      archaicDescription: 'FEEDING METER',
+      humanizedDescription: 'Misuse of Parking Permit',
+      issueDate: '2019-06-11',
+      violationCode: '33'
+    },
+
+    // violation code 22
+    // before 2018-08-01
+    {
+      archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
+      humanizedDescription: 'No Parking - Except Hotel Loading',
+      issueDate: '2018-07-31',
+      violationCode: '22',
+    },
+    // on or after 2018-08-01
+    {
+      archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
+      humanizedDescription: 'No Standing - Taxi/For-Hire Vehicle Relief Stand',
+      issueDate: '2018-08-01',
+      violationCode: '22',
+    },
+
+    // violation code 12
+    // before 2019-12-06
+    {
+      archaicDescription: 'NO STANDING-SNOW EMERGENCY',
+      humanizedDescription: 'No Standing - Snow Emergency',
+      issueDate: '2019-12-05',
+      violationCode: '12',
+    },
+    // on or after 2019-12-06
+    {
+      archaicDescription: 'NO STANDING-SNOW EMERGENCY',
+      humanizedDescription: 'Mobile Bus Lane Violation',
+      issueDate: '2019-12-06',
+      violationCode: '12',
+    },
+
+    // violation code 57
+    // before 2023-10-01
+    {
+      archaicDescription: 'BLUE ZONE',
+      humanizedDescription: 'Weigh in Motion Violation',
+      issueDate: '2023-10-01',
+      violationCode: '57',
+    },
+    // on or after 2023-10-01
+    {
+      archaicDescription: 'BLUE ZONE',
+      humanizedDescription: 'No Parking - Blue Zone',
+      issueDate: '2023-09-30',
+      violationCode: '57',
+    },
+  ])(
+    'should normalize Open Parking and Camera Violations database violation with archaic description $archaicDescription',
+    async ({ archaicDescription, humanizedDescription, issueDate, violationCode }) => {
+      const databasePathname = '/resource/uvbq-3m68.json'
+
+      const formattedIssueDateTime = DateTime.fromISO(`${issueDate}T09:11:00`, {
+        zone: 'America/New_York',
+      })
+
+      const rawOpenParkingAndCameraViolation =
+        rawOpenParkingAndCameraViolationFactory.build({
+          issueDate,
+          violation: archaicDescription,
+        })
+
+      const normalizedViolations = await normalizeViolations(
+        [rawOpenParkingAndCameraViolation],
+        databasePathname
+      )
+
+      const {
+        county,
+        licenseType,
+        plate,
+        precinct,
+        state,
+        violation,
+        ...rawOpenParkingAndCameraViolationMinusRemovedFields
+      } = rawOpenParkingAndCameraViolation
+
+      const expectedViolation = {
+        ...rawOpenParkingAndCameraViolationMinusRemovedFields,
+        amountDue: 0,
+        dateFirstObserved: undefined,
+        daysParkingInEffect: undefined,
+        feetFromCurb: undefined,
+        fineAmount: 165,
+        fined: 175,
+        formattedTime: formattedIssueDateTime.toISO(),
+        formattedTimeEastern: formattedIssueDateTime.toISO(),
+        formattedTimeUtc: formattedIssueDateTime.toUTC().toISO(),
+        fromDatabases: [
+          {
+            endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+            name: 'Open Parking and Camera Violations',
+          },
+        ],
+        fromHoursInEffect: undefined,
+        houseNumber: undefined,
+        humanizedDescription,
+        interestAmount: 0,
+        intersectingStreet: undefined,
+        issuerCode: undefined,
+        issuerCommand: undefined,
+        issuerPrecinct: undefined,
+        issuerSquad: undefined,
+        issuingAgency: 'NYPD',
+        judgmentEntryDate: undefined,
+        lawSection: undefined,
+        location: undefined,
+        meterNumber: undefined,
+        outstanding: 0,
+        paid: 175,
+        paymentAmount: 175,
+        penaltyAmount: 10,
+        plateId: 'KZH2758',
+        plateType: 'PAS',
+        reduced: 0,
+        reductionAmount: 0,
+        registrationState: 'NY',
+        streetCode1: undefined,
+        streetCode2: undefined,
+        streetCode3: undefined,
+        streetName: undefined,
+        subDivision: undefined,
+        toHoursInEffect: undefined,
+        unregisteredVehicle: undefined,
+        vehicleBodyType: undefined,
+        vehicleColor: undefined,
+        vehicleExpirationDate: undefined,
+        vehicleMake: undefined,
+        vehicleYear: undefined,
+        violationCode,
+        violationCounty: 'Bronx',
+        violationInFrontOfOrOpposite: undefined,
+        violationLegalCode: undefined,
+        violationLocation: undefined,
+        violationPostCode: undefined,
+        violationPrecinct: 43,
+      }
+
+      expect(normalizedViolations[0]).toEqual(expectedViolation)
+    }
+  )
+
   it('should properly handle violation codes that have changed over time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
 
@@ -202,7 +377,117 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
-  it('should throw an error for a variable violation code whose date is outside any valid range', async () => {
+  it('should handle a violation with a violation description it does not recognize', async () => {
+    const databasePathname = '/resource/uvbq-3m68.json'
+    const issueDate = '2024-04-16T09:11:00'
+
+    const formattedIssueDateTime = DateTime.fromISO(issueDate, {
+      zone: 'America/New_York',
+    })
+
+    const rawOpenParkingAndCameraViolation =
+      rawOpenParkingAndCameraViolationFactory.build({
+        issueDate,
+        violation: 'NOT SURE WHAT THIS IS???',
+      })
+
+    const normalizedViolations = await normalizeViolations(
+      [rawOpenParkingAndCameraViolation],
+      databasePathname
+    )
+
+    const {
+      county,
+      licenseType,
+      plate,
+      precinct,
+      state,
+      violation,
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields
+    } = rawOpenParkingAndCameraViolation
+
+    const expectedViolation = {
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields,
+      amountDue: 0,
+      dateFirstObserved: undefined,
+      daysParkingInEffect: undefined,
+      feetFromCurb: undefined,
+      fineAmount: 165,
+      fined: 175,
+      formattedTime: formattedIssueDateTime.toISO(),
+      formattedTimeEastern: formattedIssueDateTime.toISO(),
+      formattedTimeUtc: formattedIssueDateTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Open Parking and Camera Violations',
+        },
+      ],
+      fromHoursInEffect: undefined,
+      houseNumber: undefined,
+      humanizedDescription: undefined,
+      interestAmount: 0,
+      intersectingStreet: undefined,
+      issuerCode: undefined,
+      issuerCommand: undefined,
+      issuerPrecinct: undefined,
+      issuerSquad: undefined,
+      issuingAgency: 'NYPD',
+      judgmentEntryDate: undefined,
+      lawSection: undefined,
+      location: undefined,
+      meterNumber: undefined,
+      outstanding: 0,
+      paid: 175,
+      paymentAmount: 175,
+      penaltyAmount: 10,
+      plateId: 'KZH2758',
+      plateType: 'PAS',
+      reduced: 0,
+      reductionAmount: 0,
+      registrationState: 'NY',
+      streetCode1: undefined,
+      streetCode2: undefined,
+      streetCode3: undefined,
+      streetName: undefined,
+      subDivision: undefined,
+      toHoursInEffect: undefined,
+      unregisteredVehicle: undefined,
+      vehicleBodyType: undefined,
+      vehicleColor: undefined,
+      vehicleExpirationDate: undefined,
+      vehicleMake: undefined,
+      vehicleYear: undefined,
+      violationCode: undefined,
+      violationCounty: 'Bronx',
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationLocation: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 43,
+    }
+
+    expect(normalizedViolations[0]).toEqual(expectedViolation)
+  })
+
+  it('should fail to handle Open Parking and Camera Violations violations that are before the UNIX epoch', async () => {
+    const databasePathname = '/resource/uvbq-3m68.json'
+
+    const rawOpenParkingAndCameraViolation =
+      rawOpenParkingAndCameraViolationFactory.build({
+        issueDate: '1969-12-31T00:00:00.000',
+        violation: 'NO STANDING-SNOW EMERGENCY',
+      })
+
+    expect(
+      normalizeViolations(
+        [rawOpenParkingAndCameraViolation],
+        databasePathname
+      )
+    ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
+  })
+
+  it('should throw an error for a fiscal year variable violation code whose date is outside any valid range', async () => {
     const databasePathname = '/resource/869v-vr48.json'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
@@ -211,10 +496,12 @@ describe('normalizeViolations', () => {
         violationCode: '12',
       })
 
-    expect(normalizeViolations(
-      [rawFiscalYearDatabaseViolation],
-      databasePathname
-    )).rejects.toThrow('Unrecognized time period for fiscal year violation description')
+    expect(
+      normalizeViolations(
+        [rawFiscalYearDatabaseViolation],
+        databasePathname
+      )
+    ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
   })
 
   it('should handle a violation with only partial fine data', async () => {

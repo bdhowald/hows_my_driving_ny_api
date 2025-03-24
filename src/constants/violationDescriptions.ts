@@ -510,6 +510,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.MidtownStandingOrParkingThreeHourLimit,
   MISCELLANEOUS: HumanizedDescription.Miscellaneous,
   'MISSING EQUIPMENT': HumanizedDescription.MissingRequiredEquipment,
+  "MISUSE PARKING PERMIT": HumanizedDescription.MisuseOfParkingPermit,
   'NGHT PKG ON RESID STR-COMM VEH':
     HumanizedDescription.NighttimeParkingOnResidentialStreetCommercialVehicle,
   'NIGHTTIME STD/ PKG IN A PARK':
