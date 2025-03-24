@@ -143,6 +143,7 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   "MIDTOWN PKG OR STD-3HR LIMIT": "Midtown Parking or Standing - 3 Hour Limit",
   MISCELLANEOUS: "Miscellaneous",
   "MISSING EQUIPMENT": "Missing Required Equipment",
+  "MISUSE PARKING PERMIT": "Misuse of Parking Permit",
   "NGHT PKG ON RESID STR-COMM VEH":
     "No Nighttime Parking on Residential Street - Commercial Vehicle",
   "NIGHTTIME STD/ PKG IN A PARK": "No Nighttime Standing or Parking in a Park",
@@ -528,14 +529,16 @@ const namesToCodes = {
   "No Standing - Snow Emergency": "12",
   "No Standing - Taxi Stand": "13",
   "No Standing - Day/Time Limits": "14",
+  "Mobile MTA Double Parking Violation": "15",
+  "No Standing - Off-Street Lot": "15",
   "No Standing - Except Truck Loading/Unloading": "16",
-  "No Parking - Except Authorized Vehicles": "24",
   "No Standing - Bus Lane": "18",
   "No Standing - Bus Stop": "19",
   "No Parking - Day/Time Limits": "20",
   "No Parking - Street Cleaning": "21",
   "No Parking - Except Hotel Loading": "22",
   "No Parking - Taxi Stand": "23",
+  "No Parking - Except Authorized Vehicles": "24",
   "No Standing - Commuter Van Stop": "25",
   "No Standing - For Hire Vehicle Stop": "26",
   "No Parking - Except Disability Permit": "27",
@@ -553,6 +556,7 @@ const namesToCodes = {
   "Overtime Parking - Time Limit Posted": "39",
   "Fire Hydrant": "40",
   "Expired Meter - Commercial Meter Zone": "43",
+  "Mobile MTA Bus Stop Violation": "43",
   "Overtime Parking - Commercial Meter Zone": "44",
   "No Stopping - Traffic Lane": "45",
   "Double Parking": "46",
@@ -931,6 +935,84 @@ const detectVehicles = (potentialVehicles) => {
 
     return vehicle
   })
+}
+
+/**
+ * NYC Department of Finance (DOF) reuses violation codes over the years.
+ * Using the cutover dates for several of these violation code changes
+ * (inferred by some detective work), we can determine what the correct
+ * description was at the time this violation was issued.
+ * @param {string} violationCode
+ * @param {string | undefined} violationIssueDate
+ * @returns {string | null}
+ */
+const determineViolationFromViolationCodeAndDate = (
+  violationCode,
+  violationIssueDate
+) => {
+  if (!(violationCode in fiscalYearReadableViolationDescriptions)) {
+    // If we don't know about this violation code, just return null.
+    return null
+  }
+
+  const violationDescriptionDefinition = fiscalYearReadableViolationDescriptions[
+    violationCode
+  ]
+  if (
+    typeof violationDescriptionDefinition === "object" &&
+    violationIssueDate
+  ) {
+    let fiscalYearReadableDescription
+
+    // Some violation codes have applied to multiple violations.
+    violationDescriptionDefinition.forEach((possibleDescription) => {
+      if (
+        Date.parse(possibleDescription.startDate) <=
+        Date.parse(violationIssueDate)
+      ) {
+        fiscalYearReadableDescription = possibleDescription.description
+      }
+    })
+
+    return fiscalYearReadableDescription
+  } else {
+    return violationDescriptionDefinition
+  }
+}
+
+/**
+ * NYC Department of Finance (DOF) reuses violation codes over the years.
+ * Using the cutover dates for several of these violation code changes
+ * (inferred by some detective work), we can determine what the correct
+ * description was at the time this violation was issued.
+ * @param {string | Object} violationDescriptionDefinition
+ * @param {string | undefined} violationIssueDate
+ * @returns {string}
+ */
+const determineViolationFromViolationDescriptionAndDate = (
+  violationDescriptionDefinition,
+  violationIssueDate
+) => {
+  if (
+    typeof violationDescriptionDefinition === "object" &&
+    violationIssueDate
+  ) {
+    let fiscalYearReadableDescription
+
+    // Some violation codes have applied to multiple violations.
+    violationDescriptionDefinition.forEach((possibleDescription) => {
+      if (
+        Date.parse(possibleDescription.startDate) <=
+        Date.parse(violationIssueDate)
+      ) {
+        fiscalYearReadableDescription = possibleDescription.description
+      }
+    })
+
+    return fiscalYearReadableDescription
+  } else {
+    return violationDescriptionDefinition
+  }
 }
 
 const filterOutViolationsAfterSearchDate = (
@@ -1418,25 +1500,11 @@ const getReadableViolationDescription = (violation) => {
       fiscalYearReadableViolationDescriptions[fiscalYearViolationDescriptionKey]
 
     if (violationDescriptionDefinition) {
-      if (
-        typeof violationDescriptionDefinition === "object" &&
-        violation.issue_date
-      ) {
-        let fiscalYearReadableDescription
-
-        // Some violation codes have applied to multiple violations.
-        violationDescriptionDefinition.forEach((possibleDescription) => {
-          if (
-            Date.parse(possibleDescription.startDate) <=
-            Date.parse(violation.issue_date)
-          ) {
-            fiscalYearReadableDescription = possibleDescription.description
-          }
-        })
-
-        return fiscalYearReadableDescription
-      } else {
-        return violationDescriptionDefinition
+      if (violationDescriptionDefinition) {
+        return determineViolationFromViolationDescriptionAndDate(
+          violationDescriptionDefinition,
+          violation.issue_date,
+        )
       }
     }
   }
@@ -1445,7 +1513,20 @@ const getReadableViolationDescription = (violation) => {
     openParkingAndCameraViolationsReadableViolationDescriptions[
       violation.violation
     ]
+
   if (openParkingAndCameraViolationsReadableDescription) {
+    const inferredViolationCode = inferViolationCodeFromOpenParkingAndCameraViolationDescription(
+      openParkingAndCameraViolationsReadableDescription
+    )
+    const inferredViolationDescription = determineViolationFromViolationCodeAndDate(
+      inferredViolationCode,
+      violation.issue_date,
+    )
+
+    if (inferredViolationDescription) {
+      return inferredViolationDescription
+    }
+
     return openParkingAndCameraViolationsReadableDescription
   }
 
@@ -2289,6 +2370,24 @@ const handleUserEvent = (event) => {
 
 const insertNewLookup = (newLookup, callback) => {
   connection.query("insert into plate_lookups set ?", newLookup, callback)
+}
+
+/**
+ * Open Parking And Camera Violation data (https://data.cityofnewyork.us/resource/nc67-uf89.json)
+ * does not have a violation code, but rather a string field 'description' that contains the
+ * violation description. However, sometimes the violations are outdated, using descriptions that
+ * used to correspond to those violation codes, but have since been replaced with newer ones.
+ * As such, we need to convert the description into to a violation code and then use the date to
+ * determine what the correct violation should be.
+ *
+ * @param {string} violationDescription
+ * @returns {string}
+ */
+const inferViolationCodeFromOpenParkingAndCameraViolationDescription = (violationDescription) => {
+  if (violationDescription in namesToCodes) {
+    return namesToCodes[violationDescription]
+  }
+  return violationDescription
 }
 
 const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
