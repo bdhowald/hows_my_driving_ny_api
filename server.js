@@ -1060,10 +1060,10 @@ const findMaxCameraViolationsStreak = (violationTimes) => {
   let streakStart = null
 
   violationTimes.forEach((date) => {
-    const yearLater = date.set({ year: date.year + 1 })
+    const yearMinusOneDayLater = date.set({ year: date.year + 1, day: -1 })
 
     const yearLongTickets = violationTimes.filter(
-      (otherDate) => otherDate >= date && otherDate < yearLater
+      (otherDate) => otherDate >= date && otherDate < yearMinusOneDayLater
     )
 
     const sortedYearLongTickets = yearLongTickets.sort((a, b) => {
