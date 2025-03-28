@@ -155,4 +155,67 @@ describe('getCameraData', () => {
 
     expect(cameraData).toEqual(expected)
   })
+
+  it('should calculate camera streaks over the past year', () => {
+    // All violations are one year apart, so max is one.
+    const violations: Violation[] = [
+      violationFactory.build({
+        formattedTimeEastern: '2021-01-15T00:00:00.000-05:00',
+        humanizedDescription: 'Bus Lane Violation' as HumanizedDescription,
+      }),
+      violationFactory.build({
+        formattedTimeEastern: '2022-01-15T00:00:00.000-05:00',
+        humanizedDescription: 'Bus Lane Violation' as HumanizedDescription,
+      }),
+      violationFactory.build({
+        formattedTimeEastern: '2023-01-15T00:00:00.000-05:00',
+        humanizedDescription: 'Bus Lane Violation' as HumanizedDescription,
+      }),
+      violationFactory.build({
+        formattedTimeEastern: '2024-01-15T00:00:00.000-05:00',
+        humanizedDescription: 'Bus Lane Violation' as HumanizedDescription,
+      }),
+      violationFactory.build({
+        formattedTimeEastern: '2025-01-15T00:00:00.000-05:00',
+        humanizedDescription: 'Bus Lane Violation' as HumanizedDescription,
+      }),
+    ]
+
+    const cameraData = getCameraData(violations)
+
+    const expected: CameraData = {
+      busLaneCameraViolations: {
+        maxStreak: 1,
+        streakEnd: '2021-01-15T00:00:00.000-05:00',
+        streakStart: '2021-01-15T00:00:00.000-05:00',
+        total: 5,
+      },
+      cameraViolations: {
+        maxStreak: 0,
+        streakEnd: null,
+        streakStart: null,
+        total: 0,
+      },
+      cameraViolationsWithBusLaneCameraViolations: {
+        maxStreak: 1,
+        streakEnd: '2021-01-15T00:00:00.000-05:00',
+        streakStart: '2021-01-15T00:00:00.000-05:00',
+        total: 5,
+      },
+      redLightCameraViolations: {
+        maxStreak: 0,
+        streakEnd: null,
+        streakStart: null,
+        total: 0,
+      },
+      schoolZoneSpeedCameraViolations: {
+        maxStreak: 0,
+        streakEnd: null,
+        streakStart: null,
+        total: 0,
+      },
+    }
+
+    expect(cameraData).toEqual(expected)
+  })
 })

@@ -22,10 +22,10 @@ const findMaxCameraViolationsStreak = (
     .map((violationTime) => DateTime.fromISO(violationTime))
 
   dateTimes.forEach((dateTime) => {
-    const yearLater = dateTime.set({ year: dateTime.year + 1 })
+    const yearMinusOneDayLater = dateTime.set({ year: dateTime.year + 1, day: -1 })
 
     const yearLongTickets = dateTimes.filter(
-      (otherDate) => otherDate >= dateTime && otherDate < yearLater
+      (otherDate) => otherDate >= dateTime && otherDate < yearMinusOneDayLater
     )
 
     const sortedYearLongTickets = yearLongTickets.sort((a, b) => {
