@@ -11,6 +11,7 @@ const googleMapsClient = require("@google/maps").createClient({
 })
 
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
+const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
 
 const PARKING_VIOLATIONS_FISCAL_YEAR_2014_PATH = "/resource/jt7v-77mi.json"
 const PARKING_VIOLATIONS_FISCAL_YEAR_2015_PATH = "/resource/c284-tqph.json"
@@ -37,7 +38,7 @@ const FISCAL_YEAR_PATHS = [
   PARKING_VIOLATIONS_FISCAL_YEAR_2023_PATH,
   PARKING_VIOLATIONS_FISCAL_YEAR_2024_PATH,
 ]
-const OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH = "/resource/uvbq-3m68.json"
+const OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH = "/resource/nc67-uf89.json"
 
 const FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP = {
   [PARKING_VIOLATIONS_FISCAL_YEAR_2014_PATH]:
@@ -1613,7 +1614,18 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       plateTypes
     )
 
-    if (endpointResponses.some((endpointResponse) => !endpointResponse)) {
+    const allOpenDataResponses = await Promise.all([
+      makeOpenDataVehicleRequests(
+        plate,
+        state,
+        plateTypes
+      ),
+      makeOpenDataMetadataRequest()
+    ])
+
+    const [vehicleDataResponses, metadataResponses] = allOpenDataResponses
+
+    if (vehicleDataResponses.some((endpointResponse) => !endpointResponse)) {
       return Promise.resolve({
         vehicle: {},
         error_string:
@@ -1623,10 +1635,24 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       })
     }
 
-    const normalizedResponses = endpointResponses.map((response) => {
+    const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
+      if (!response.config.url) {
+        throw Error('Missing response url')
+      }
+      const { dataUpdatedAt, dataUri } = response.data
+      const databasePathname = `${dataUri}.json`
+      reducedObject[databasePathname] = dataUpdatedAt
+
+      return reducedObject
+    }, {})
+
+    const normalizedResponses = vehicleDataResponses.map((response) => {
       const requestUrlObject = new URL(response.config.url)
-      return normalizeViolations(requestUrlObject.pathname, response.data)
+      const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}`
+      const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
+      return normalizeViolations(requestUrlObject.pathname, response.data, dataUpdatedAt)
     })
+
     await Promise.all(normalizedResponses).then((normalizedResponses) => {
       normalizedResponses.forEach((normalizedResponse) => {
         flattenedResponses = [...flattenedResponses, ...normalizedResponse]
@@ -2390,6 +2416,22 @@ const inferViolationCodeFromOpenParkingAndCameraViolationDescription = (violatio
   return violationDescription
 }
 
+/**
+ * Request the metadata for all the violation databases
+ */
+const makeOpenDataMetadataRequest = async () => {
+  const allEndpoints = FISCAL_YEAR_PATHS.concat(OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH)
+
+  const promises = allEndpoints.map(async (endpoint) => {
+    const resourceIdentifier = endpoint.replace('/resource/', '')
+    const metadataUrl = new URL(resourceIdentifier, NYC_OPEN_DATA_PORTAL_METADATA_PREFIX)
+
+    return axios.get(metadataUrl.toString())
+  })
+
+  return await Promise.all(promises)
+}
+
 const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   let rectifiedPlate = plate
 
@@ -2434,7 +2476,7 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   // const fieldsForExternalRequests = 'violations' in selectedFields ? Object.keys(selectedFields['violations']) : {}
 
   // Fiscal Year Databases
-  const promises = FISCAL_YEAR_PATHS.map((path) => {
+  const promises = FISCAL_YEAR_PATHS.map(async (path) => {
     const endpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${path}`
     const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
     return axios.get(fiscalYearUrlObject.toString()).catch(handleAxiosErrors)
@@ -2526,7 +2568,7 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
     )
   )
 
-const normalizeViolations = async (requestPathname, violations) => {
+const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
   const returnViolations = await violations.map(async (violation, index) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
@@ -2549,6 +2591,7 @@ const normalizeViolations = async (requestPathname, violations) => {
         : parseFloat(violation.fine_amount),
       from_databases: [
         {
+          dataUpdatedAt,
           endpoint: `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`,
           name: FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP[requestPathname],
         },
