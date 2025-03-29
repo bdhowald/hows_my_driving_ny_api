@@ -6,14 +6,14 @@ import {
 } from '__fixtures__/violations'
 import { RawViolation } from 'types/violations'
 
-import makeOpenDataVehicleRequest from '.'
+import OpenDataService from '.'
 
 jest.mock('axios', () => ({
   ...jest.requireActual('axios'),
   get: jest.fn(),
 }));
 
-describe('makeOpenDataVehicleRequest', () => {
+describe('OpenDataService.makeOpenDataVehicleRequest', () => {
   describe('querying various open data tables', () => {
     beforeEach(() => {
       ;(axios.get as jest.Mock).mockReset()
@@ -83,7 +83,7 @@ describe('makeOpenDataVehicleRequest', () => {
       `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParams.toString()}`,
       `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParams.toString()}`,
       `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParams.toString()}`,
-      `${openDataHost}/resource/uvbq-3m68.json?${openParkingAndCameraViolationsDatabaseQueryParams.toString()}`,
+      `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParams.toString()}`,
     ]
 
     it('return a response even when no violations found querying without plate types', async () => {
@@ -116,7 +116,7 @@ describe('makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
 
       expect(await result).toEqual(
         // There should be one for every request except the first.
@@ -181,7 +181,7 @@ describe('makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -243,7 +243,7 @@ describe('makeOpenDataVehicleRequest', () => {
         `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
         `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
         `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
-        `${openDataHost}/resource/uvbq-3m68.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
       ]
 
       const medallionEndpointResponse = {
@@ -294,7 +294,7 @@ describe('makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -360,7 +360,7 @@ describe('makeOpenDataVehicleRequest', () => {
         `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
         `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
         `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
-        `${openDataHost}/resource/uvbq-3m68.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithPlateTypes.toString()}`,
+        `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithPlateTypes.toString()}`,
       ]
 
       const medallionEndpointResponse = { data: [] }
@@ -396,7 +396,7 @@ describe('makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = makeOpenDataVehicleRequest(plate, state, plateTypes)
+      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state, plateTypes)
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -429,7 +429,7 @@ describe('makeOpenDataVehicleRequest', () => {
         // delete value from process.env
         delete process.env['NYC_OPEN_DATA_APP_TOKEN']
   
-        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(
+        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(
           new Error('NYC Open Data app token is missing.')
         )
   
@@ -442,7 +442,7 @@ describe('makeOpenDataVehicleRequest', () => {
 
         ;(axios.get as jest.Mock).mockRejectedValueOnce(nonAxiosError)
 
-        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(nonAxiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(nonAxiosError.message))
       })
 
       it('should log and rethrow an axios error with no request or response object', async () => {
@@ -453,7 +453,7 @@ describe('makeOpenDataVehicleRequest', () => {
 
         ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
 
-        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
       })
 
       it('should log and rethrow an axios error with a response object', async () => {
@@ -479,7 +479,7 @@ describe('makeOpenDataVehicleRequest', () => {
 
         ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
 
-        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
       })
 
       it('should log and rethrow an axios error with a request object', async () => {
@@ -512,8 +512,71 @@ describe('makeOpenDataVehicleRequest', () => {
 
         ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
 
-        await expect(makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(simpleError)
+        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(simpleError)
       })
     })
+  })
+})
+
+describe('makeOpenDataMetadataRequest', () => {
+  it('should request the metadata for alll violation databases', async () => {
+    const violationTableMetadataResponse = { data: [
+      {
+        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
+        "id": "869v-vr48",
+      }
+    ] }
+
+    ;(axios.get as jest.Mock)
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2014
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2015
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2016
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2017
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2018
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2019
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2020
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2021
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2022
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2023
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2024
+      .mockResolvedValueOnce(violationTableMetadataResponse) // OPACV
+
+    await expect(OpenDataService.makeOpenDataMetadataRequest()).resolves.toEqual(
+      Array(12).fill(violationTableMetadataResponse)
+    )
+  })
+
+  it('should handle an open data error', async () => {
+    const errorMessage = 'Sorry, that did not work.'
+    const simpleError = new Error(errorMessage)
+
+    const axiosError = new AxiosError(
+      errorMessage,
+      '401',
+      {
+        headers: new AxiosHeaders({
+          server: 'nginx',
+          date: 'Sat, 13 Jul 2022 21:29:46 GMT',
+          'content-type': 'application/json; charset=utf-8',
+          'transfer-encoding': 'chunked',
+          connection: 'close',
+          'access-control-allow-origin': '*',
+          'x-error-code': 'not_found',
+          'x-error-message': 'No service found for this URL.',
+          'cache-control': 'private, no-cache, must-revalidate',
+          age: '0',
+          'x-socrata-region': 'aws-us-east-1-fedramp-prod',
+          'strict-transport-security': 'max-age=31536000; includeSubDomains',
+          'x-socrata-requestid': '5bd844a4a5b672caaba5cd3273d5927b'
+        }),
+        method: 'get'
+      },
+      {},
+    )
+
+    ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+
+    await expect(OpenDataService.makeOpenDataMetadataRequest()).rejects.toEqual(simpleError)
   })
 })

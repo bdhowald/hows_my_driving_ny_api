@@ -1,8 +1,9 @@
 import { AxiosResponse } from 'axios'
 import { DateTime } from 'luxon'
 
+import { DatabasePathName } from 'constants/endpoints'
 import LookupSource from 'constants/lookupSources'
-import makeOpenDataVehicleRequest from 'services/openDataService'
+import OpenDataService from 'services/openDataService'
 import ApiLookupResult from 'types/apiLookup'
 import CameraData from 'types/cameraData'
 import { PreviousLookupAndFrequency } from 'types/query'
@@ -71,7 +72,7 @@ const getAndProcessApiLookup = async (
 
   let rectifiedPlate = plate
 
-  let endpointResponses: AxiosResponse[] | undefined
+  let allOpenDataResponses: [AxiosResponse[], AxiosResponse[]] | undefined
 
   const openDataQueryErrorResponse = {
     error:
@@ -81,23 +82,49 @@ const getAndProcessApiLookup = async (
   }
 
   try {
-    endpointResponses = await makeOpenDataVehicleRequest(
-      plate,
-      state,
-      plateTypes
-    )
-
+    allOpenDataResponses = await Promise.all([
+      OpenDataService.makeOpenDataVehicleRequest(
+        plate,
+        state,
+        plateTypes
+      ),
+      OpenDataService.makeOpenDataMetadataRequest()
+    ])
   } catch (error) {
     return openDataQueryErrorResponse
   }
 
+  const [vehicleDataResponses, metadataResponses] = allOpenDataResponses
+
+  const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
+    if (!response.config.url) {
+      throw Error('Missing response url')
+    } 
+    const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
+    console.log(response.data)
+    console.log(response.data.dataUri)
+    console.log('- - - - -')
+    const databasePathname = `${dataUri}.json` as DatabasePathName
+    console.log(`response.config.url: ${response.config.url}`)
+    console.log(`databasePathname: ${databasePathname}`)
+    console.log('----')
+    reducedObject[databasePathname] = dataUpdatedAt
+
+    return reducedObject
+  }, {} as Record<DatabasePathName, string>)
+
   const normalizedResponsePromises: Promise<Violation[]>[] =
-    endpointResponses.map(async (response) => {
+    vehicleDataResponses.map(async (response) => {
       if (!response.config.url) {
         throw Error('Missing response url')
       }
       const requestUrlObject = new URL(response.config.url)
-      return normalizeViolations(response.data, requestUrlObject.pathname)
+      const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as DatabasePathName
+      const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
+      
+      console.log(metadataUpdatedAtValues)
+
+      return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
     })
 
   const normalizedResponses: Violation[][] = await Promise.all(

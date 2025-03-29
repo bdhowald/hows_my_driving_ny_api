@@ -27,11 +27,12 @@ type ViolationMultipleDescriptionCode = { description: string; startDate: Date }
 
 export default async (
   rawViolations: RawViolation[],
-  requestPathname: string
+  requestPathname: string,
+  dataUpdatedAt: string,
 ): Promise<Violation[]> => {
   const normalizedViolations = rawViolations.map(
     async (rawViolation) =>
-      await normalizeViolation(rawViolation, requestPathname)
+      await normalizeViolation(rawViolation, requestPathname, dataUpdatedAt)
   )
 
   return Promise.all(normalizedViolations)
@@ -364,7 +365,8 @@ const getPrecinct = (violation: RawViolation): number | undefined => {
 
 const normalizeViolation = async (
   rawViolation: RawViolation,
-  requestPathname: string
+  requestPathname: string,
+  dataUpdatedAt: string,
 ): Promise<Violation> => {
   const violation = camelizeKeys(rawViolation) as RawViolation
 
@@ -407,6 +409,7 @@ const normalizeViolation = async (
     formattedTimeUtc: formattedTimes?.formattedTimeUtc.toISO(),
     fromDatabases: [
       {
+        dataUpdatedAt,
         endpoint: `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`,
         name: FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP[
           requestPathname as DatabasePathName

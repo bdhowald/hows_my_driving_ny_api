@@ -9,7 +9,7 @@ import { Borough } from 'constants/boroughs'
 import LookupSource from 'constants/lookupSources'
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import AggregateFineData from 'models/aggregateFineData'
-import makeOpenDataVehicleRequest from 'services/openDataService'
+import OpenDataService from 'services/openDataService'
 import {
   createAndInsertNewLookup,
   getPreviousLookupAndLookupFrequencyForVehicle,
@@ -24,6 +24,129 @@ jest.mock('services/openDataService')
 jest.mock('utils/databaseQueries')
 
 describe('getAndProcessApiLookup', () => {
+  const openDataTableMetadataResponses = [
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
+      },
+      data: {
+        "dataUpdatedAt": "2017-11-15T17:04:39+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
+        "id": "jt7v-77mi",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
+      },
+      data: {
+        "dataUpdatedAt": "2017-09-14T17:47:45+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
+        "id": "c284-tqph",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
+      },
+      data: {
+        "dataUpdatedAt": "2017-09-14T17:49:20+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
+        "id": "kiv2-tbus",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
+      },
+      data: {
+        "dataUpdatedAt": "2017-08-10T01:43:31+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
+        "id": "2bnn-yakx",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
+      },
+      data: {
+        "dataUpdatedAt": "2018-07-31T18:38:30+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
+        "id": "a5td-mswe",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
+      },
+      data: {
+        "dataUpdatedAt": "2019-07-17T15:21:47+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
+        "id": "faiq-9dfq",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
+      },
+      data: {
+        "dataUpdatedAt": "2020-08-06T13:30:36+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
+        "id": "p7t3-5i9s",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
+      },
+      data: {
+          "dataUpdatedAt": "2021-08-04T19:29:37+0000",
+          "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
+          "id": "kvfd-bves",
+        }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
+      },
+      data: {
+        "dataUpdatedAt": "2022-08-09T18:44:55+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
+        "id": "7mxj-7a6y",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
+      },
+      data: {
+        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
+        "id": "869v-vr48",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
+      },
+      data: {
+        "dataUpdatedAt": "2025-03-16T19:36:56+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
+        "id": "pvqr-7yc4",
+      }
+    },
+    {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
+      },
+      data: {
+        "dataUpdatedAt": "2025-03-29T09:21:18+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
+        "id": "nc67-uf89",
+      }
+    }
+  ]
+
   describe('when there are violations', () => {
     const uniqueIdentifier = 'a1b2c3d4'
 
@@ -154,7 +277,7 @@ describe('getAndProcessApiLookup', () => {
     const openParkingAndCameraDatabaseResponse = [
       {
         config: {
-          url: `https://data.cityofnewyork.us/resource/uvbq-3m68.json${queryString}`,
+          url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
         },
         data: [
           rawOpenParkingAndCameraViolationFactory.build({
@@ -285,13 +408,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2018-09-09T13:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2019-07-17T15:21:47+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -307,13 +432,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2018-12-17T14:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2019-07-17T15:21:47+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -329,13 +456,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-03-06T14:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2019-07-17T15:21:47+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -351,13 +480,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-05-28T13:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2019-07-17T15:21:47+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -379,6 +510,7 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-10-07T13:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2020-08-06T13:30:36+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                 name: 'Parking Violations Issued - Fiscal Year 2020',
@@ -437,13 +569,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-11-17T14:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2020-08-06T13:30:36+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                 name: 'Parking Violations Issued - Fiscal Year 2020',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -459,13 +593,15 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2021-12-18T14:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2022-08-09T18:44:55+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                 name: 'Parking Violations Issued - Fiscal Year 2022',
               },
               {
+                dataUpdatedAt: '2025-03-29T09:21:18+0000',
                 endpoint:
-                  'https://data.cityofnewyork.us/resource/uvbq-3m68.json',
+                  'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
               },
             ],
@@ -487,6 +623,7 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2022-02-03T14:11:00.000Z',
             fromDatabases: [
               {
+                dataUpdatedAt: '2022-08-09T18:44:55+0000',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                 name: 'Parking Violations Issued - Fiscal Year 2022',
@@ -586,7 +723,10 @@ describe('getAndProcessApiLookup', () => {
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
         uniqueIdentifier
       )
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataServiceResponse
       )
       ;(
@@ -671,7 +811,10 @@ describe('getAndProcessApiLookup', () => {
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
         uniqueIdentifier
       )
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataServiceResponse
       )
       ;(
@@ -783,7 +926,10 @@ describe('getAndProcessApiLookup', () => {
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
         uniqueIdentifier
       )
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataServiceResponse
       )
       ;(
@@ -937,7 +1083,7 @@ describe('getAndProcessApiLookup', () => {
       const openParkingAndCameraDatabaseResponse = [
         {
           config: {
-            url: `https://data.cityofnewyork.us/resource/uvbq-3m68.json${queryString}`,
+            url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
           },
           data: [
             rawOpenParkingAndCameraViolationFactory.build({
@@ -1029,7 +1175,10 @@ describe('getAndProcessApiLookup', () => {
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
         uniqueIdentifier
       )
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataServiceResponse
       )
       ;(
@@ -1050,7 +1199,7 @@ describe('getAndProcessApiLookup', () => {
       jest.useRealTimers()
     })
 
-    it('should throw an error if an open data response is missing the url it is from', async () => {
+    it('should throw an error if an open data violation response is missing the url it is from', async () => {
       const plate = 'ABC1234'
 
       const potentialVehicle: PotentialVehicle = {
@@ -1067,7 +1216,10 @@ describe('getAndProcessApiLookup', () => {
         },
       ]
 
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
         openDataServiceResponse
       )
 
@@ -1080,6 +1232,93 @@ describe('getAndProcessApiLookup', () => {
       ).rejects.toEqual(
         new Error('Missing response url')
       )
+    })
+
+    it('should throw an error if an open data metadata response is missing the url it is from', async () => {
+      const plate = 'ABC1234'
+
+      const potentialVehicle: PotentialVehicle = {
+        originalString: `${plate}:${state}`,
+        plate,
+        state,
+        validPlate: true,
+      }
+
+      const openDataTableMetadataResponseMissingUrl = [
+        {
+          config: {},
+          data: [],
+        },
+      ]
+
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponseMissingUrl
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
+        openDataServiceResponse
+      )
+
+      await expect(
+        getAndProcessApiLookup(
+          potentialVehicle,
+          undefined,
+          externalData
+        )
+      ).rejects.toEqual(
+        new Error('Missing response url')
+      )
+    })
+
+    it('should throw an error response if one of the metadata requests returns an error', async () => {
+      jest.useFakeTimers()
+
+      const uniqueIdentifier = 'a1b2c3d4'
+
+      const expected = {
+        error:
+          'Sorry, there was an error querying open data for ' +
+          potentialVehicle.originalString,
+        successfulLookup: false,
+      }
+
+      const openDataServiceResponse = [
+        {
+          config: {},
+          data: [],
+        },
+      ]
+
+      const openDataTableMetadataResponsesWithError = [
+        ...openDataTableMetadataResponses.slice(0, 11),
+        new Error('Network Error'),
+        ...openDataTableMetadataResponses,
+      ]
+
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
+        uniqueIdentifier
+      )
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponsesWithError
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
+        openDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce({
+        frequency: 0,
+        previousLookup: undefined,
+      })
+
+      const result = await getAndProcessApiLookup(
+        potentialVehicle,
+        undefined,
+        externalData
+      )
+
+      expect(result).toEqual(expected)
+
+      jest.useRealTimers()
     })
 
     it('should return an error response if one of the violations databases returns an error', async () => {
@@ -1103,7 +1342,10 @@ describe('getAndProcessApiLookup', () => {
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
         uniqueIdentifier
       )
-      ;(makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
         openDataServiceResponse
       )
       ;(
@@ -1187,7 +1429,10 @@ describe('getAndProcessApiLookup', () => {
       frequency: 0,
       previousLookup: undefined,
     })
-    ;(makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce([
+    ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+      openDataTableMetadataResponses
+    )
+    ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce([
       {
         config: {
           url: `https://data.cityofnewyork.us/resource/rhe8-mgbb.json${medallionQueryString}`,
@@ -1262,7 +1507,7 @@ describe('getAndProcessApiLookup', () => {
       },
       {
         config: {
-          url: `https://data.cityofnewyork.us/resource/uvbq-3m68.json${queryString}`,
+          url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
         },
         data: [],
       },

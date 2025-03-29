@@ -11,6 +11,7 @@ type SummonsImageType = {
 }
 
 type FromDatabasesType = {
+  dataUpdatedAt: string | undefined
   endpoint: string
   name: string
 }

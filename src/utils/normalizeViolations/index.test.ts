@@ -19,6 +19,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize a fiscal year database violation', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build()
@@ -33,6 +34,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -60,21 +62,24 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
   it('should normalize an Open Parking and Camera Violations database violation', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build()
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -100,6 +105,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -234,7 +240,8 @@ describe('normalizeViolations', () => {
   ])(
     'should normalize Open Parking and Camera Violations database violation with archaic description $archaicDescription',
     async ({ archaicDescription, humanizedDescription, issueDate, violationCode }) => {
-      const databasePathname = '/resource/uvbq-3m68.json'
+      const databasePathname = '/resource/nc67-uf89.json'
+      const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
       const formattedIssueDateTime = DateTime.fromISO(`${issueDate}T09:11:00`, {
         zone: 'America/New_York',
@@ -248,7 +255,8 @@ describe('normalizeViolations', () => {
 
       const normalizedViolations = await normalizeViolations(
         [rawOpenParkingAndCameraViolation],
-        databasePathname
+        databasePathname,
+        dataUpdatedAt,
       )
 
       const {
@@ -274,6 +282,7 @@ describe('normalizeViolations', () => {
         formattedTimeUtc: formattedIssueDateTime.toUTC().toISO(),
         fromDatabases: [
           {
+            dataUpdatedAt,
             endpoint: `https://data.cityofnewyork.us${databasePathname}`,
             name: 'Open Parking and Camera Violations',
           },
@@ -328,6 +337,7 @@ describe('normalizeViolations', () => {
 
   it('should properly handle violation codes that have changed over time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -344,6 +354,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -371,14 +382,16 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
   it('should handle a violation with a violation description it does not recognize', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
     const issueDate = '2024-04-16T09:11:00'
 
     const formattedIssueDateTime = DateTime.fromISO(issueDate, {
@@ -393,7 +406,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -419,6 +433,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedIssueDateTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -471,7 +486,8 @@ describe('normalizeViolations', () => {
   })
 
   it('should fail to handle Open Parking and Camera Violations violations that are before the UNIX epoch', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -482,13 +498,15 @@ describe('normalizeViolations', () => {
     expect(
       normalizeViolations(
         [rawOpenParkingAndCameraViolation],
-        databasePathname
+        databasePathname,
+        dataUpdatedAt,
       )
     ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
   })
 
   it('should throw an error for a fiscal year variable violation code whose date is outside any valid range', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -499,13 +517,15 @@ describe('normalizeViolations', () => {
     expect(
       normalizeViolations(
         [rawFiscalYearDatabaseViolation],
-        databasePathname
+        databasePathname,
+        dataUpdatedAt,
       )
     ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
   })
 
   it('should handle a violation with only partial fine data', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -518,7 +538,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -544,6 +565,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -596,7 +618,8 @@ describe('normalizeViolations', () => {
   })
 
   it('should normalize open parking and camera database violations with partial information', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -634,6 +657,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -684,7 +708,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolation = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolation).toEqual([expectedOpenParkingAndCameraViolation])
@@ -692,6 +717,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize fiscal year database violations with partial information', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation = {
       issueDate: '2023-06-09T00:00:00.000',
@@ -724,6 +750,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -775,14 +802,16 @@ describe('normalizeViolations', () => {
 
     const normalizedViolation = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolation).toEqual([expectedFiscalYearDatabaseViolation])
   })
 
   it('should obtain the borough from the county if possible and needed', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       county: 'BX',
@@ -797,7 +826,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -821,6 +851,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -874,7 +905,8 @@ describe('normalizeViolations', () => {
   })
 
   it('should obtain the borough from the precinct if possible and needed', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       issueDate: '06/09/2023',
@@ -889,7 +921,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -914,6 +947,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -968,6 +1002,8 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from violationCounty if possible and needed', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    
 
     const rawFiscalYearDatabaseViolation: RawViolation = {
       issueDate: '2023-06-09T00:00:00.000',
@@ -985,7 +1021,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -1006,6 +1043,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -1060,6 +1098,7 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from violationPrecinct if possible and needed', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const formattedEarlyMorningTime = DateTime.fromISO('2023-06-09T00:11:00', {
       zone: 'America/New_York',
@@ -1078,7 +1117,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt
     )
 
     const expectedViolation = {
@@ -1094,6 +1134,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedEarlyMorningTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -1155,6 +1196,7 @@ describe('normalizeViolations', () => {
     const streetName = 'Schermerhorn Street'
 
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const formattedEveningTime = DateTime.fromISO('2023-06-09T21:11:00', {
       zone: 'America/New_York',
@@ -1174,7 +1216,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const expectedViolation = {
@@ -1190,6 +1233,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedEveningTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -1247,7 +1291,8 @@ describe('normalizeViolations', () => {
   })
 
   it('should handle a violation with a date it entered judgment', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -1256,7 +1301,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -1282,6 +1328,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedTime.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -1335,6 +1382,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a fiscal year database violation with no issue date', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -1351,6 +1399,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: undefined,
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -1378,14 +1427,16 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
   it('should handle an open parking and camera violations database violation with no issue date', async () => {
-    const databasePathname = '/resource/uvbq-3m68.json'
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       issueDate: '',
@@ -1400,7 +1451,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     const {
@@ -1425,6 +1477,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: undefined,
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Open Parking and Camera Violations',
         },
@@ -1479,6 +1532,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a violation with no violation time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -1499,6 +1553,7 @@ describe('normalizeViolations', () => {
       formattedTimeUtc: formattedMidnight.toUTC().toISO(),
       fromDatabases: [
         {
+          dataUpdatedAt,
           endpoint: `https://data.cityofnewyork.us${databasePathname}`,
           name: 'Parking Violations Issued - Fiscal Year 2023',
         },
@@ -1526,7 +1581,8 @@ describe('normalizeViolations', () => {
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -1534,6 +1590,7 @@ describe('normalizeViolations', () => {
 
   it('should throw an error for an unexpected time format', async () => {
     const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -1542,7 +1599,8 @@ describe('normalizeViolations', () => {
 
     expect(normalizeViolations(
       [rawFiscalYearDatabaseViolation],
-      databasePathname
+      databasePathname,
+      dataUpdatedAt,
     )).rejects.toThrow('Unexpected time format')
   })
 })

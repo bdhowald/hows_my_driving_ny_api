@@ -3,6 +3,8 @@ import axios, { AxiosError, AxiosResponse } from 'axios'
 import {
   fiscalYearEndpoints,
   MEDALLION_DATABASE_ENDPOINT,
+  NYC_OPEN_DATA_PORTAL_HOST,
+  NYC_OPEN_DATA_PORTAL_METADATA_PREFIX,
   openParkingAndCameraViolationsEndpoint,
 } from 'constants/endpoints'
 import { camelizeKeys } from 'utils/camelize'
@@ -36,7 +38,7 @@ const handleAxiosErrors = (error: AxiosError) => {
   return new Error(error.message)
 }
 
-const makeOpenDataRequestURL = (
+const makeOpenDataViolationDataRequest = (
   endpoint: string,
   isFiscalYearRequest: boolean,
   plate: string,
@@ -75,6 +77,22 @@ const makeOpenDataRequestURL = (
   /**
    * return `${endpoint}?${queryParams}`
    */
+}
+
+/**
+ * Request the metadata for all the violation databases
+ */
+const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
+  const allEndpoints = fiscalYearEndpoints.concat(openParkingAndCameraViolationsEndpoint)
+
+  const promises = allEndpoints.map(async (endpoint: string) => {
+    const resourceIdentifier = endpoint.replace(`${NYC_OPEN_DATA_PORTAL_HOST}/resource/`, '')
+    const metadataUrl = new URL(resourceIdentifier, NYC_OPEN_DATA_PORTAL_METADATA_PREFIX)
+
+    return axios.get(metadataUrl.toString())
+  })
+
+  return await Promise.all(promises)
 }
 
 const makeOpenDataVehicleRequest = async (
@@ -117,7 +135,7 @@ const makeOpenDataVehicleRequest = async (
   // Fiscal Year Databases
   const promises = fiscalYearEndpoints.map(
     async (endpoint: string): Promise<AxiosResponse> => {
-      const fiscalYearURL = makeOpenDataRequestURL(
+      const fiscalYearURL = makeOpenDataViolationDataRequest(
         endpoint,
         true,
         rectifiedPlate,
@@ -130,7 +148,7 @@ const makeOpenDataVehicleRequest = async (
   )
 
   // Open Parking & Camera Violations Database
-  const openParkingAndCameraViolationsURL = makeOpenDataRequestURL(
+  const openParkingAndCameraViolationsURL = makeOpenDataViolationDataRequest(
     openParkingAndCameraViolationsEndpoint,
     false,
     rectifiedPlate,
@@ -181,4 +199,4 @@ const retrievePossibleMedallionVehiclePlate = async (
   return currentMedallionHolder.dmvLicensePlateNumber
 }
 
-export default makeOpenDataVehicleRequest
+export default { makeOpenDataMetadataRequest, makeOpenDataVehicleRequest }

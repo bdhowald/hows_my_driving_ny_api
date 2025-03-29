@@ -93,6 +93,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     formattedTimeUtc: violationInEasternTime.toUTC().toISO(),
     fromDatabases: [
       {
+        dataUpdatedAt: '2023-11-14T17:54:58+0000',
         endpoint: 'https://data.cityofnewyork.us/resource/869v-vr48.json',
         name: 'Parking Violations Issued - Fiscal Year 2023',
       },

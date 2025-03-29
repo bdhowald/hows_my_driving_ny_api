@@ -1,5 +1,7 @@
 export const NYC_OPEN_DATA_PORTAL_HOST = 'https://data.cityofnewyork.us'
 
+export const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
+
 export const MEDALLION_DATABASE_ENDPOINT = `${NYC_OPEN_DATA_PORTAL_HOST}/resource/rhe8-mgbb.json`
 
 const parkingViolationsFiscalYear2014Path = '/resource/jt7v-77mi.json'
@@ -28,7 +30,8 @@ export const fiscalYearEndpoints = [
   `${NYC_OPEN_DATA_PORTAL_HOST}${parkingViolationsFiscalYear2024Path}`,
 ]
 
-export const openParkingAndCameraViolationsEndpoint = `${NYC_OPEN_DATA_PORTAL_HOST}/resource/uvbq-3m68.json`
+const OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH = '/resource/nc67-uf89.json'
+export const openParkingAndCameraViolationsEndpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH}`
 
 type FiscalYearViolationsDatabasePathName =
   | '/resource/jt7v-77mi.json'
@@ -43,7 +46,7 @@ type FiscalYearViolationsDatabasePathName =
   | '/resource/869v-vr48.json'
   | '/resource/pvqr-7yc4.json'
 
-type OpenParkingAndCameraViolationsDatabasePathName = '/resource/uvbq-3m68.json'
+type OpenParkingAndCameraViolationsDatabasePathName = '/resource/nc67-uf89.json'
 
 export type DatabasePathName =
   | FiscalYearViolationsDatabasePathName
@@ -61,8 +64,6 @@ const FISCAL_YEAR_PATHS = [
   parkingViolationsFiscalYear2022Path,
   parkingViolationsFiscalYear2023Path,
 ]
-
-const OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH = '/resource/uvbq-3m68.json'
 
 export const FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP: Record<
   DatabasePathName,
