@@ -653,28 +653,32 @@ const counties = {
 }
 
 const issuingAgencies = {
-  "DEPARTMENT OF BUSINESS SERVICES": "NYC SBS",
-  "DEPARTMENT OF SANITATION": "DSNY",
-  "DEPARTMENT OF TRANSPORTATION": "NYC DOT",
-  "Fire Department": "FDNY",
-  "HOUSING AUTHORITY": "NYCHA",
-  "LONG ISLAND RAILROAD": "LIRR",
-  "METRO NORTH RAILROAD POLICE": "MNRR",
-  "NYC OFFICE OF THE SHERIFF": "NYC Sheriff",
-  "NYC TRANSIT AUTHORITY MANAGERS": "NYCTA",
-  "NYS COURT OFFICERS": "NYS Courts",
-  "NYS PARKS POLICE": "NYS Parks",
-  "OTHER/UNKNOWN AGENCIES": "other",
-  "PARKING CONTROL UNIT": "NYC DOT",
-  "PARKS DEPARTMENT": "NYC Parks",
-  "POLICE DEPARTMENT": "NYPD",
-  "PORT AUTHORITY": "PANYNJ",
-  "TAXI AND LIMOUSINE COMMISSION": "TLC",
-  TRAFFIC: "NYPD Traffic",
-  "TRANSIT AUTHORITY": "NYCTA",
-  "TRIBOROUGH BRIDGE AND TUNNEL POLICE": "TBTA",
-  T: "NYPD Traffic",
-  V: "NYC DOT",
+  AMTRAK_POLICE: 'Amtrak Police',
+  DEPARTMENT_OF_HOMELAND_SECURITY: 'Department of Homeland Security (DHS)',
+  METROPOLITAN_TRANSPORTATION_AUTHORITY_POLICE_DEPARTMENT: 'MTA Police',
+  NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS: 'NYC Department of Corrections (NYC DOC)',
+  NEW_YORK_CITY_DEPARTMENT_OF_SANITATION: 'Department of Sanitation (DSNY)',
+  NEW_YORK_CITY_DEPARTMENT_OF_HEALTH_POLICE: 'NYC Department of Health Police (NYC DOHMH)',
+  NEW_YORK_CITY_DEPARTMENT_OF_PARKS_AND_RECREATION: 'NYC Parks',
+  NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION: 'Department of Transportation (NYC DOT)',
+  NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION_PARKING_CONTROL_UNIT: 'Deparment of Transportation (NYC DOT) Parking Control Unit',
+  NEW_YORK_CITY_FIRE_DEPARTMENT: 'New York Fire Department (FDNY)',
+  NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE: 'NYC Health & Hospitals Police (NYC H+H)',
+  NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE: 'NYC Housing Authority Police (NYCHA)',
+  NEW_YORK_CITY_POLICE_DEPARTMENT: 'New York Police Department (NYPD)',
+  NEW_YORK_CITY_POLICE_DEPARTMENT_TRAFFIC_ENFORCEMENT: 'NYPD Traffic Enforcement',
+  NEW_YORK_CITY_SHERIFF: 'New York City Sheriff',
+  NEW_YORK_CITY_TAXI_AND_LIMOUSINE_COMMISSION: 'NYC Taxi & Limousine Commission Police (TLC)',
+  NEW_YORK_STATE_COURT_OFFICERS: 'New York State Court Officers',
+  NEW_YORK_STATE_OFFICE_FOR_PEOPLE_WITH_DEVELOPMENTAL_DISABILITIES: 'New York State Office for People With Developmental Disabilities',
+  NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE: 'New York State Office Of Mental Health Police',
+  NEW_YORK_STATE_PARKS_POLICE: 'New York State Parks Police',
+  PORT_AUTHORITY_POLICE_DEPARTMENT: 'Port Authority Police (PANYNJ)',
+  ROOSEVELT_ISLAND_PUBLIC_SAFETY: 'Roosevelt Island Security (RIOC)',
+  SEA_GATE_POLICE_DEPARTMENT: 'Sea Gate Police Department',
+  SNUG_HARBOR_CULTURAL_CENTER_RANGERS: 'Snug Harbor Cultural Center Rangers',
+  TRIBOROUGH_BRIDGE_AND_TUNNEL_AUTHORITY_POLICE: 'Triborough Bridge & Tunnel Authority Police (TBTA)',
+  UNKNOWN_ISSUER: 'Unknown Issuer',
 }
 
 class CameraStreakData {
@@ -1464,6 +1468,136 @@ const getCollectionKeyWithMostViolations = (collection) => {
   })
 
   return keyWithMostViolations
+}
+
+/**
+ * Get the agency that issued this violation from the code or name on the violation
+ */
+const getIssuingAgency = (agencyish) => {
+  if (!agencyish) {
+    return issuingAgencies['UNKNOWN_ISSUER']
+  }
+
+  switch (agencyish) {
+    case 'AMTRAK RAILROAD POLICE':
+    case 'J':
+      return issuingAgencies['AMTRAK_POLICE']
+
+    case 'D':
+    case 'DEPARTMENT OF BUSINESS SERVICES':
+    case 'DEPARTMENT OF CORRECTION':
+    case 'I':
+    case 'Q':
+    case 'STATEN ISLAND RAPID TRANSIT POLICE':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS']
+
+    case 'DEPARTMENT OF SANITATION':
+    case 'S':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_SANITATION']
+
+    case 'DEPARTMENT OF TRANSPORTATION':
+    case 'U':
+    case 'V':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION']
+
+    case '7':
+    case 'SUNY MARITIME COLLEGE':
+    case 'HEALTH AND HOSPITAL CORP. POLICE':
+    case 'Y':
+      return issuingAgencies['NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE']
+
+    case 'H':
+    case 'HOUSING AUTHORITY':
+      return issuingAgencies['NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE']
+
+    case 'F':
+    case 'FIRE DEPARTMENT':
+      return issuingAgencies['NEW_YORK_CITY_FIRE_DEPARTMENT']
+
+    case 'HEALTH DEPARTMENT POLICE':
+    case 'W':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_HEALTH_POLICE']
+
+    case 'METRO NORTH RAILROAD POLICE':
+    case 'Z':
+      return issuingAgencies['DEPARTMENT_OF_HOMELAND_SECURITY']
+
+    case '9':
+    case 'NYC OFFICE OF THE SHERIFF':
+      return issuingAgencies['NEW_YORK_CITY_SHERIFF']
+
+    case 'O':
+    case 'NYS COURT OFFICERS':
+      return issuingAgencies['NEW_YORK_STATE_COURT_OFFICERS']
+
+    case '1':
+    case 'NYS OFFICE OF MENTAL HEALTH POLICE':
+      return issuingAgencies['NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE']
+
+    case 'N':
+    case 'NYS PARKS POLICE':
+      return issuingAgencies['NEW_YORK_STATE_PARKS_POLICE']
+
+    case '2':
+    case 'O M R D D':
+      return issuingAgencies['NEW_YORK_STATE_OFFICE_FOR_PEOPLE_WITH_DEVELOPMENTAL_DISABILITIES']
+
+    case 'PARKING CONTROL UNIT':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION_PARKING_CONTROL_UNIT']
+
+    case 'K':
+    case 'PARKS DEPARTMENT':
+      return issuingAgencies['NEW_YORK_CITY_DEPARTMENT_OF_PARKS_AND_RECREATION']
+
+    case 'P':
+    case 'POLICE DEPARTMENT':
+      return issuingAgencies['NEW_YORK_CITY_POLICE_DEPARTMENT']
+
+    case 'A':
+    case 'PORT AUTHORITY':
+      return issuingAgencies['PORT_AUTHORITY_POLICE_DEPARTMENT']
+
+    case '3':
+    case 'NYC TRANSIT AUTHORITY MANAGERS':
+    case 'ROOSEVELT ISLAND SECURITY':
+      return issuingAgencies['ROOSEVELT_ISLAND_PUBLIC_SAFETY']
+
+    case '4':
+    case 'SEA GATE ASSOCIATION POLICE':
+      return issuingAgencies['SEA_GATE_POLICE_DEPARTMENT']
+
+    case '5':
+    case 'SNUG HARBOR CULTURAL CENTER RANGERS':
+      return issuingAgencies['SNUG_HARBOR_CULTURAL_CENTER_RANGERS']
+
+    case 'G':
+    case 'TAXI AND LIMOUSINE COMMISSION':
+      return issuingAgencies['NEW_YORK_CITY_TAXI_AND_LIMOUSINE_COMMISSION']
+
+    case 'T':
+    case 'TRAFFIC':
+      return issuingAgencies['NEW_YORK_CITY_POLICE_DEPARTMENT_TRAFFIC_ENFORCEMENT']
+
+    case 'M':
+    case 'R':
+    case 'TRANSIT AUTHORITY':
+      return issuingAgencies['METROPOLITAN_TRANSPORTATION_AUTHORITY_POLICE_DEPARTMENT']
+
+    case 'B':
+    case 'TRIBOROUGH BRIDGE AND TUNNEL POLICE':
+      return issuingAgencies['TRIBOROUGH_BRIDGE_AND_TUNNEL_AUTHORITY_POLICE']
+
+    case '6':
+    case 'BOARD OF ESTIMATE':
+    case 'C':
+    case 'CON RAIL':
+    case 'E':
+    case 'L':
+    case 'LONG ISLAND RAILROAD':
+    case 'X':
+    default:
+      return issuingAgencies['UNKNOWN_ISSUER']
+  }
 }
 
 /**
@@ -2611,7 +2745,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       issuer_precinct: isNaN(parseInt(violation.issuer_precinct))
         ? null
         : parseInt(violation.issuer_precinct),
-      issuing_agency: issuingAgencies[violation.issuing_agency] || null,
+      issuing_agency: getIssuingAgency(violation.issuing_agency) || null,
       judgment_entry_date: standardizedJudgmentEntryDate,
       law_section: violation.law_section || null,
       payment_amount: isNaN(parseFloat(violation.payment_amount))
