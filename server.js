@@ -1641,7 +1641,9 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       }
       const { dataUpdatedAt, dataUri } = response.data
       const databasePathname = `${dataUri}.json`
-      reducedObject[databasePathname] = dataUpdatedAt
+      reducedObject[databasePathname] = DateTime.fromISO(
+        dataUpdatedAt, { zone: 'UTC' }
+      ).toISO()
 
       return reducedObject
     }, {})
