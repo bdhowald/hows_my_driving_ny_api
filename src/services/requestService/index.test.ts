@@ -136,13 +136,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2018-09-09T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -160,13 +160,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2018-12-17T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -184,13 +184,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-03-06T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -208,13 +208,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-05-28T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -238,7 +238,7 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-10-07T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                    dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                     name: 'Parking Violations Issued - Fiscal Year 2020',
@@ -297,13 +297,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-11-17T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                    dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                     name: 'Parking Violations Issued - Fiscal Year 2020',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -321,13 +321,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2021-12-18T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2022-08-09T18:44:55+0000',
+                    dataUpdatedAt: '2022-08-09T18:44:55.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                     name: 'Parking Violations Issued - Fiscal Year 2022',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -351,7 +351,7 @@ describe('requestService', () => {
                 formattedTimeUtc: '2022-02-03T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2022-08-09T18:44:55+0000',
+                    dataUpdatedAt: '2022-08-09T18:44:55.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                     name: 'Parking Violations Issued - Fiscal Year 2022',
@@ -706,13 +706,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2018-09-09T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -730,13 +730,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2018-12-17T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -754,13 +754,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-03-06T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -778,13 +778,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-05-28T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                    dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                     name: 'Parking Violations Issued - Fiscal Year 2019',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',
@@ -808,7 +808,7 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-10-07T13:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                    dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                     name: 'Parking Violations Issued - Fiscal Year 2020',
@@ -867,13 +867,13 @@ describe('requestService', () => {
                 formattedTimeUtc: '2019-11-17T14:11:00.000Z',
                 fromDatabases: [
                   {
-                    dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                    dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                     name: 'Parking Violations Issued - Fiscal Year 2020',
                   },
                   {
-                    dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                    dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                     endpoint:
                       'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                     name: 'Open Parking and Camera Violations',

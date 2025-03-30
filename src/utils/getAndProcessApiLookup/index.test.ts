@@ -30,7 +30,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
       },
       data: {
-        "dataUpdatedAt": "2017-11-15T17:04:39+0000",
+        "dataUpdatedAt": "2017-11-15T17:04:39.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
         "id": "jt7v-77mi",
       }
@@ -40,7 +40,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:47:45+0000",
+        "dataUpdatedAt": "2017-09-14T17:47:45.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
         "id": "c284-tqph",
       }
@@ -50,7 +50,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:49:20+0000",
+        "dataUpdatedAt": "2017-09-14T17:49:20.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
         "id": "kiv2-tbus",
       }
@@ -60,7 +60,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
       },
       data: {
-        "dataUpdatedAt": "2017-08-10T01:43:31+0000",
+        "dataUpdatedAt": "2017-08-10T01:43:31.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
         "id": "2bnn-yakx",
       }
@@ -70,7 +70,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
       },
       data: {
-        "dataUpdatedAt": "2018-07-31T18:38:30+0000",
+        "dataUpdatedAt": "2018-07-31T18:38:30.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
         "id": "a5td-mswe",
       }
@@ -80,7 +80,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
       },
       data: {
-        "dataUpdatedAt": "2019-07-17T15:21:47+0000",
+        "dataUpdatedAt": "2019-07-17T15:21:47.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
         "id": "faiq-9dfq",
       }
@@ -90,7 +90,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
       },
       data: {
-        "dataUpdatedAt": "2020-08-06T13:30:36+0000",
+        "dataUpdatedAt": "2020-08-06T13:30:36.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
         "id": "p7t3-5i9s",
       }
@@ -100,7 +100,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
       },
       data: {
-          "dataUpdatedAt": "2021-08-04T19:29:37+0000",
+          "dataUpdatedAt": "2021-08-04T19:29:37.000Z",
           "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
           "id": "kvfd-bves",
         }
@@ -110,7 +110,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
       },
       data: {
-        "dataUpdatedAt": "2022-08-09T18:44:55+0000",
+        "dataUpdatedAt": "2022-08-09T18:44:55.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
         "id": "7mxj-7a6y",
       }
@@ -120,7 +120,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
       },
       data: {
-        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
+        "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
         "id": "869v-vr48",
       }
@@ -130,7 +130,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-16T19:36:56+0000",
+        "dataUpdatedAt": "2025-03-16T19:36:56.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
         "id": "pvqr-7yc4",
       }
@@ -140,7 +140,7 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-29T09:21:18+0000",
+        "dataUpdatedAt": "2025-03-29T09:21:18.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
         "id": "nc67-uf89",
       }
@@ -408,13 +408,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2018-09-09T13:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -432,13 +432,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2018-12-17T14:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -456,13 +456,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-03-06T14:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -480,13 +480,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-05-28T13:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2019-07-17T15:21:47+0000',
+                dataUpdatedAt: '2019-07-17T15:21:47.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/faiq-9dfq.json',
                 name: 'Parking Violations Issued - Fiscal Year 2019',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -510,7 +510,7 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-10-07T13:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                 name: 'Parking Violations Issued - Fiscal Year 2020',
@@ -569,13 +569,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2019-11-17T14:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2020-08-06T13:30:36+0000',
+                dataUpdatedAt: '2020-08-06T13:30:36.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/p7t3-5i9s.json',
                 name: 'Parking Violations Issued - Fiscal Year 2020',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -593,13 +593,13 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2021-12-18T14:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2022-08-09T18:44:55+0000',
+                dataUpdatedAt: '2022-08-09T18:44:55.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                 name: 'Parking Violations Issued - Fiscal Year 2022',
               },
               {
-                dataUpdatedAt: '2025-03-29T09:21:18+0000',
+                dataUpdatedAt: '2025-03-29T09:21:18.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/nc67-uf89.json',
                 name: 'Open Parking and Camera Violations',
@@ -623,7 +623,7 @@ describe('getAndProcessApiLookup', () => {
             formattedTimeUtc: '2022-02-03T14:11:00.000Z',
             fromDatabases: [
               {
-                dataUpdatedAt: '2022-08-09T18:44:55+0000',
+                dataUpdatedAt: '2022-08-09T18:44:55.000Z',
                 endpoint:
                   'https://data.cityofnewyork.us/resource/7mxj-7a6y.json',
                 name: 'Parking Violations Issued - Fiscal Year 2022',

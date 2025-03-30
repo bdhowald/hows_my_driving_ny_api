@@ -101,14 +101,8 @@ const getAndProcessApiLookup = async (
       throw Error('Missing response url')
     } 
     const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
-    console.log(response.data)
-    console.log(response.data.dataUri)
-    console.log('- - - - -')
     const databasePathname = `${dataUri}.json` as DatabasePathName
-    console.log(`response.config.url: ${response.config.url}`)
-    console.log(`databasePathname: ${databasePathname}`)
-    console.log('----')
-    reducedObject[databasePathname] = dataUpdatedAt
+    reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
 
     return reducedObject
   }, {} as Record<DatabasePathName, string>)
@@ -121,8 +115,6 @@ const getAndProcessApiLookup = async (
       const requestUrlObject = new URL(response.config.url)
       const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as DatabasePathName
       const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
-      
-      console.log(metadataUpdatedAtValues)
 
       return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
     })

@@ -19,7 +19,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize a fiscal year database violation', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build()
@@ -71,7 +71,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize an Open Parking and Camera Violations database violation', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build()
@@ -241,7 +241,7 @@ describe('normalizeViolations', () => {
     'should normalize Open Parking and Camera Violations database violation with archaic description $archaicDescription',
     async ({ archaicDescription, humanizedDescription, issueDate, violationCode }) => {
       const databasePathname = '/resource/nc67-uf89.json'
-      const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+      const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
       const formattedIssueDateTime = DateTime.fromISO(`${issueDate}T09:11:00`, {
         zone: 'America/New_York',
@@ -337,7 +337,7 @@ describe('normalizeViolations', () => {
 
   it('should properly handle violation codes that have changed over time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -391,7 +391,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a violation with a violation description it does not recognize', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
     const issueDate = '2024-04-16T09:11:00'
 
     const formattedIssueDateTime = DateTime.fromISO(issueDate, {
@@ -487,7 +487,7 @@ describe('normalizeViolations', () => {
 
   it('should fail to handle Open Parking and Camera Violations violations that are before the UNIX epoch', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -506,7 +506,7 @@ describe('normalizeViolations', () => {
 
   it('should throw an error for a fiscal year variable violation code whose date is outside any valid range', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -525,7 +525,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a violation with only partial fine data', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -619,7 +619,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize open parking and camera database violations with partial information', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -717,7 +717,7 @@ describe('normalizeViolations', () => {
 
   it('should normalize fiscal year database violations with partial information', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation = {
       issueDate: '2023-06-09T00:00:00.000',
@@ -811,7 +811,7 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from the county if possible and needed', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       county: 'BX',
@@ -906,7 +906,7 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from the precinct if possible and needed', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2025-03-29T09:21:18+0000'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       issueDate: '06/09/2023',
@@ -1002,7 +1002,7 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from violationCounty if possible and needed', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
     
 
     const rawFiscalYearDatabaseViolation: RawViolation = {
@@ -1098,7 +1098,7 @@ describe('normalizeViolations', () => {
 
   it('should obtain the borough from violationPrecinct if possible and needed', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const formattedEarlyMorningTime = DateTime.fromISO('2023-06-09T00:11:00', {
       zone: 'America/New_York',
@@ -1196,7 +1196,7 @@ describe('normalizeViolations', () => {
     const streetName = 'Schermerhorn Street'
 
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const formattedEveningTime = DateTime.fromISO('2023-06-09T21:11:00', {
       zone: 'America/New_York',
@@ -1292,7 +1292,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a violation with a date it entered judgment', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
@@ -1382,7 +1382,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a fiscal year database violation with no issue date', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -1436,7 +1436,7 @@ describe('normalizeViolations', () => {
 
   it('should handle an open parking and camera violations database violation with no issue date', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawOpenParkingAndCameraViolation: RawViolation = {
       issueDate: '',
@@ -1532,7 +1532,7 @@ describe('normalizeViolations', () => {
 
   it('should handle a violation with no violation time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -1590,7 +1590,7 @@ describe('normalizeViolations', () => {
 
   it('should throw an error for an unexpected time format', async () => {
     const databasePathname = '/resource/869v-vr48.json'
-    const dataUpdatedAt = '2023-11-14T17:54:58+0000'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({

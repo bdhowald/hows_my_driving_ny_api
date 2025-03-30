@@ -19,7 +19,7 @@ describe('mergeDuplicateViolations', () => {
         formattedTimeUtc: '2023-07-02T23:55:00.000Z',
         fromDatabases: [
           {
-            dataUpdatedAt: '2025-03-29T09:21:18+0000',
+            dataUpdatedAt: '2025-03-29T09:21:18.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/nc67-uf89.json',
             name: 'Open Parking and Camera Violations',
           },
@@ -87,7 +87,7 @@ describe('mergeDuplicateViolations', () => {
         formattedTimeUtc: '2023-07-02T23:55:00.000Z',
         fromDatabases: [
           {
-            dataUpdatedAt: '2025-03-16T19:36:56+0000',
+            dataUpdatedAt: '2025-03-16T19:36:56.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/pvqr-7yc4.json',
             name: 'Parking Violations Issued - Fiscal Year 2024',
           },
@@ -155,12 +155,12 @@ describe('mergeDuplicateViolations', () => {
         formattedTimeUtc: '2023-07-02T23:55:00.000Z',
         fromDatabases: [
           {
-            dataUpdatedAt: '2025-03-16T19:36:56+0000',
+            dataUpdatedAt: '2025-03-16T19:36:56.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/pvqr-7yc4.json',
             name: 'Parking Violations Issued - Fiscal Year 2024',
           },
           {
-            dataUpdatedAt: '2025-03-29T09:21:18+0000',
+            dataUpdatedAt: '2025-03-29T09:21:18.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/nc67-uf89.json',
             name: 'Open Parking and Camera Violations',
           },
@@ -238,7 +238,7 @@ describe('mergeDuplicateViolations', () => {
         formattedTimeUtc: '2023-02-25T06:42:00.000Z',
         fromDatabases: [
           {
-            dataUpdatedAt: '2023-11-14T17:54:58+0000',
+            dataUpdatedAt: '2023-11-14T17:54:58.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/869v-vr48.json',
             name: 'Parking Violations Issued - Fiscal Year 2023',
           },
@@ -303,7 +303,7 @@ describe('mergeDuplicateViolations', () => {
         formattedTimeUtc: '2023-04-17T01:20:00.000Z',
         fromDatabases: [
           {
-            dataUpdatedAt: '2023-11-14T17:54:58+0000',
+            dataUpdatedAt: '2023-11-14T17:54:58.000Z',
             endpoint: 'https://data.cityofnewyork.us/resource/869v-vr48.json',
             name: 'Parking Violations Issued - Fiscal Year 2023',
           },

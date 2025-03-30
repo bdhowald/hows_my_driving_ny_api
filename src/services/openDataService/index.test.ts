@@ -522,7 +522,7 @@ describe('makeOpenDataMetadataRequest', () => {
   it('should request the metadata for alll violation databases', async () => {
     const violationTableMetadataResponse = { data: [
       {
-        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
+        "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
         "id": "869v-vr48",
       }
