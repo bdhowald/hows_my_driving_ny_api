@@ -106,7 +106,6 @@ export type Violation = {
   issuerPrecinct: number | undefined
   issuerSquad: string | undefined
   issuingAgency: string | undefined
-  issuingAgencySanitized?: string
   judgmentEntryDate: string | undefined
   lawSection: string | undefined
   location: string | undefined
@@ -120,6 +119,10 @@ export type Violation = {
   reduced: number | undefined
   reductionAmount: number | undefined
   registrationState: string
+  sanitized: {
+    issuingAgency: string | undefined
+    vehicleBodyType: string | undefined
+  }
   streetCode1: string | undefined
   streetCode2: string | undefined
   streetCode3: string | undefined
@@ -130,7 +133,6 @@ export type Violation = {
   toHoursInEffect?: string
   unregisteredVehicle: string | undefined
   vehicleBodyType: string | undefined
-  vehicleBodyTypeSanitized?: string
   vehicleColor: string | undefined
   vehicleExpirationDate: string | undefined
   vehicleMake: string | undefined

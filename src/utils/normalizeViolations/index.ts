@@ -436,9 +436,6 @@ const normalizeViolation = async (
       : undefined,
     issuerSquad: getFieldFromViolationIfPresent(violation, 'issuerSquad'),
     issuingAgency: getFieldFromViolationIfPresent(violation, 'issuingAgency'),
-    issuingAgencySanitized: violation.issuingAgency
-      ? getIssuingAgency(violation.issuingAgency)
-      : undefined,
     judgmentEntryDate: getFieldFromViolationIfPresent(violation, 'judgmentEntryDate'),
     lawSection: getFieldFromViolationIfPresent(violation, 'lawSection'),
     location: fullAddress,
@@ -452,6 +449,10 @@ const normalizeViolation = async (
     reduced: fineData.reduced,
     reductionAmount: fineData.reductionAmount,
     registrationState: registrationState,
+    sanitized: {
+      issuingAgency: getIssuingAgency(violation.issuingAgency),
+      vehicleBodyType: getVehicleBodyType(getFieldFromViolationIfPresent(violation, 'vehicleBodyType')),
+    },
     streetCode1: getFieldFromViolationIfPresent(violation, 'streetCode1'),
     streetCode2: getFieldFromViolationIfPresent(violation, 'streetCode2'),
     streetCode3: getFieldFromViolationIfPresent(violation, 'streetCode3'),
@@ -462,7 +463,6 @@ const normalizeViolation = async (
     toHoursInEffect: getFieldFromViolationIfPresent(violation, 'toHoursInEffect'),
     unregisteredVehicle: getFieldFromViolationIfPresent(violation, 'unregisteredVehicle'),
     vehicleBodyType: getFieldFromViolationIfPresent(violation, 'vehicleBodyType'),
-    vehicleBodyTypeSanitized: getVehicleBodyType(getFieldFromViolationIfPresent(violation, 'vehicleBodyType')),
     vehicleColor: getFieldFromViolationIfPresent(violation, 'vehicleColor'),
     vehicleExpirationDate: getFieldFromViolationIfPresent(violation, 'vehicleExpirationDate'),
     vehicleMake: getFieldFromViolationIfPresent(violation, 'vehicleMake'),

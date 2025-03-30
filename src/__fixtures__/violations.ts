@@ -122,6 +122,10 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     reduced: 0,
     reductionAmount: 0,
     registrationState: 'NY',
+    sanitized: {
+      issuingAgency: 'New York Police Department (NYPD)',
+      vehicleBodyType: 'Van',
+    },
     streetCode1: '0',
     streetCode2: '0',
     streetCode3: '0',

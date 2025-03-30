@@ -6,11 +6,11 @@ describe('getIssuingAgency', () => {
   test.each([
     {
       agencyish: undefined,
-      outputIssuingAgency: 'Unknown Issuer',
+      outputIssuingAgency: undefined,
     },
     {
       agencyish: '',
-      outputIssuingAgency: 'Unknown Issuer',
+      outputIssuingAgency: undefined,
     },
     {
       agencyish: '1',
@@ -284,10 +284,6 @@ describe('getIssuingAgency', () => {
     'successfully detects $outputIssuingAgency from $agencyish',
     ({ agencyish, outputIssuingAgency }) => {
       const issuingAgency = getIssuingAgency(agencyish)
-
-      if (!issuingAgency) {
-        fail('color is not defined')
-      }
 
       expect(issuingAgency).toBe(outputIssuingAgency)
     },

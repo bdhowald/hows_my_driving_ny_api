@@ -1,8 +1,8 @@
 import IssuingAgency from 'constants/issuingAgencies'
 
-const getIssuingAgency = (agencyish: string | undefined): IssuingAgency => {
+const getIssuingAgency = (agencyish: string | undefined): IssuingAgency | undefined => {
   if (!agencyish) {
-    return IssuingAgency.UNKNOWN_ISSUER
+    return undefined
   }
 
   switch (agencyish) {
