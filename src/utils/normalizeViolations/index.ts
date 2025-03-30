@@ -435,7 +435,8 @@ const normalizeViolation = async (
       ? parseInt(getFieldFromViolationIfPresent(violation, 'issuerPrecinct'))
       : undefined,
     issuerSquad: getFieldFromViolationIfPresent(violation, 'issuerSquad'),
-    issuingAgency: violation.issuingAgency
+    issuingAgency: getFieldFromViolationIfPresent(violation, 'issuingAgency'),
+    issuingAgencySanitized: violation.issuingAgency
       ? getIssuingAgency(violation.issuingAgency)
       : undefined,
     judgmentEntryDate: getFieldFromViolationIfPresent(violation, 'judgmentEntryDate'),

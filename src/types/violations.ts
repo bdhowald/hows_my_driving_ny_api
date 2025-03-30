@@ -106,6 +106,7 @@ export type Violation = {
   issuerPrecinct: number | undefined
   issuerSquad: string | undefined
   issuingAgency: string | undefined
+  issuingAgencySanitized?: string
   judgmentEntryDate: string | undefined
   lawSection: string | undefined
   location: string | undefined
