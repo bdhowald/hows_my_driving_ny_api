@@ -2973,7 +2973,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         ? null
         : parseInt(violation.issuer_precinct),
       issuing_agency: violation.issuing_agency || null,
-      issuing_agency_sanitized: getIssuingAgency(violation.issuing_agency) || null,
       judgment_entry_date: standardizedJudgmentEntryDate,
       law_section: violation.law_section || null,
       outstanding,
@@ -2991,6 +2990,10 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         ? null
         : parseFloat(violation.reduction_amount),
       registration_state: violation.registration_state || violation.state || null,
+      sanitized: {
+        issuing_agency: getIssuingAgency(violation.issuing_agency) || null,
+        vehicle_body_type: getVehicleBodyType(violation.vehicle_body_type),
+      },
       street_code1: violation.street_code1 || null,
       street_code2: violation.street_code2 || null,
       street_code3: violation.street_code3 || null,
@@ -3000,7 +3003,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       summons_number: violation.summons_number || null,
       to_hours_in_effect: violation.to_hours_in_effect || null,
       vehicle_body_type: violation.vehicle_body_type || null,
-      vehicle_body_type_sanitized: getVehicleBodyType(violation.vehicle_body_type),
       vehicle_color: violation.vehicle_color || null,
       vehicle_expiration_date: violation.vehicle_expiration_date || null,
       vehicle_make: violation.vehicle_make || null,
