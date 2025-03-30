@@ -681,6 +681,41 @@ const issuingAgencies = {
   UNKNOWN_ISSUER: 'Unknown Issuer',
 }
 
+const vehicleBodyTypes = {
+  BOAT: 'Boat',
+  BUS: 'Bus',
+  COMMERCIAL_VEHICLE: 'Commercial Vehicle',
+  CONVERTIBLE: 'Convertible',
+  DUMP_TRUCK: 'Dump Truck',
+  FLATBED_TRUCK: 'Flatbed Truck',
+  HATCHBACK: 'Hatchback',
+  HEARSE: 'Hearse',
+  LIMOUSINE: 'Limousine',
+  MOPED: 'Moped',
+  MOTORCYCLE: 'Motorcycle',
+  PICKUP_TRUCK: 'Pickup Truck',
+  REFRIGERATION_TRUCK: 'Refrigeration Truck',
+  RV: 'RV',
+  SEDAN: 'Sedan',
+  SEMI_TRAILER: 'Semi Trailer',
+  SNOWMOBILE: 'Snowmobile',
+  STAKE_TRUCK: 'Stake Truck',
+  STATION_WAGON: 'Station Wagon',
+  SUV: 'SUV',
+  TANK_TRUCK: 'Tank Truck',
+  TAXI: 'Taxi',
+  TOW_TRUCK: 'Tow Truck',
+  TRACTION_ENGINE: 'Traction Engine',
+  TRACTOR: 'Tractor',
+  TRACTOR_CRANE: 'Tractor Crane',
+  TRAILER: 'Trailer',
+  TRUCK: 'Truck',
+  TRUCK_CRANE: 'Truck Crane',
+  UNKNOWN_BODY_TYPE: 'Unknown Body Type',
+  UTILITY_VEHICLE: 'Utility Vehicle',
+  VAN: 'Van',
+}
+
 class CameraStreakData {
   constructor(maxStreak, streakStart, streakEnd) {
     this.max_streak = maxStreak
@@ -1927,6 +1962,175 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
   }
 }
 
+/**
+ * Cleans up the terrible quality of vehicle body type data
+ * available in the open data.
+ *
+ * @param {*} bodyTypeish - the unsanitized body type of the vehicle
+ * @returns string - the sanitized body type of the vehicle
+ */
+const getVehicleBodyType = (bodyTypeish) => {
+  if (!bodyTypeish) {
+    return undefined
+  }
+
+  switch (bodyTypeish) {
+    case 'BOAT':
+      return vehicleBodyTypes['BOAT']
+
+    case 'BU':
+    case 'BUS':
+      return vehicleBodyTypes['BUS']
+
+    case 'CV':
+      return vehicleBodyTypes['COMMERCIAL_VEHICLE']
+
+    case 'CON':
+    case 'CONV':
+      return vehicleBodyTypes['CONVERTIBLE']
+
+    case 'DUMP':
+      return vehicleBodyTypes['DUMP_TRUCK']
+
+    case 'FLAT':
+      return vehicleBodyTypes['FLATBED_TRUCK']
+
+    case '5D':
+    case 'HATC':
+    case 'HB':
+      return vehicleBodyTypes['HATCHBACK']
+
+    case 'HRSE':
+      return vehicleBodyTypes['HEARSE']
+
+    case 'LIM':
+      return vehicleBodyTypes['LIMOUSINE']
+
+    case 'MC':
+    case 'MCY':
+    case 'MOT':
+    case 'MOTO':
+      return vehicleBodyTypes['MOTORCYCLE']
+
+    case 'MOPD':
+    case 'MP':
+      return vehicleBodyTypes['MOPED']
+
+    case 'P-U':
+    case 'PICK':
+    case 'PK':
+    case 'PKUP':
+      return vehicleBodyTypes['PICKUP_TRUCK']
+
+    case 'REF':
+    case 'REFG':
+      return vehicleBodyTypes['REFRIGERATION_TRUCK']
+
+    case 'H/WH':
+    case 'RV':
+      return vehicleBodyTypes['RV']
+
+    case '2 DR':
+    case '2D':
+    case '2DSD':
+    case '2S':
+    case '4 DR':
+    case '4D':
+    case '4DOO':
+    case '4DSD':
+    case '4DSE':
+    case '4DSW':
+    case '4S':
+    case 'COUP':
+    case 'FODO':
+    case 'FOUR':
+    case 'PASS':
+    case 'SD':
+    case 'SDN':
+    case 'SEDA':
+    case 'SEDN':
+    case 'TWOD':
+      return vehicleBodyTypes['SEDAN']
+
+    case 'SEMI':
+      return vehicleBodyTypes['SEMI_TRAILER']
+
+    case 'MOBL':
+      return vehicleBodyTypes['SNOWMOBILE']
+
+    case 'ST':
+    case 'STAK':
+      return vehicleBodyTypes['STAKE_TRUCK']
+
+    case 'SW':
+    case 'WAGN':
+    case 'WG':
+      return vehicleBodyTypes['STATION_WAGON']
+
+    case '4H':
+    case '4W':
+    case 'LL':
+    case 'SPOR':
+    case 'SU':
+    case 'SUBN':
+    case 'SUBU':
+    case 'SV':
+      return vehicleBodyTypes['SUV']
+
+    case 'TANK':
+      return vehicleBodyTypes['TANK_TRUCK']
+
+    case 'TAXI':
+      return vehicleBodyTypes['TAXI']
+
+    case 'TOW':
+      return vehicleBodyTypes['TOW_TRUCK']
+
+    case 'TR/E':
+      return vehicleBodyTypes['TRACTION_ENGINE']
+
+    case 'TRAC':
+      return vehicleBodyTypes['TRACTOR']
+
+    case 'T/CR':
+      return vehicleBodyTypes['TRACTOR_CRANE']
+
+    case 'TLR':
+    case 'TRAI':
+    case 'TRL':
+    case 'TRLR':
+      return vehicleBodyTypes['TRAILER']
+
+    case 'DELV':
+    case 'SWT':
+    case 'TK':
+    case 'TR':
+    case 'TRC':
+    case 'TRK':
+    case 'TRT':
+    case 'TRUC':
+    case 'Truc':
+      return vehicleBodyTypes['TRUCK']
+
+    case 'TR/C':
+      return vehicleBodyTypes['TRUCK_CRANE']
+
+    case 'UT':
+    case 'UTIL':
+      return vehicleBodyTypes['UTILITY_VEHICLE']
+
+    case 'PV':
+    case 'VA':
+    case 'VAN':
+    case 'Van':
+    case 'VN':
+      return vehicleBodyTypes['VAN']
+
+    default:
+      return vehicleBodyTypes['UNKNOWN_BODY_TYPE']
+  }
+}
+
 const getViolationBorough = async (violation) => {
   if (violation.violation_county) {
     return Promise.resolve(violation.violation_county)
@@ -2795,6 +2999,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       summons_number: violation.summons_number || null,
       to_hours_in_effect: violation.to_hours_in_effect || null,
       vehicle_body_type: violation.vehicle_body_type || null,
+      vehicle_body_type_sanitized: getVehicleBodyType(violation.vehicle_body_type),
       vehicle_color: violation.vehicle_color || null,
       vehicle_expiration_date: violation.vehicle_expiration_date || null,
       vehicle_make: violation.vehicle_make || null,
