@@ -17,7 +17,7 @@ enum IssuingAgency {
   NEW_YORK_CITY_TAXI_AND_LIMOUSINE_COMMISSION = 'NYC Taxi & Limousine Commission Police (TLC)',
   NEW_YORK_STATE_COURT_OFFICERS = 'New York State Court Officers',
   NEW_YORK_STATE_OFFICE_FOR_PEOPLE_WITH_DEVELOPMENTAL_DISABILITIES = 'New York State Office for People With Developmental Disabilities',
-  NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE = 'New York State Office Of Mental Health Police',
+  NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE = 'New York State Office of Mental Health Police',
   NEW_YORK_STATE_PARKS_POLICE = 'New York State Parks Police',
   PORT_AUTHORITY_POLICE_DEPARTMENT = 'Port Authority Police (PANYNJ)',
   ROOSEVELT_ISLAND_PUBLIC_SAFETY = 'Roosevelt Island Security (RIOC)',

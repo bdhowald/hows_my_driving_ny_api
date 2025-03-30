@@ -17,6 +17,7 @@ import { RawViolation, Violation } from 'types/violations'
 import getFullAddress from 'utils/addressUtils'
 import { camelizeKeys } from 'utils/camelize'
 import getIssuingAgency from 'utils/parseViolationFields/getIssuingAgency/getIssuingAgency'
+import getVehicleBodyType from 'utils/parseViolationFields/getVehicleBodyType/getVehicleBodyType'
 import { isNumber, objectHasKey } from 'utils/typePredicates'
 
 const DATE_FORMAT = /^\d{2}\/\d{2}\/\d{4}$/
@@ -269,6 +270,15 @@ const getFormattedTimes = (
   }
 }
 
+/**
+ * 
+ * @param violation - violation to parse
+ * @param fieldName - fieldname to obtain from violation
+ */
+const getFieldFromViolationIfPresent = (violation: RawViolation, fieldName: string): any => {
+  return fieldName in violation ? violation[fieldName as keyof typeof violation] : undefined
+}
+
 const getHumanizedDescription = (
   violation: RawViolation
 ): HumanizedDescription => {
@@ -396,16 +406,9 @@ const normalizeViolation = async (
 
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,
-    dateFirstObserved:
-      'dateFirstObserved' in violation
-        ? violation.dateFirstObserved
-        : undefined,
-    daysParkingInEffect:
-      'daysParkingInEffect' in violation
-        ? violation.daysParkingInEffect
-        : undefined,
-    feetFromCurb:
-      'feetFromCurb' in violation ? violation.feetFromCurb : undefined,
+    dateFirstObserved: getFieldFromViolationIfPresent(violation, 'dateFirstObserved'),
+    daysParkingInEffect: getFieldFromViolationIfPresent(violation, 'daysParkingInEffect'),
+    feetFromCurb: getFieldFromViolationIfPresent(violation, 'feetFromCurb'),
     fineAmount: fineData.fineAmount,
     fined: fineData.fined,
     formattedTime: formattedTimes?.formattedTime.toISO(),
@@ -420,36 +423,25 @@ const normalizeViolation = async (
         ],
       },
     ],
-    fromHoursInEffect:
-      'fromHoursInEffect' in violation
-        ? violation.fromHoursInEffect
-        : undefined,
-    houseNumber: 'houseNumber' in violation ? violation.houseNumber : undefined,
+    fromHoursInEffect: getFieldFromViolationIfPresent(violation, 'fromHoursInEffect'),
+    houseNumber: getFieldFromViolationIfPresent(violation, 'houseNumber'),
     humanizedDescription: humanizedDescription,
     interestAmount: fineData.interestAmount,
-    intersectingStreet:
-      'intersectingStreet' in violation
-        ? violation.intersectingStreet
-        : undefined,
+    intersectingStreet: getFieldFromViolationIfPresent(violation, 'intersectingStreet'),
     issueDate: violation.issueDate,
-    issuerCode: 'issuerCode' in violation ? violation.issuerCode : undefined,
-    issuerCommand:
-      'issuerCommand' in violation ? violation.issuerCommand : undefined,
-    issuerPrecinct:
-      'issuerPrecinct' in violation && violation.issuerPrecinct
-        ? parseInt(violation.issuerPrecinct)
-        : undefined,
-    issuerSquad: 'issuerSquad' in violation ? violation.issuerSquad : undefined,
+    issuerCode: getFieldFromViolationIfPresent(violation, 'issuerCode'),
+    issuerCommand: getFieldFromViolationIfPresent(violation, 'issuerCommand'),
+    issuerPrecinct: 'issuerPrecinct' in violation
+      ? parseInt(getFieldFromViolationIfPresent(violation, 'issuerPrecinct'))
+      : undefined,
+    issuerSquad: getFieldFromViolationIfPresent(violation, 'issuerSquad'),
     issuingAgency: violation.issuingAgency
       ? getIssuingAgency(violation.issuingAgency)
       : undefined,
-    judgmentEntryDate:
-      'judgmentEntryDate' in violation
-        ? violation.judgmentEntryDate
-        : undefined,
-    lawSection: 'lawSection' in violation ? violation.lawSection : undefined,
+    judgmentEntryDate: getFieldFromViolationIfPresent(violation, 'judgmentEntryDate'),
+    lawSection: getFieldFromViolationIfPresent(violation, 'lawSection'),
     location: fullAddress,
-    meterNumber: 'meterNumber' in violation ? violation.meterNumber : undefined,
+    meterNumber: getFieldFromViolationIfPresent(violation, 'meterNumber'),
     outstanding: fineData.outstanding,
     paid: fineData.paid,
     paymentAmount: fineData.paymentAmount,
@@ -459,30 +451,21 @@ const normalizeViolation = async (
     reduced: fineData.reduced,
     reductionAmount: fineData.reductionAmount,
     registrationState: registrationState,
-    streetCode1: 'streetCode1' in violation ? violation.streetCode1 : undefined,
-    streetCode2: 'streetCode2' in violation ? violation.streetCode2 : undefined,
-    streetCode3: 'streetCode3' in violation ? violation.streetCode3 : undefined,
-    streetName: 'streetName' in violation ? violation.streetName : undefined,
-    subDivision: 'subDivision' in violation ? violation.subDivision : undefined,
-    summonsImage:
-      'summonsImage' in violation ? violation.summonsImage : undefined,
+    streetCode1: getFieldFromViolationIfPresent(violation, 'streetCode1'),
+    streetCode2: getFieldFromViolationIfPresent(violation, 'streetCode2'),
+    streetCode3: getFieldFromViolationIfPresent(violation, 'streetCode3'),
+    streetName: getFieldFromViolationIfPresent(violation, 'streetName'),
+    subDivision: getFieldFromViolationIfPresent(violation, 'subDivision'),
+    summonsImage:  getFieldFromViolationIfPresent(violation, 'summonsImage'),
     summonsNumber: violation.summonsNumber,
-    toHoursInEffect:
-      'toHoursInEffect' in violation ? violation.toHoursInEffect : undefined,
-    unregisteredVehicle:
-      'unregisteredVehicle' in violation
-        ? violation.unregisteredVehicle
-        : undefined,
-    vehicleBodyType:
-      'vehicleBodyType' in violation ? violation.vehicleBodyType : undefined,
-    vehicleColor:
-      'vehicleColor' in violation ? violation.vehicleColor : undefined,
-    vehicleExpirationDate:
-      'vehicleExpirationDate' in violation
-        ? violation.vehicleExpirationDate
-        : undefined,
-    vehicleMake: 'vehicleMake' in violation ? violation.vehicleMake : undefined,
-    vehicleYear: 'vehicleYear' in violation ? violation.vehicleYear : undefined,
+    toHoursInEffect: getFieldFromViolationIfPresent(violation, 'toHoursInEffect'),
+    unregisteredVehicle: getFieldFromViolationIfPresent(violation, 'unregisteredVehicle'),
+    vehicleBodyType: getFieldFromViolationIfPresent(violation, 'vehicleBodyType'),
+    vehicleBodyTypeSanitized: getVehicleBodyType(getFieldFromViolationIfPresent(violation, 'vehicleBodyType')),
+    vehicleColor: getFieldFromViolationIfPresent(violation, 'vehicleColor'),
+    vehicleExpirationDate: getFieldFromViolationIfPresent(violation, 'vehicleExpirationDate'),
+    vehicleMake: getFieldFromViolationIfPresent(violation, 'vehicleMake'),
+    vehicleYear: getFieldFromViolationIfPresent(violation, 'vehicleYear'),
     violationCode:
       humanizedDescription && violationsToCodes[humanizedDescription]
         ? violationsToCodes[humanizedDescription]
@@ -490,22 +473,11 @@ const normalizeViolation = async (
     violationCounty: violationCounty,
     violationInFrontOfOrOpposite:
       'violationInFrontOfOrOpposite' in violation
-        ? violation.violationInFrontOfOrOpposite
-        : 'violationInFrontOfOr' in violation
-          ? violation.violationInFrontOfOr
-          : undefined,
-    violationLegalCode:
-      'violationLegalCode' in violation
-        ? violation.violationLegalCode
-        : undefined,
-    violationLocation:
-      'violationLocation' in violation
-        ? violation.violationLocation
-        : undefined,
-    violationPostCode:
-      'violationPostCode' in violation
-        ? violation.violationPostCode
-        : undefined,
+        ? getFieldFromViolationIfPresent(violation, 'violationInFrontOfOrOpposite')
+        : getFieldFromViolationIfPresent(violation, 'violationInFrontOfOr'),
+    violationLegalCode: getFieldFromViolationIfPresent(violation, 'violationLegalCode'),
+    violationLocation: getFieldFromViolationIfPresent(violation, 'violationLocation'),
+    violationPostCode: getFieldFromViolationIfPresent(violation, 'violationPostCode'),
     violationPrecinct: precinct,
     violationTime: violation.violationTime,
   }

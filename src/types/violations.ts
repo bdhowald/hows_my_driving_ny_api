@@ -129,6 +129,7 @@ export type Violation = {
   toHoursInEffect?: string
   unregisteredVehicle: string | undefined
   vehicleBodyType: string | undefined
+  vehicleBodyTypeSanitized?: string
   vehicleColor: string | undefined
   vehicleExpirationDate: string | undefined
   vehicleMake: string | undefined

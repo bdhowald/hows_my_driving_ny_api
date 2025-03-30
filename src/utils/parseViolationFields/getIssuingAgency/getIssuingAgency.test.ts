@@ -6,279 +6,279 @@ describe('getIssuingAgency', () => {
   test.each([
     {
       agencyish: undefined,
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: '',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: '1',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE,
+      outputIssuingAgency: 'New York State Office of Mental Health Police',
     },
     {
       agencyish: '2',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_OFFICE_FOR_PEOPLE_WITH_DEVELOPMENTAL_DISABILITIES,
+      outputIssuingAgency: 'New York State Office for People With Developmental Disabilities',
     },
     {
       agencyish: '3',
-      outputIssuingAgency: IssuingAgency.ROOSEVELT_ISLAND_PUBLIC_SAFETY,
+      outputIssuingAgency: 'Roosevelt Island Security (RIOC)',
     },
     {
       agencyish: '4',
-      outputIssuingAgency: IssuingAgency.SEA_GATE_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'Sea Gate Police Department',
     },
     {
       agencyish: '5',
-      outputIssuingAgency: IssuingAgency.SNUG_HARBOR_CULTURAL_CENTER_RANGERS,
+      outputIssuingAgency: 'Snug Harbor Cultural Center Rangers',
     },
     {
       agencyish: '6',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: '7',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE,
+      outputIssuingAgency: 'NYC Health & Hospitals Police (NYC H+H)',
     },
     {
       agencyish: '9',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_SHERIFF,
+      outputIssuingAgency: 'New York City Sheriff',
     },
     {
       agencyish: 'A',
-      outputIssuingAgency: IssuingAgency.PORT_AUTHORITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'Port Authority Police (PANYNJ)',
     },
     {
       agencyish: 'AMTRAK RAILROAD POLICE',
-      outputIssuingAgency: IssuingAgency.AMTRAK_POLICE,
+      outputIssuingAgency: 'Amtrak Police',
     },
     {
       agencyish: 'B',
-      outputIssuingAgency: IssuingAgency.TRIBOROUGH_BRIDGE_AND_TUNNEL_AUTHORITY_POLICE,
+      outputIssuingAgency: 'Triborough Bridge & Tunnel Authority Police (TBTA)',
     },
     {
       agencyish: 'BOARD OF ESTIMATE',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'C',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'CON RAIL',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'D',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'DEPARTMENT OF BUSINESS SERVICES',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'DEPARTMENT OF CORRECTION',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'DEPARTMENT OF SANITATION',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_SANITATION,
+      outputIssuingAgency: 'Department of Sanitation (DSNY)',
     },
     {
       agencyish: 'DEPARTMENT OF TRANSPORTATION',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION,
+      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
     },
     {
       agencyish: 'E',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'F',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_FIRE_DEPARTMENT,
+      outputIssuingAgency: 'New York Fire Department (FDNY)',
     },
     {
       agencyish: 'FIRE DEPARTMENT',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_FIRE_DEPARTMENT,
+      outputIssuingAgency: 'New York Fire Department (FDNY)',
     },
     {
       agencyish: 'G',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_TAXI_AND_LIMOUSINE_COMMISSION,
+      outputIssuingAgency: 'NYC Taxi & Limousine Commission Police (TLC)',
     },
     {
       agencyish: 'H',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE,
+      outputIssuingAgency: 'NYC Housing Authority Police (NYCHA)',
     },
     {
       agencyish: 'HEALTH AND HOSPITAL CORP. POLICE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE,
+      outputIssuingAgency: 'NYC Health & Hospitals Police (NYC H+H)',
     },
     {
       agencyish: 'HEALTH DEPARTMENT POLICE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_HEALTH_POLICE,
+      outputIssuingAgency: 'NYC Department of Health Police (NYC DOHMH)',
     },
     {
       agencyish: 'HOUSING AUTHORITY',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE,
+      outputIssuingAgency: 'NYC Housing Authority Police (NYCHA)',
     },
     {
       agencyish: 'I',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'J',
-      outputIssuingAgency: IssuingAgency.AMTRAK_POLICE,
+      outputIssuingAgency: 'Amtrak Police',
     },
     {
       agencyish: 'K',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_PARKS_AND_RECREATION,
+      outputIssuingAgency: 'NYC Parks',
     },
     {
       agencyish: 'L',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'LONG ISLAND RAILROAD',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'M',
-      outputIssuingAgency: IssuingAgency.METROPOLITAN_TRANSPORTATION_AUTHORITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'MTA Police',
     },
     {
       agencyish: 'METRO NORTH RAILROAD POLICE',
-      outputIssuingAgency: IssuingAgency.DEPARTMENT_OF_HOMELAND_SECURITY,
+      outputIssuingAgency: 'Department of Homeland Security (DHS)',
     },
     {
       agencyish: 'N',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_PARKS_POLICE,
+      outputIssuingAgency: 'New York State Parks Police',
     },
     {
       agencyish: 'NYC OFFICE OF THE SHERIFF',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_SHERIFF,
+      outputIssuingAgency: 'New York City Sheriff',
     },
     {
       agencyish: 'NYC TRANSIT AUTHORITY MANAGERS',
-      outputIssuingAgency: IssuingAgency.ROOSEVELT_ISLAND_PUBLIC_SAFETY,
+      outputIssuingAgency: 'Roosevelt Island Security (RIOC)',
     },
     {
       agencyish: 'NYS COURT OFFICERS',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_COURT_OFFICERS,
+      outputIssuingAgency: 'New York State Court Officers',
     },
     {
       agencyish: 'NYS OFFICE OF MENTAL HEALTH POLICE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_OFFICE_OF_MENTAL_HEALTH_POLICE,
+      outputIssuingAgency: 'New York State Office of Mental Health Police',
     },
     {
       agencyish: 'NYS PARKS POLICE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_PARKS_POLICE,
+      outputIssuingAgency: 'New York State Parks Police',
     },
     {
       agencyish: 'O',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_COURT_OFFICERS,
+      outputIssuingAgency: 'New York State Court Officers',
     },
     {
       agencyish: 'O M R D D',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_STATE_OFFICE_FOR_PEOPLE_WITH_DEVELOPMENTAL_DISABILITIES,
+      outputIssuingAgency: 'New York State Office for People With Developmental Disabilities',
     },
     {
       agencyish: 'OTHER/UNKNOWN AGENCIES',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'P',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'New York Police Department (NYPD)',
     },
     {
       agencyish: 'PARKING CONTROL UNIT',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION_PARKING_CONTROL_UNIT,
+      outputIssuingAgency: 'Deparment of Transportation (NYC DOT) Parking Control Unit',
     },
     {
       agencyish: 'PARKS DEPARTMENT',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_PARKS_AND_RECREATION,
+      outputIssuingAgency: 'NYC Parks',
     },
     {
       agencyish: 'POLICE DEPARTMENT',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'New York Police Department (NYPD)',
     },
     {
       agencyish: 'PORT AUTHORITY',
-      outputIssuingAgency: IssuingAgency.PORT_AUTHORITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'Port Authority Police (PANYNJ)',
     },
     {
       agencyish: 'Q',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'ROOSEVELT ISLAND SECURITY',
-      outputIssuingAgency: IssuingAgency.ROOSEVELT_ISLAND_PUBLIC_SAFETY,
+      outputIssuingAgency: 'Roosevelt Island Security (RIOC)',
     },
     {
       agencyish: 'R',
-      outputIssuingAgency: IssuingAgency.METROPOLITAN_TRANSPORTATION_AUTHORITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'MTA Police',
     },
     {
       agencyish: 'S',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_SANITATION,
+      outputIssuingAgency: 'Department of Sanitation (DSNY)',
     },
     {
       agencyish: 'SEA GATE ASSOCIATION POLICE',
-      outputIssuingAgency: IssuingAgency.SEA_GATE_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'Sea Gate Police Department',
     },
     {
       agencyish: 'SNUG HARBOR CULTURAL CENTER RANGERS',
-      outputIssuingAgency: IssuingAgency.SNUG_HARBOR_CULTURAL_CENTER_RANGERS,
+      outputIssuingAgency: 'Snug Harbor Cultural Center Rangers',
     },
     {
       agencyish: 'STATEN ISLAND RAPID TRANSIT POLICE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_CORRECTIONS,
+      outputIssuingAgency: 'NYC Department of Corrections (NYC DOC)',
     },
     {
       agencyish: 'SUNY MARITIME COLLEGE',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE,
+      outputIssuingAgency: 'NYC Health & Hospitals Police (NYC H+H)',
     },
     {
       agencyish: 'T',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_POLICE_DEPARTMENT_TRAFFIC_ENFORCEMENT,
+      outputIssuingAgency: 'NYPD Traffic Enforcement',
     },
     {
       agencyish: 'TAXI AND LIMOUSINE COMMISSION',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_TAXI_AND_LIMOUSINE_COMMISSION,
+      outputIssuingAgency: 'NYC Taxi & Limousine Commission Police (TLC)',
     },
     {
       agencyish: 'TRAFFIC',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_POLICE_DEPARTMENT_TRAFFIC_ENFORCEMENT,
+      outputIssuingAgency: 'NYPD Traffic Enforcement',
     },
     {
       agencyish: 'TRANSIT AUTHORITY',
-      outputIssuingAgency: IssuingAgency.METROPOLITAN_TRANSPORTATION_AUTHORITY_POLICE_DEPARTMENT,
+      outputIssuingAgency: 'MTA Police',
     },
     {
       agencyish: 'TRIBOROUGH BRIDGE AND TUNNEL POLICE',
-      outputIssuingAgency: IssuingAgency.TRIBOROUGH_BRIDGE_AND_TUNNEL_AUTHORITY_POLICE,
+      outputIssuingAgency: 'Triborough Bridge & Tunnel Authority Police (TBTA)',
     },
     {
       agencyish: 'U',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION,
+      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
     },
     {
       agencyish: 'V',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION,
+      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
     },
     {
       agencyish: 'W',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_DEPARTMENT_OF_HEALTH_POLICE,
+      outputIssuingAgency: 'NYC Department of Health Police (NYC DOHMH)',
     },
     {
       agencyish: 'X',
-      outputIssuingAgency: IssuingAgency.UNKNOWN_ISSUER,
+      outputIssuingAgency: 'Unknown Issuer',
     },
     {
       agencyish: 'Y',
-      outputIssuingAgency: IssuingAgency.NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE,
+      outputIssuingAgency: 'NYC Health & Hospitals Police (NYC H+H)',
     },
     {
       agencyish: 'Z',
-      outputIssuingAgency: IssuingAgency.DEPARTMENT_OF_HOMELAND_SECURITY,
+      outputIssuingAgency: 'Department of Homeland Security (DHS)',
     },
   ])(
     'successfully detects $outputIssuingAgency from $agencyish',

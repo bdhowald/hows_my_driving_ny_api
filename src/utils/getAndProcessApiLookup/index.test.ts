@@ -424,6 +424,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '1',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           violationFactory.build({
@@ -448,6 +449,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '2',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           violationFactory.build({
@@ -472,6 +474,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '3',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           violationFactory.build({
@@ -496,6 +499,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '4',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           {
@@ -550,6 +554,7 @@ describe('getAndProcessApiLookup', () => {
             toHoursInEffect: 'ALL',
             unregisteredVehicle: '0',
             vehicleBodyType: 'VAN',
+            vehicleBodyTypeSanitized: 'Van',
             vehicleColor: 'BLUE',
             vehicleExpirationDate: '20250201',
             vehicleMake: 'HONDA',
@@ -585,6 +590,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '6',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           violationFactory.build({
@@ -609,6 +615,7 @@ describe('getAndProcessApiLookup', () => {
             plateId: plate,
             registrationState: state,
             summonsNumber: '7',
+            vehicleBodyTypeSanitized: 'Van',
             violationTime: '0911A',
           }),
           {
@@ -663,6 +670,7 @@ describe('getAndProcessApiLookup', () => {
             toHoursInEffect: 'ALL',
             unregisteredVehicle: '0',
             vehicleBodyType: 'VAN',
+            vehicleBodyTypeSanitized: 'Van',
             vehicleColor: 'BLUE',
             vehicleExpirationDate: '20250201',
             vehicleMake: 'HONDA',
