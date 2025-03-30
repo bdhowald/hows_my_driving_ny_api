@@ -29,13 +29,13 @@ export default async (
   rawViolations: RawViolation[],
   requestPathname: string,
   dataUpdatedAt: string,
-): Promise<Violation[]> => {
-  const normalizedViolations = rawViolations.map(
+): Promise<(Violation | undefined)[]> => {
+  const normalizedViolationPromises = rawViolations.map(
     async (rawViolation) =>
       await normalizeViolation(rawViolation, requestPathname, dataUpdatedAt)
   )
 
-  return Promise.all(normalizedViolations)
+  return Promise.all(normalizedViolationPromises)
 }
 
 const getBorough = async (
@@ -367,7 +367,7 @@ const normalizeViolation = async (
   rawViolation: RawViolation,
   requestPathname: string,
   dataUpdatedAt: string,
-): Promise<Violation> => {
+): Promise<Violation | undefined> => {
   const violation = camelizeKeys(rawViolation) as RawViolation
 
   const humanizedDescription = getHumanizedDescription(violation)
@@ -379,6 +379,10 @@ const normalizeViolation = async (
     violation.issueDate,
     violation.violationTime
   )
+
+  if (formattedTimes?.formattedTimeUtc && DateTime.utc() < formattedTimes?.formattedTimeUtc) {
+    return Promise.resolve(undefined)
+  }
 
   const plateId = 'plateId' in violation ? violation.plateId : violation.plate
 

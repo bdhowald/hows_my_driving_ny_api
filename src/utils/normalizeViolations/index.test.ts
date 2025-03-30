@@ -1588,6 +1588,27 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
+  it('should return a Promise of undefined for a violation whose formatted time is in the future', async () => {
+    const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
+
+    const tomorrowUTC = DateTime.local({ zone: "America/New_York" }).plus({ days: 1}).toUTC()
+
+    const rawFiscalYearDatabaseViolation: RawViolation =
+      rawFiscalYearDatabaseViolationFactory.build({
+        issueDate: tomorrowUTC.toISO(),
+        violationTime: '0911A',
+      })
+
+    const normalizedViolations = await normalizeViolations(
+      [rawFiscalYearDatabaseViolation],
+      databasePathname,
+      dataUpdatedAt,
+    )
+
+    expect(normalizedViolations[0]).toEqual(undefined)
+  })
+
   it('should throw an error for an unexpected time format', async () => {
     const databasePathname = '/resource/869v-vr48.json'
     const dataUpdatedAt = '2023-11-14T17:54:58.000Z'

@@ -107,7 +107,7 @@ const getAndProcessApiLookup = async (
     return reducedObject
   }, {} as Record<DatabasePathName, string>)
 
-  const normalizedResponsePromises: Promise<Violation[]>[] =
+  const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
     vehicleDataResponses.map(async (response) => {
       if (!response.config.url) {
         throw Error('Missing response url')
@@ -119,13 +119,15 @@ const getAndProcessApiLookup = async (
       return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
     })
 
-  const normalizedResponses: Violation[][] = await Promise.all(
+  const normalizedResponses: Array<(Violation | undefined)[]> = await Promise.all(
     normalizedResponsePromises
   )
 
+  // Filter out falsy violations, caused by things like violations in the future
   const flattenedViolations = normalizedResponses.flat()
+  const filteredViolations = flattenedViolations.filter((violation): violation is Violation => !!violation)
 
-  let deduplicatedViolations = mergeDuplicateViolations(flattenedViolations)
+  let deduplicatedViolations: Violation[] = mergeDuplicateViolations(filteredViolations)
 
   if (existingLookupCreatedAt) {
     deduplicatedViolations = filterOutViolationsAfterSearchDate(

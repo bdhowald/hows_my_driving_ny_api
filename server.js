@@ -1858,7 +1858,12 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     })
     await Promise.all(normalizedResponses).then((normalizedResponses) => {
       normalizedResponses.forEach((normalizedResponse) => {
-        flattenedResponses = [...flattenedResponses, ...normalizedResponse]
+        const filteredNormalizedResponse = normalizedResponse.filter((violation) => !!violation)
+
+        flattenedResponses = [
+          ...flattenedResponses,
+          ...filteredNormalizedResponse,
+        ]
       })
     })
 
@@ -2042,7 +2047,7 @@ const getViolationLocation = (violation) => {
   return null
 }
 
-const getViolationWithFineData = (violation) => {
+const getViolationFineData = (violation) => {
   let fined = null
 
   if (violation.fine_amount) {
@@ -2056,7 +2061,6 @@ const getViolationWithFineData = (violation) => {
   }
 
   return {
-    ...violation,
     ...(fined && { fined }),
     ...(violation.payment_amount && {
       paid: parseFloat(violation.payment_amount),
@@ -2070,7 +2074,7 @@ const getViolationWithFineData = (violation) => {
   }
 }
 
-const getViolationWithFormattedTime = (violation) => {
+const getViolationFormattedTime = (violation) => {
   // Violations have their date and time in two separate fields
   // that need to be combined into a single datetime.
   //
@@ -2137,7 +2141,6 @@ const getViolationWithFormattedTime = (violation) => {
     })
 
     return {
-      ...violation,
       formatted_time: violationTimeInEasternTime,
       formatted_time_eastern: violationTimeInEasternTime,
       formatted_time_utc: violationTimeInEasternTime.toUTC(),
@@ -2805,9 +2808,7 @@ const mergeDuplicateViolationRecords = (violations) => {
 const modifyViolationsForResponse = (violations, selectedFields) =>
   violations.map((violation) =>
     Object.fromEntries(
-      Object.entries(
-        getViolationWithFineData(getViolationWithFormattedTime(violation))
-      ).sort()
+      Object.entries(violation).sort()
     )
   )
 
@@ -2815,6 +2816,24 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
   const returnViolations = await violations.map(async (violation, index) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
+
+    const {
+      formatted_time,
+      formatted_time_eastern,
+      formatted_time_utc,
+    } = getViolationFormattedTime(violation)
+
+    // When violation time is after now, filter it out.
+    if (new Date() < formatted_time_utc) {
+      return undefined
+    }
+
+    const {
+      fined,
+      outstanding,
+      paid,
+      reduced,
+    } = getViolationFineData(violation)
 
     const standardizedJudgmentEntryDate = violation.judgment_entry_date
       ? DateTime.fromFormat(violation.judgment_entry_date, "MM/dd/yyyy", {
@@ -2832,6 +2851,10 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       fine_amount: isNaN(parseFloat(violation.fine_amount))
         ? null
         : parseFloat(violation.fine_amount),
+      fined,
+      formatted_time,
+      formatted_time_eastern,
+      formatted_time_utc,
       from_databases: [
         {
           dataUpdatedAt,
@@ -2855,6 +2878,8 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       issuing_agency: getIssuingAgency(violation.issuing_agency) || null,
       judgment_entry_date: standardizedJudgmentEntryDate,
       law_section: violation.law_section || null,
+      outstanding,
+      paid,
       payment_amount: isNaN(parseFloat(violation.payment_amount))
         ? null
         : parseFloat(violation.payment_amount),
@@ -2863,6 +2888,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         : parseFloat(violation.penalty_amount),
       plate_id: violation.plate_id || violation.plate || null,
       plate_type: violation.plate_type || violation.license_type || null,
+      reduced,
       reduction_amount: isNaN(parseFloat(violation.reduction_amount))
         ? null
         : parseFloat(violation.reduction_amount),
