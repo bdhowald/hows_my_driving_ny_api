@@ -2972,7 +2972,8 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       issuer_precinct: isNaN(parseInt(violation.issuer_precinct))
         ? null
         : parseInt(violation.issuer_precinct),
-      issuing_agency: getIssuingAgency(violation.issuing_agency) || null,
+      issuing_agency: violation.issuing_agency || null,
+      issuing_agency_sanitized: getIssuingAgency(violation.issuing_agency) || null,
       judgment_entry_date: standardizedJudgmentEntryDate,
       law_section: violation.law_section || null,
       outstanding,
