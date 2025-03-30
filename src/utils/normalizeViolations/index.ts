@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 
-import issuingAgencies from 'constants/agencies'
 import boroughs, { Borough, precinctsByBorough } from 'constants/boroughs'
 import {
   HumanizedDescription,
@@ -17,6 +16,7 @@ import getBoroughService from 'services/geocodingService'
 import { RawViolation, Violation } from 'types/violations'
 import getFullAddress from 'utils/addressUtils'
 import { camelizeKeys } from 'utils/camelize'
+import getIssuingAgency from 'utils/parseViolationFields/getIssuingAgency/getIssuingAgency'
 import { isNumber, objectHasKey } from 'utils/typePredicates'
 
 const DATE_FORMAT = /^\d{2}\/\d{2}\/\d{4}$/
@@ -437,7 +437,7 @@ const normalizeViolation = async (
         : undefined,
     issuerSquad: 'issuerSquad' in violation ? violation.issuerSquad : undefined,
     issuingAgency: violation.issuingAgency
-      ? issuingAgencies[violation.issuingAgency]
+      ? getIssuingAgency(violation.issuingAgency)
       : undefined,
     judgmentEntryDate:
       'judgmentEntryDate' in violation

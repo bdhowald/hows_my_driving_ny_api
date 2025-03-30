@@ -108,7 +108,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     issuerCommand: '0043',
     issuerPrecinct: 43,
     issuerSquad: '0000',
-    issuingAgency: 'NYPD',
+    issuingAgency: 'New York Police Department (NYPD)',
     judgmentEntryDate: undefined,
     lawSection: '408',
     location: 'I/o Taylor Ave Guerlain',
