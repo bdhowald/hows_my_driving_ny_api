@@ -18,6 +18,7 @@ import getFullAddress from 'utils/addressUtils'
 import { camelizeKeys } from 'utils/camelize'
 import getIssuingAgency from 'utils/parseViolationFields/getIssuingAgency/getIssuingAgency'
 import getVehicleBodyType from 'utils/parseViolationFields/getVehicleBodyType/getVehicleBodyType'
+import getViolationStatus from 'utils/parseViolationFields/getViolationStatus/getViolationStatus'
 import { isNumber, objectHasKey } from 'utils/typePredicates'
 
 const DATE_FORMAT = /^\d{2}\/\d{2}\/\d{4}$/
@@ -452,6 +453,7 @@ const normalizeViolation = async (
     sanitized: {
       issuingAgency: getIssuingAgency(violation.issuingAgency),
       vehicleBodyType: getVehicleBodyType(getFieldFromViolationIfPresent(violation, 'vehicleBodyType')),
+      violationStatus: getViolationStatus(getFieldFromViolationIfPresent(violation, 'violationStatus')),
     },
     streetCode1: getFieldFromViolationIfPresent(violation, 'streetCode1'),
     streetCode2: getFieldFromViolationIfPresent(violation, 'streetCode2'),
@@ -480,6 +482,7 @@ const normalizeViolation = async (
     violationLocation: getFieldFromViolationIfPresent(violation, 'violationLocation'),
     violationPostCode: getFieldFromViolationIfPresent(violation, 'violationPostCode'),
     violationPrecinct: precinct,
+    violationStatus: getFieldFromViolationIfPresent(violation, 'violationStatus'),
     violationTime: violation.violationTime,
   }
 

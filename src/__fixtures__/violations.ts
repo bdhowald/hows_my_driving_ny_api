@@ -125,6 +125,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     sanitized: {
       issuingAgency: 'New York Police Department (NYPD)',
       vehicleBodyType: 'Van',
+      violationStatus: undefined,
     },
     streetCode1: '0',
     streetCode2: '0',
@@ -150,6 +151,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     violationLocation: '0043',
     violationPostCode: undefined,
     violationPrecinct: 43,
+    violationStatus: undefined,
     violationTime: '0911A',
   }
 })

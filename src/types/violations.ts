@@ -77,6 +77,7 @@ export type RawOpenParkingAndCameraViolation = {
   summonsImage?: SummonsImageType
   summonsNumber: string
   violation?: OpenParkingAndCameraViolationName
+  violationStatus?: string
   violationTime: string
 }
 
@@ -122,6 +123,7 @@ export type Violation = {
   sanitized: {
     issuingAgency: string | undefined
     vehicleBodyType: string | undefined
+    violationStatus: string | undefined
   }
   streetCode1: string | undefined
   streetCode2: string | undefined
@@ -144,5 +146,6 @@ export type Violation = {
   violationLocation: string | undefined
   violationPostCode: string | undefined
   violationPrecinct: number | undefined
+  violationStatus: string | undefined
   violationTime: string
 }

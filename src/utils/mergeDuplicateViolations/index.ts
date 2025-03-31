@@ -62,6 +62,14 @@ const mergeMultipleRecordsOfSameViolation = (
           ...duplicateViolation.fromDatabases,
           ...baseViolation.fromDatabases,
         ],
+        sanitized: {
+          issuingAgency:
+            duplicateViolation.sanitized.issuingAgency ?? baseViolation.sanitized.issuingAgency,
+          vehicleBodyType:
+            duplicateViolation.sanitized.vehicleBodyType ?? baseViolation.sanitized.vehicleBodyType,
+          violationStatus:
+            duplicateViolation.sanitized.violationStatus ?? baseViolation.sanitized.violationStatus,
+        }
       },
     }
 
@@ -79,6 +87,14 @@ const mergeMultipleRecordsOfSameViolation = (
           ...baseViolation.fromDatabases,
           ...duplicateViolation.fromDatabases,
         ],
+        sanitized: {
+          issuingAgency:
+            baseViolation.sanitized.issuingAgency ?? duplicateViolation.sanitized.issuingAgency,
+          vehicleBodyType:
+            baseViolation.sanitized.vehicleBodyType ?? duplicateViolation.sanitized.vehicleBodyType,
+          violationStatus:
+            baseViolation.sanitized.violationStatus ?? duplicateViolation.sanitized.violationStatus,
+        }
       },
     }
 

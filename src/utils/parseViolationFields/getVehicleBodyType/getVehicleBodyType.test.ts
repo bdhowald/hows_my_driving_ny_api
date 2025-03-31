@@ -429,6 +429,12 @@ describe('getVehicleBodyType', () => {
       bodyTypeish: 'VN',
       outputBodyType: 'Van',
     },
+
+    // Unknown body type
+    {
+      bodyTypeish: 'ABC',
+      outputBodyType: 'Unknown Body Type',
+    },
   ])(
     'successfully detects $outputBodyType from $bodyTypeish',
     ({ bodyTypeish, outputBodyType }) => {

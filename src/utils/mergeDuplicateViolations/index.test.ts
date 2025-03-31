@@ -52,6 +52,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: undefined,
+          violationStatus: 'Hearing Held: Guilty',
         },
         streetCode1: undefined,
         streetCode2: undefined,
@@ -76,6 +77,7 @@ describe('mergeDuplicateViolations', () => {
         violationLegalCode: undefined,
         violationLocation: undefined,
         violationPostCode: undefined,
+        violationStatus: 'HEARING HELD-GUILTY',
         violationPrecinct: 0,
         violationTime: '07:55P',
       },
@@ -124,6 +126,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
+          violationStatus: undefined,
         },
         streetCode1: '0',
         streetCode2: '30640',
@@ -146,6 +149,7 @@ describe('mergeDuplicateViolations', () => {
         violationLocation: undefined,
         violationPostCode: undefined,
         violationPrecinct: 0,
+        violationStatus: undefined,
         violationTime: '0755P',
       },
     ]
@@ -201,6 +205,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
+          violationStatus: 'Hearing Held: Guilty',
         },
         streetCode1: '0',
         streetCode2: '30640',
@@ -226,12 +231,13 @@ describe('mergeDuplicateViolations', () => {
         violationLocation: undefined,
         violationPostCode: undefined,
         violationPrecinct: 0,
+        violationStatus: 'HEARING HELD-GUILTY',
         violationTime: '0755P',
       },
     ]
 
     const mergedViolations = mergeDuplicateViolations(violations)
-
+    expect(mergedViolations).toEqual(expectedViolations)
     expect(mergedViolations).toEqual(expectedViolations)
     expect(mergedViolations.length).toBe(1)
   })
@@ -283,6 +289,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
+          violationStatus: undefined,
         },
         streetCode1: '0',
         streetCode2: '0',
@@ -305,6 +312,7 @@ describe('mergeDuplicateViolations', () => {
         violationLocation: undefined,
         violationPostCode: undefined,
         violationPrecinct: 0,
+        violationStatus: undefined,
         violationTime: '0142A',
       },
       {
@@ -352,6 +360,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
+          violationStatus: undefined,
         },
         streetCode1: '0',
         streetCode2: '0',
@@ -374,6 +383,7 @@ describe('mergeDuplicateViolations', () => {
         violationLocation: undefined,
         violationPostCode: undefined,
         violationPrecinct: 0,
+        violationStatus: undefined,
         violationTime: '0920P',
       },
     ]

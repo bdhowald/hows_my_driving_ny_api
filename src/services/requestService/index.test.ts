@@ -271,6 +271,7 @@ describe('requestService', () => {
                 sanitized: {
                   issuingAgency: 'New York Police Department (NYPD)',
                   vehicleBodyType: 'Van',
+                  violationStatus: 'Hearing Held: Guilty',
                 },
                 streetCode1: '0',
                 streetCode2: '0',
@@ -293,6 +294,7 @@ describe('requestService', () => {
                 violationLocation: '0043',
                 violationPostCode: undefined,
                 violationPrecinct: 43,
+                violationStatus: 'HEARING HELD-GUILTY',
                 violationTime: '0911A',
               },
               violationFactory.build({
@@ -388,6 +390,7 @@ describe('requestService', () => {
                 sanitized: {
                   issuingAgency: 'New York Police Department (NYPD)',
                   vehicleBodyType: 'Van',
+                  violationStatus: 'Hearing Held: Guilty',
                 },
                 streetCode1: '0',
                 streetCode2: '0',
@@ -410,6 +413,7 @@ describe('requestService', () => {
                 violationLocation: '0043',
                 violationPostCode: undefined,
                 violationPrecinct: 43,
+                violationStatus: 'HEARING HELD-GUILTY',
                 violationTime: '0911A',
               },
             ],
@@ -849,6 +853,7 @@ describe('requestService', () => {
                 sanitized: {
                   issuingAgency: 'New York Police Department (NYPD)',
                   vehicleBodyType: 'Van',
+                  violationStatus: 'Hearing Held: Guilty',
                 },
                 streetCode1: '0',
                 streetCode2: '0',
@@ -871,6 +876,7 @@ describe('requestService', () => {
                 violationLocation: '0043',
                 violationPostCode: undefined,
                 violationPrecinct: 43,
+                violationStatus: 'HEARING HELD-GUILTY',
                 violationTime: '0911A',
               },
               violationFactory.build({

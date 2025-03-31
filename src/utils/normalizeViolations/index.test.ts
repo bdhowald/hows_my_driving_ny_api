@@ -712,6 +712,7 @@ describe('normalizeViolations', () => {
       sanitized: {
         issuingAgency: undefined,
         vehicleBodyType: undefined,
+        violationStatus: undefined,
       },
       streetCode1: undefined,
       streetCode2: undefined,
@@ -732,6 +733,7 @@ describe('normalizeViolations', () => {
       violationLocation: undefined,
       violationPostCode: undefined,
       violationPrecinct: 99,
+      violationStatus: undefined,
     }
 
     const normalizedViolation = await normalizeViolations(
@@ -1411,6 +1413,7 @@ describe('normalizeViolations', () => {
       sanitized: {
         issuingAgency: 'New York Police Department (NYPD)',
         vehicleBodyType: undefined,
+        violationStatus: undefined,
       },
       streetCode1: undefined,
       streetCode2: undefined,
@@ -1431,6 +1434,7 @@ describe('normalizeViolations', () => {
       violationLocation: undefined,
       violationPostCode: undefined,
       violationPrecinct: 43,
+      violationStatus: undefined,
     }
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)

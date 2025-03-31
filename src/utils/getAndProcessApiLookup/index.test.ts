@@ -303,6 +303,7 @@ describe('getAndProcessApiLookup', () => {
             plate: plate,
             state: state,
             summonsNumber: '4',
+            violationStatus: 'HEARING HELD-GUILTY',
           }),
           rawOpenParkingAndCameraViolationFactory.build({
             issueDate: '11/17/2019',
@@ -315,6 +316,7 @@ describe('getAndProcessApiLookup', () => {
             plate: plate,
             state: state,
             summonsNumber: '7',
+            violationStatus: 'HEARING HELD-GUILTY',
           }),
         ],
       },
@@ -426,6 +428,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             summonsNumber: '1',
             violationTime: '0911A',
@@ -454,6 +457,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             summonsNumber: '2',
             violationTime: '0911A',
@@ -482,6 +486,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             summonsNumber: '3',
             violationTime: '0911A',
@@ -510,8 +515,10 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: 'Hearing Held: Guilty',
             },
             summonsNumber: '4',
+            violationStatus: 'HEARING HELD-GUILTY',
             violationTime: '0911A',
           }),
           {
@@ -559,6 +566,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             streetCode1: '0',
             streetCode2: '0',
@@ -581,6 +589,7 @@ describe('getAndProcessApiLookup', () => {
             violationLocation: '0043',
             violationPostCode: undefined,
             violationPrecinct: 43,
+            violationStatus: undefined,
             violationTime: '0911A',
           },
           violationFactory.build({
@@ -607,6 +616,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             summonsNumber: '6',
             violationTime: '0911A',
@@ -635,8 +645,10 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: 'Hearing Held: Guilty',
             },
             summonsNumber: '7',
+            violationStatus: 'HEARING HELD-GUILTY',
             violationTime: '0911A',
           }),
           {
@@ -684,6 +696,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
+              violationStatus: undefined,
             },
             streetCode1: '0',
             streetCode2: '0',
@@ -706,6 +719,7 @@ describe('getAndProcessApiLookup', () => {
             violationLocation: '0043',
             violationPostCode: undefined,
             violationPrecinct: 43,
+            violationStatus: undefined,
             violationTime: '0911A',
           },
         ],
@@ -1141,6 +1155,7 @@ describe('getAndProcessApiLookup', () => {
               plate: rectifiedPlate,
               state: state,
               summonsNumber: '4',
+              violationStatus: 'HEARING HELD-GUILTY',
             }),
             rawOpenParkingAndCameraViolationFactory.build({
               issueDate: '11/17/2019',
@@ -1153,6 +1168,7 @@ describe('getAndProcessApiLookup', () => {
               plate: rectifiedPlate,
               state: state,
               summonsNumber: '7',
+              violationStatus: 'HEARING HELD-GUILTY',
             }),
           ],
         },
