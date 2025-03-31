@@ -6,7 +6,7 @@ enum IssuingAgency {
   NEW_YORK_CITY_DEPARTMENT_OF_SANITATION = 'Department of Sanitation (DSNY)',
   NEW_YORK_CITY_DEPARTMENT_OF_HEALTH_POLICE = 'NYC Department of Health Police (NYC DOHMH)',
   NEW_YORK_CITY_DEPARTMENT_OF_PARKS_AND_RECREATION = 'NYC Parks',
-  NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION = 'Department of Transportation (NYC DOT)',
+  NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION = 'NYC Department of Transportation',
   NEW_YORK_CITY_DEPARTMENT_OF_TRANSPORTATION_PARKING_CONTROL_UNIT = 'Deparment of Transportation (NYC DOT) Parking Control Unit',
   NEW_YORK_CITY_FIRE_DEPARTMENT = 'New York Fire Department (FDNY)',
   NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE = 'NYC Health & Hospitals Police (NYC H+H)',

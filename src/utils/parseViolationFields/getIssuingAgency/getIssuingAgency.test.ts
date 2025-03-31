@@ -86,7 +86,7 @@ describe('getIssuingAgency', () => {
     },
     {
       agencyish: 'DEPARTMENT OF TRANSPORTATION',
-      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
+      outputIssuingAgency: 'NYC Department of Transportation',
     },
     {
       agencyish: 'E',
@@ -258,11 +258,11 @@ describe('getIssuingAgency', () => {
     },
     {
       agencyish: 'U',
-      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
+      outputIssuingAgency: 'NYC Department of Transportation',
     },
     {
       agencyish: 'V',
-      outputIssuingAgency: 'Department of Transportation (NYC DOT)',
+      outputIssuingAgency: 'NYC Department of Transportation',
     },
     {
       agencyish: 'W',

@@ -50,7 +50,7 @@ describe('mergeDuplicateViolations', () => {
         reductionAmount: 0,
         registrationState: 'NY',
         sanitized: {
-          issuingAgency: 'Department of Transportation (NYC DOT)',
+          issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: undefined,
         },
         streetCode1: undefined,
@@ -122,7 +122,7 @@ describe('mergeDuplicateViolations', () => {
         reductionAmount: undefined,
         registrationState: 'NY',
         sanitized: {
-          issuingAgency: 'Department of Transportation (NYC DOT)',
+          issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
         },
         streetCode1: '0',
@@ -199,7 +199,7 @@ describe('mergeDuplicateViolations', () => {
         reductionAmount: 0,
         registrationState: 'NY',
         sanitized: {
-          issuingAgency: 'Department of Transportation (NYC DOT)',
+          issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
         },
         streetCode1: '0',
@@ -281,7 +281,7 @@ describe('mergeDuplicateViolations', () => {
         reductionAmount: undefined,
         registrationState: 'NY',
         sanitized: {
-          issuingAgency: 'Department of Transportation (NYC DOT)',
+          issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
         },
         streetCode1: '0',
@@ -350,7 +350,7 @@ describe('mergeDuplicateViolations', () => {
         reductionAmount: undefined,
         registrationState: 'NY',
         sanitized: {
-          issuingAgency: 'Department of Transportation (NYC DOT)',
+          issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
         },
         streetCode1: '0',
