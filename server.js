@@ -3061,16 +3061,24 @@ const mergeDuplicateViolationRecords = (violations) => {
           ...existingItem["from_databases"],
           ...object["from_databases"],
         ],
+        sanitized: {
+          issuing_agency:
+            existingItem["sanitized"].issuing_agency ?? object["sanitized"].issuing_agency,
+            vehicle_body_type:
+            existingItem["sanitized"].vehicle_body_type ?? object["sanitized"].vehicle_body_type,
+          violation_status:
+            existingItem["sanitized"].violation_status ?? object["sanitized"].violation_status,
+        }
       }
 
       Object.keys(existingItem).forEach((key) => {
-        if (key !== "from_databases") {
+        if (!(["from_databases", "sanitized"].includes(key))) {
           mergedObject[key] = existingItem[key] || object[key]
         }
       })
 
       Object.keys(object).forEach((key) => {
-        if (key !== "from_databases") {
+        if (!(["from_databases", "sanitized"].includes(key))) {
           mergedObject[key] = existingItem[key] || object[key]
         }
       })
