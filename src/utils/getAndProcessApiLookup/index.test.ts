@@ -515,7 +515,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
-              violationStatus: 'Hearing Held: Guilty',
+              violationStatus: 'Hearing Held - Guilty',
             },
             summonsNumber: '4',
             violationStatus: 'HEARING HELD-GUILTY',
@@ -645,7 +645,7 @@ describe('getAndProcessApiLookup', () => {
             sanitized: {
               issuingAgency: 'New York Police Department (NYPD)',
               vehicleBodyType: 'Van',
-              violationStatus: 'Hearing Held: Guilty',
+              violationStatus: 'Hearing Held - Guilty',
             },
             summonsNumber: '7',
             violationStatus: 'HEARING HELD-GUILTY',

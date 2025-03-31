@@ -50,19 +50,19 @@ describe('getViolationStatus', () => {
     },
     {
       violationStatusish: 'HEARING HELD-GUILTY',
-      outputViolationStatus: 'Hearing Held: Guilty',
+      outputViolationStatus: 'Hearing Held - Guilty',
     },
     {
       violationStatusish: 'HEARING HELD-GUILTY REDUCTION',
-      outputViolationStatus: 'Hearing Held: Guilty, Fines Reduced',
+      outputViolationStatus: 'Hearing Held - Guilty, Fines Reduced',
     },
     {
       violationStatusish: 'HEARING HELD-NOT GUILTY',
-      outputViolationStatus: 'Hearing Held: Not Guilty',
+      outputViolationStatus: 'Hearing Held - Not Guilty',
     },
     {
       violationStatusish: 'HEARING HELD-REINSTATEMENT',
-      outputViolationStatus: 'Hearing Held: Fines Reinstated',
+      outputViolationStatus: 'Hearing Held - Fines Reinstated',
     },
     {
       violationStatusish: 'HEARING PENDING',

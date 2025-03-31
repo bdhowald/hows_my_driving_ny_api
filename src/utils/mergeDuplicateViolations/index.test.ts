@@ -52,7 +52,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: undefined,
-          violationStatus: 'Hearing Held: Guilty',
+          violationStatus: 'Hearing Held - Guilty',
         },
         streetCode1: undefined,
         streetCode2: undefined,
@@ -205,7 +205,7 @@ describe('mergeDuplicateViolations', () => {
         sanitized: {
           issuingAgency: 'NYC Department of Transportation',
           vehicleBodyType: 'Taxi',
-          violationStatus: 'Hearing Held: Guilty',
+          violationStatus: 'Hearing Held - Guilty',
         },
         streetCode1: '0',
         streetCode2: '30640',
