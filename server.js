@@ -716,6 +716,25 @@ const vehicleBodyTypes = {
   VAN: 'Van',
 }
 
+const violationStatuses = {
+  ADMINISTRATIVE_CLAIM_DENIED: 'Administrative Claim Denied',
+  ADMINISTRATIVE_CLAIM_GRANTED: 'Administrative Claim Granted',
+  ADMINISTRATIVE_REDUCTION: 'Administrative Fines Reduction',
+  APPEAL_ABANDONED: 'Appeal Abandoned',
+  APPEAL_AFFIRMED: 'Appeal Affirmed',
+  APPEAL_MODIFIED: 'Appeal Modified',
+  APPEAL_REMANDED: 'Appeal Remanded',
+  APPEAL_REVERSED: 'Appeal Reversed',
+  HEARING_ADJOURNED: 'Hearing Adjourned',
+  HEARING_HELD_GUILTY: 'Hearing Held: Guilty',
+  HEARING_HELD_GUILTY_REDUCTION: 'Hearing Held: Guilty, Fines Reduced',
+  HEARING_HELD_NOT_GUILTY: 'Hearing Held: Not Guilty',
+  HEARING_HELD_FINES_REINSTATED: 'Hearing Held: Fines Reinstated',
+  HEARING_PENDING: 'Hearing Pending',
+  HEARING_WAIVED: 'Hearing Waived',
+  UNKNOWN: 'Unknown Violation Status',
+}
+
 class CameraStreakData {
   constructor(maxStreak, streakStart, streakEnd) {
     this.max_streak = maxStreak
@@ -2304,6 +2323,62 @@ const getViolationFormattedTime = (violation) => {
   return violation
 }
 
+const getViolationStatus = (violationStatusish) => {
+  if (!violationStatusish) {
+    return undefined
+  }
+
+  switch (violationStatusish) {
+    case 'ADMIN CLAIM DENIED':
+      return violationStatuses['ADMINISTRATIVE_CLAIM_DENIED']
+
+    case 'ADMIN CLAIM GRANTED':
+      return violationStatuses['ADMINISTRATIVE_CLAIM_GRANTED']
+
+    case 'ADMIN REDUCTION':
+      return violationStatuses['ADMINISTRATIVE_REDUCTION']
+
+    case 'APPEAL ABANDONED':
+      return violationStatuses['APPEAL_ABANDONED']
+
+    case 'APPEAL AFFIRMED':
+      return violationStatuses['APPEAL_AFFIRMED']
+
+    case 'APPEAL MODIFIED':
+      return violationStatuses['APPEAL_MODIFIED']
+
+    case 'APPEAL REMANDED':
+      return violationStatuses['APPEAL_REMANDED']
+
+    case 'APPEAL REVERSED':
+      return violationStatuses['APPEAL_REVERSED']
+
+    case 'HEARING ADJOURNMENT':
+      return violationStatuses['HEARING_ADJOURNED']
+
+    case 'HEARING HELD-GUILTY':
+      return violationStatuses['HEARING_HELD_GUILTY']
+
+    case 'HEARING HELD-GUILTY REDUCTION':
+      return violationStatuses['HEARING_HELD_GUILTY_REDUCTION']
+
+    case 'HEARING HELD-NOT GUILTY':
+      return violationStatuses['HEARING_HELD_NOT_GUILTY']
+
+    case 'HEARING HELD-REINSTATEMENT':
+      return violationStatuses['HEARING_HELD_FINES_REINSTATED']
+
+    case 'HEARING PENDING':
+      return violationStatuses['HEARING_PENDING']
+
+    case 'HEARING WAIVED':
+      return violationStatuses['HEARING_WAIVED']
+
+    default:
+      return violationStatuses['UNKNOWN']
+  }
+}
+
 /**
  * Returns unique link to howsmydrivingny.nyc website for lookup
  *
@@ -2993,6 +3068,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       sanitized: {
         issuing_agency: getIssuingAgency(violation.issuing_agency) || null,
         vehicle_body_type: getVehicleBodyType(violation.vehicle_body_type),
+        violation_status: getViolationStatus(violation.violation_status),
       },
       street_code1: violation.street_code1 || null,
       street_code2: violation.street_code2 || null,
@@ -3023,6 +3099,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       )
         ? null
         : parseInt(violation.violation_precinct || violation.precinct),
+      violation_status: violation.violation_status || null,
       violation_time: violation.violation_time || null,
     }
 
