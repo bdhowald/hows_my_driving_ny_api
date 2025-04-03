@@ -2170,17 +2170,17 @@ const getViolationBorough = async (violation) => {
       if (results.length) {
         console.log(
           `Retrieved geocode from database: ${results[0].borough} for lookup string`,
-          `${streetWithoutDirections} from original ${streetAddress}`
+          `'${streetWithoutDirections}' from original '${streetAddress}'`
         )
         return results[0].borough
       } else {
         console.log(
           `No geocode found in database for lookup string`,
-          `${streetWithoutDirections} from original ${streetAddress}`
+          `'${streetWithoutDirections}' from original '${streetAddress}'`
         )
         console.log(
           `Retrieving geocode from Google for lookup string`,
-          `${streetWithoutDirections} from original ${streetAddress}`
+          `'${streetWithoutDirections}' from original '${streetAddress}'`
         )
         return await retrieveBoroughFromGeocode(streetAddress)
       }
