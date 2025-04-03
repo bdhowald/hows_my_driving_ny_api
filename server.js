@@ -2157,15 +2157,32 @@ const getViolationBorough = async (violation) => {
   if (!violation.location) {
     return Promise.resolve("No Borough Available")
   }
+  const streetAddress = violation.location
+  const streetWithoutDirections = streetAddress
+    .replace(/[ENSW]\/?B/i, '')
+    .trim()
+
   const boroughFromLocation = await connection
     .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
       violation.location + " New York NY",
     ])
     .then(async (results) => {
       if (results.length) {
+        console.log(
+          `Retrieved geocode from database: ${results[0].borough} for lookup string`,
+          `${streetWithoutDirections} from original ${streetAddress}`
+        )
         return results[0].borough
       } else {
-        return await retrieveBoroughFromGeocode(violation.location)
+        console.log(
+          `No geocode found in database for lookup string`,
+          `${streetWithoutDirections} from original ${streetAddress}`
+        )
+        console.log(
+          `Retrieving geocode from Google for lookup string`,
+          `${streetWithoutDirections} from original ${streetAddress}`
+        )
+        return await retrieveBoroughFromGeocode(streetAddress)
       }
     })
 
