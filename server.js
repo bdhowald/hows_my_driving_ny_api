@@ -2161,8 +2161,7 @@ const getViolationBorough = async (
 
   console.log(
     loggingKey,
-    'Attempting to retrieve borough for lookup string',
-    `'${normalizedAddress}' for vehicle`
+    `Attempting to retrieve borough for lookup string '${normalizedAddress}'`
   )
 
   const boroughFromLocation = await connection
@@ -2188,7 +2187,7 @@ const getViolationBorough = async (
           `Retrieving geocode from Google for lookup string`,
           `'${normalizedAddress}' from original '${originalAddress}'`
         )
-        return await retrieveBoroughFromGeocode(originalAddress, loggingKey)
+        return await retrieveBoroughFromGeocode(normalizedAddress, loggingKey)
       }
     })
 
