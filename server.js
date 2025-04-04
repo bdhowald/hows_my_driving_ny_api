@@ -1403,7 +1403,7 @@ const getAggregateFrequencySummaryData = (violations) => {
     }
 
     const violationYear =
-      violation?.formatted_time_eastern.toFormat("y") || "No Year Available"
+      violation?.formatted_time_eastern?.toFormat("y") || "No Year Available"
 
     if (years[violationYear]) {
       years[violationYear] += 1
