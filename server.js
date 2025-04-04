@@ -2164,7 +2164,8 @@ const getViolationBorough = async (violation) => {
 
     console.log(
       'Attempting to retrieve borough for lookup string',
-      `'${streetWithoutDirections}' for vehicle '${violation.state}:${violation.plate}'`
+      `'${streetWithoutDirections}' for vehicle `,
+      `'${violation.registration_state}:${violation.plate_id}'`
     )
 
   const boroughFromLocation = await connection
