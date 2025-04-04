@@ -3022,18 +3022,18 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
 
     // If we already have the borough, use it.
     if (violation.violation_county) {
-      return Promise.resolve({
+      return {
         ...violation,
         location: addressOrLocation,
-      })
+      }
     }
 
     if (!addressOrLocation) {
-      return Promise.resolve({
+      return {
         ...violation,
         location: undefined,
         violation_county: "No Borough Available"
-      })
+      }
     }
 
     const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
@@ -3048,11 +3048,11 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       violation.summons_number,
     )
 
-    return Promise.resolve({
+    return {
       ...violation,
       location: addressOrLocation,
       violation_county: violationBorough
-    })
+    }
   })
 
   console.log(violationsWithBoroughs)
