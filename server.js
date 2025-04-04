@@ -2162,6 +2162,11 @@ const getViolationBorough = async (violation) => {
     .replace(/[ENSW]\/?B/i, '')
     .trim()
 
+    console.log(
+      'Attempting to retrieve borough for lookup string',
+      `'${streetWithoutDirections}' for vehicle '${violation.state}:${violation.plate}'`
+    )
+
   const boroughFromLocation = await connection
     .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
       violation.location + " New York NY",
