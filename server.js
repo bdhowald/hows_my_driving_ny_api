@@ -3037,9 +3037,9 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         }
       }
 
-      const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
-        .replace(/[ENSW]\/?B/i, '')
-        .trim()
+      const addressOrLocationWithoutDirectionalPrefixes = standardizeDisplayedLocation(
+        addressOrLocation
+      ).trim()
 
       const violationBorough = await getViolationBorough(
         addressOrLocationWithoutDirectionalPrefixes,
@@ -3174,8 +3174,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       violation_status: violation.violation_status || null,
       violation_time: violation.violation_time || null,
     }
-
-    console.log(newViolation)
 
     return newViolation
   })
@@ -3386,6 +3384,61 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+/**
+ * 
+ * @param {string} location - un-normalized address location
+ * @returns string
+ */
+const standardizeDisplayedLocation = (location) => {
+  let standardizedLocation = location
+
+  // Replace Abbreviations: East
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(E)\b/g,
+    'East',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(E)(\d+)/g,
+    'East $2',
+  )
+  standardizedLocation = standardizedLocation.replace(/\bE\b\./g, 'East ')
+
+  // Replace Abbreviations: North
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(N)\b/g,
+    'North',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(N)(\d+)/g,
+    'North $2',
+  )
+  standardizedLocation = standardizedLocation.replace(/\bN\b\./g, 'North ')
+
+  // Replace Abbreviations: South
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(S)\b/g,
+    'South',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(S)(\d+)/g,
+    'South $2',
+  )
+  standardizedLocation = standardizedLocation.replace(/\bS\b\./g, 'South ')
+
+  // Replace Abbreviations: West
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(W)\b/g,
+    'West',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /(?<!Avenue )\b(W)(\d+)/g,
+    'West $2',
+  )
+  standardizedLocation = standardizedLocation.replace(/\bW\b\./g, 'West ')
+
+  return standardizedLocation
 }
 
 const stripReturnData = (obj, selectedFields) => {
