@@ -2169,7 +2169,7 @@ const getViolationBorough = async (violation) => {
     .then(async (results) => {
       if (results.length) {
         console.log(
-          `Retrieved geocode from database: ${results[0].borough} for lookup string`,
+          `Retrieved geocode from database: '${results[0].borough}' for lookup string`,
           `'${streetWithoutDirections}' from original '${streetAddress}'`
         )
         return results[0].borough
@@ -3230,6 +3230,7 @@ const retrieveBoroughFromGeocode = (location) => {
       (response) => {
         const geocodeResult = response?.json?.results[0]
         if (!geocodeResult?.address_components?.length) {
+          console.log('No geocode result or result has insufficient data')
           return "No Borough Available"
         }
 
@@ -3244,10 +3245,17 @@ const retrieveBoroughFromGeocode = (location) => {
         )
 
         if (potentiallyNewYorkCity?.long_name !== 'New York') {
+          console.log(
+            'Returned geocode from Google is not for New York City',
+            `Returned city is '${potentiallyNewYorkCity?.long_name}'`
+          )
           return "No Borough Available"
         }
 
         if (!borough?.long_name) {
+          console.log(
+            'Returned geocode from Google does not have a borough'
+          )
           return "No Borough Available"
         }
 
@@ -3257,6 +3265,9 @@ const retrieveBoroughFromGeocode = (location) => {
           geocoding_service: "google",
         }
 
+        console.log(
+          `About to insert a geocode (${JSON.stringify(newGeocode)}) in the database`
+        )
         connection.query(
           "insert into geocodes set ?",
           newGeocode,
@@ -3265,6 +3276,7 @@ const retrieveBoroughFromGeocode = (location) => {
               console.log(`error thrown at: ${new Date()}`)
               throw error
             }
+            console.log(`Geocode (${JSON.stringify(newGeocode)}) successfully inserted at ${results.insertId}`)
           }
         )
 
