@@ -3230,7 +3230,13 @@ const respondToNonFollowerFavorite = (
 
 const retrieveBoroughFromGeocode = (location) => {
   return googleMapsClient
-    .geocode({ address: location })
+    .geocode({
+      address: location,
+      components: {
+        country: 'U.S.',
+        locality: 'New York',
+      },
+    })
     .asPromise()
     .then(
       (response) => {
