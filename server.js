@@ -3057,8 +3057,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
     })
   )
 
-  console.log(violationsWithBoroughs)
-
   const returnViolations = violationsWithBoroughs.map((violation) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
@@ -3176,6 +3174,8 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       violation_status: violation.violation_status || null,
       violation_time: violation.violation_time || null,
     }
+
+    console.log(newViolation)
 
     return newViolation
   })
