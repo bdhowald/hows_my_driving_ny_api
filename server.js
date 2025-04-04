@@ -2150,51 +2150,45 @@ const getVehicleBodyType = (bodyTypeish) => {
   }
 }
 
-const getViolationBorough = async (violation) => {
-  if (violation.violation_county) {
-    return Promise.resolve(violation.violation_county)
-  }
-  if (!violation.location) {
-    return Promise.resolve("No Borough Available")
-  }
-  const streetAddress = violation.location
-  const streetWithoutDirections = streetAddress
-    .replace(/[ENSW]\/?B/i, '')
-    .trim()
-
-  const loggingKey = `[summons_number=${violation.summons_number}][vehicle=${violation.registration_state}:${violation.plate_id}]`
+const getViolationBorough = async (
+  normalizedAddress,
+  originalAddress,
+  plateId,
+  registrationState,
+  summonsNumber,
+) => {
+  const loggingKey = `[summons_number=${summonsNumber}][vehicle=${registrationState}:${plateId}]`
 
   console.log(
     loggingKey,
     'Attempting to retrieve borough for lookup string',
-    `'${streetWithoutDirections}' for vehicle`,
-    `'${violation.registration_state}:${violation.plate_id}'`
+    `'${normalizedAddress}' for vehicle`
   )
 
   const boroughFromLocation = await connection
     .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
-      violation.location + " New York NY",
+      normalizedAddress + " New York NY",
     ])
     .then(async (results) => {
       if (results.length) {
         console.log(
           loggingKey,
           `Retrieved geocode from database: '${results[0].borough}' for lookup string`,
-          `'${streetWithoutDirections}' from original '${streetAddress}'`
+          `'${normalizedAddress}' from original '${originalAddress}'`
         )
         return results[0].borough
       } else {
         console.log(
           loggingKey,
           `No geocode found in database for lookup string`,
-          `'${streetWithoutDirections}' from original '${streetAddress}'`
+          `'${normalizedAddress}' from original '${originalAddress}'`
         )
         console.log(
           loggingKey,
           `Retrieving geocode from Google for lookup string`,
-          `'${streetWithoutDirections}' from original '${streetAddress}'`
+          `'${normalizedAddress}' from original '${originalAddress}'`
         )
-        return await retrieveBoroughFromGeocode(streetAddress, loggingKey)
+        return await retrieveBoroughFromGeocode(originalAddress, loggingKey)
       }
     })
 
@@ -3022,7 +3016,48 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
   )
 
 const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
-  const returnViolations = await violations.map(async (violation, index) => {
+  const violationsWithBoroughs = await violations.map(async (violation) => {
+    // Let's get a human-readable address
+    const addressOrLocation = getViolationLocation(violation)
+
+    // If we already have the borough, use it.
+    if (violation.violation_county) {
+      return Promise.resolve({
+        ...violation,
+        location: addressOrLocation,
+      })
+    }
+
+    if (!addressOrLocation) {
+      return Promise.resolve({
+        ...violation,
+        location: undefined,
+        violation_county: "No Borough Available"
+      })
+    }
+
+    const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
+      .replace(/[ENSW]\/?B/i, '')
+      .trim()
+
+    const violationBorough = await getViolationBorough(
+      addressOrLocationWithoutDirectionalPrefixes,
+      addressOrLocation,
+      violation.plate_id,
+      violation.registration_state,
+      violation.summons_number,
+    )
+
+    return Promise.resolve({
+      ...violation,
+      location: addressOrLocation,
+      violation_county: violationBorough
+    })
+  })
+
+  console.log(violationsWithBoroughs)
+
+  const returnViolations = violationsWithBoroughs.map((violation) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
 
@@ -3138,16 +3173,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         : parseInt(violation.violation_precinct || violation.precinct),
       violation_status: violation.violation_status || null,
       violation_time: violation.violation_time || null,
-    }
-
-    const determinedViolationLocation = getViolationLocation(newViolation)
-    if (determinedViolationLocation) {
-      newViolation.location = determinedViolationLocation
-    }
-
-    const violationBorough = await getViolationBorough(newViolation, index)
-    if (violationBorough && !newViolation.violation_county) {
-      newViolation.violation_county = violationBorough
     }
 
     return newViolation
