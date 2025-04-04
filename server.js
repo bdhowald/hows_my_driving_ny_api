@@ -3016,44 +3016,46 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
   )
 
 const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
-  const violationsWithBoroughs = await violations.map(async (violation) => {
-    // Let's get a human-readable address
-    const addressOrLocation = getViolationLocation(violation)
+  const violationsWithBoroughs = await Promise.all(
+      violations.map(async (violation) => {
+      // Let's get a human-readable address
+      const addressOrLocation = getViolationLocation(violation)
 
-    // If we already have the borough, use it.
-    if (violation.violation_county) {
+      // If we already have the borough, use it.
+      if (violation.violation_county) {
+        return {
+          ...violation,
+          location: addressOrLocation,
+        }
+      }
+
+      if (!addressOrLocation) {
+        return {
+          ...violation,
+          location: undefined,
+          violation_county: "No Borough Available"
+        }
+      }
+
+      const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
+        .replace(/[ENSW]\/?B/i, '')
+        .trim()
+
+      const violationBorough = await getViolationBorough(
+        addressOrLocationWithoutDirectionalPrefixes,
+        addressOrLocation,
+        violation.plate_id,
+        violation.registration_state,
+        violation.summons_number,
+      )
+
       return {
         ...violation,
         location: addressOrLocation,
+        violation_county: violationBorough
       }
-    }
-
-    if (!addressOrLocation) {
-      return {
-        ...violation,
-        location: undefined,
-        violation_county: "No Borough Available"
-      }
-    }
-
-    const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
-      .replace(/[ENSW]\/?B/i, '')
-      .trim()
-
-    const violationBorough = await getViolationBorough(
-      addressOrLocationWithoutDirectionalPrefixes,
-      addressOrLocation,
-      violation.plate_id,
-      violation.registration_state,
-      violation.summons_number,
-    )
-
-    return {
-      ...violation,
-      location: addressOrLocation,
-      violation_county: violationBorough
-    }
-  })
+    })
+  )
 
   console.log(violationsWithBoroughs)
 
