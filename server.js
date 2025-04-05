@@ -3157,6 +3157,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         : parseInt(violation.issuer_precinct),
       issuing_agency: violation.issuing_agency || null,
       judgment_entry_date: standardizedJudgmentEntryDate,
+      location: violation.location || null,
       law_section: violation.law_section || null,
       outstanding,
       paid,
