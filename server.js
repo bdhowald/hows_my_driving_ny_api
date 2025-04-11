@@ -867,6 +867,10 @@ const applyStreetSpecificLocationFixes = (inputLocation) => {
     /West of South 3rd Hewes Street/,
     'Hewes Street west of South 3rd Street',
   )
+  standardizedLocation = standardizedLocation.replace(
+    /Riverband S\/p Police Parking/,
+    'Riverbank State Park',
+  )
   standardizedLocation = standardizedLocation.replace(/Fdr\s/, 'FDR ')
 
   return standardizedLocation
@@ -3591,7 +3595,7 @@ const standardizeDisplayedLocation = (location) => {
 
   // Replace Abbreviations: East
   standardizedLocation = standardizedLocation.replace(
-    /(?<!Avenue )\b(E)\b/g,
+    /(?<!Avenue )\b(E)\b(?!\/)/g,
     'East',
   )
   standardizedLocation = standardizedLocation.replace(
@@ -3602,7 +3606,7 @@ const standardizeDisplayedLocation = (location) => {
 
   // Replace Abbreviations: North
   standardizedLocation = standardizedLocation.replace(
-    /(?<!Avenue )\b(N)\b/g,
+    /(?<!Avenue )\b(N)\b(?!\/)/g,
     'North',
   )
   standardizedLocation = standardizedLocation.replace(
@@ -3613,7 +3617,7 @@ const standardizeDisplayedLocation = (location) => {
 
   // Replace Abbreviations: South
   standardizedLocation = standardizedLocation.replace(
-    /(?<!Avenue )\b(S)\b/g,
+    /(?<!Avenue )\b(S)\b(?!\/)/g,
     'South',
   )
   standardizedLocation = standardizedLocation.replace(
@@ -3624,7 +3628,7 @@ const standardizeDisplayedLocation = (location) => {
 
   // Replace Abbreviations: West
   standardizedLocation = standardizedLocation.replace(
-    /(?<!Avenue )\b(W)\b/g,
+    /(?<!Avenue )\b(W)\b(?!\/)/g,
     'West',
   )
   standardizedLocation = standardizedLocation.replace(
