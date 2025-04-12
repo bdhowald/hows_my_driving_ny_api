@@ -623,36 +623,122 @@ const registrationTypesRegex =
 const placenameRegex =
   /\s((?:st(?:\.|reet)?|dr(?:\.|ive)?|pl(?:\.|ace)?|(avenue (?![A-Za-z]))|(av (?![A-Za-z]))|(av. (?![A-Za-z]))|(ave (?![A-Za-z]))|(ave. (?![A-Za-z]))|av$|av\.$|ave$|ave\.$|avenue$|l(?:a)?n(?:e)?|rd|road|lane|drive|way|(court(?!\sSt(reet)?))|plaza|square|run|parkway|point|pike|square|driveway|trace|terrace|blvd|crescent))/i
 
+const BRONX = "Bronx"
+const BROOKLYN = "Brooklyn"
+const MANHATTAN = "Manhattan"
+const QUEENS = "Queens"
+const STATEN_ISLAND = "Staten Island"
+
 const counties = {
-  BRONX: "Bronx",
-  Bronx: "Bronx",
-  BROOK: "Brooklyn",
-  Brook: "Brooklyn",
-  BX: "Bronx",
-  Bx: "Bronx",
-  BK: "Brooklyn",
-  Bk: "Brooklyn",
-  K: "Brooklyn",
-  KINGS: "Brooklyn",
-  Kings: "Brooklyn",
-  MAH: "Manhattan",
-  MANHA: "Manhattan",
-  MN: "Manhattan",
-  NEUY: "Manhattan",
-  NY: "Manhattan",
-  PBX: "Bronx",
-  PK: "Brooklyn",
-  PNY: "Manhattan",
-  Q: "Queens",
-  QN: "Queens",
-  QNS: "Queens",
-  Qns: "Queens",
-  QUEEN: "Queens",
-  Queen: "Queens",
-  R: "Staten Island",
-  RICH: "Staten Island",
-  Rich: "Staten Island",
-  ST: "Staten Island",
+  BRONX: BRONX,
+  Bronx: BRONX,
+  BROOK: BROOKLYN,
+  Brook: BROOKLYN,
+  BX: BRONX,
+  Bx: BRONX,
+  BK: BROOKLYN,
+  Bk: BROOKLYN,
+  K: BROOKLYN,
+  KINGS: BROOKLYN,
+  Kings: BROOKLYN,
+  MAH: MANHATTAN,
+  MANHA: MANHATTAN,
+  MN: MANHATTAN,
+  NEUY: MANHATTAN,
+  NY: MANHATTAN,
+  PBX: BRONX,
+  PK: BROOKLYN,
+  PNY: MANHATTAN,
+  Q: QUEENS,
+  QN: QUEENS,
+  QNS: QUEENS,
+  Qns: QUEENS,
+  QUEEN: QUEENS,
+  Queen: QUEENS,
+  R: STATEN_ISLAND,
+  RICH: STATEN_ISLAND,
+  Rich: STATEN_ISLAND,
+  ST: STATEN_ISLAND,
+}
+
+const precinctsByBorough = {
+  '1': MANHATTAN,
+  '5': MANHATTAN,
+  '6': MANHATTAN,
+  '7': MANHATTAN,
+  '9': MANHATTAN,
+  '10': MANHATTAN,
+  '13': MANHATTAN,
+  '14': MANHATTAN,
+  '17': MANHATTAN,
+  '18': MANHATTAN,
+  '19': MANHATTAN,
+  '20': MANHATTAN,
+  '22': MANHATTAN,
+  '23': MANHATTAN,
+  '24': MANHATTAN,
+  '25': MANHATTAN,
+  '26': MANHATTAN,
+  '28': MANHATTAN,
+  '30': MANHATTAN,
+  '32': MANHATTAN,
+  '33': MANHATTAN,
+  '34': MANHATTAN,
+  '40': BRONX,
+  '41': BRONX,
+  '42': BRONX,
+  '43': BRONX,
+  '44': BRONX,
+  '45': BRONX,
+  '46': BRONX,
+  '47': BRONX,
+  '48': BRONX,
+  '49': BRONX,
+  '50': BRONX,
+  '52': BRONX,
+  '60': BROOKLYN,
+  '61': BROOKLYN,
+  '62': BROOKLYN,
+  '63': BROOKLYN,
+  '66': BROOKLYN,
+  '67': BROOKLYN,
+  '68': BROOKLYN,
+  '69': BROOKLYN,
+  '70': BROOKLYN,
+  '71': BROOKLYN,
+  '72': BROOKLYN,
+  '73': BROOKLYN,
+  '75': BROOKLYN,
+  '76': BROOKLYN,
+  '77': BROOKLYN,
+  '78': BROOKLYN,
+  '79': BROOKLYN,
+  '81': BROOKLYN,
+  '83': BROOKLYN,
+  '84': BROOKLYN,
+  '88': BROOKLYN,
+  '90': BROOKLYN,
+  '94': BROOKLYN,
+  '100': QUEENS,
+  '101': QUEENS,
+  '102': QUEENS,
+  '103': QUEENS,
+  '104': QUEENS,
+  '105': QUEENS,
+  '106': QUEENS,
+  '107': QUEENS,
+  '108': QUEENS,
+  '109': QUEENS,
+  '110': QUEENS,
+  '111': QUEENS,
+  '112': QUEENS,
+  '113': QUEENS,
+  '114': QUEENS,
+  '115': QUEENS,
+  '120': STATEN_ISLAND,
+  '121': STATEN_ISLAND,
+  '122': STATEN_ISLAND,
+  '123': STATEN_ISLAND,
 }
 
 const issuingAgencies = {
@@ -867,11 +953,23 @@ const applyStreetSpecificLocationFixes = (inputLocation) => {
     /West of South 3rd Hewes Street/,
     'Hewes Street west of South 3rd Street',
   )
+  standardizedLocation = standardizedLocation.replace(/Fdr\s/, 'FDR ')
   standardizedLocation = standardizedLocation.replace(
     /Riverband S\/p Police Parking/,
     'Riverbank State Park',
   )
-  standardizedLocation = standardizedLocation.replace(/Fdr\s/, 'FDR ')
+  standardizedLocation = standardizedLocation.replace(
+    /1045 St Nich/,
+    '1045 Saint Nicholas Avenue',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /E 107 E 125 St/,
+    '107 East 125th Street',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /150 Haven/,
+    '150 Haven Avenue',
+  )
 
   return standardizedLocation
 }
@@ -2898,6 +2996,15 @@ const inferViolationCodeFromOpenParkingAndCameraViolationDescription = (violatio
 }
 
 /**
+ * Indicates whether a value represents a number
+ *
+ * @param {any} possibleNumber a possible number of any type
+ * @returns {boolean} whether or not possibleNumber is a number
+ */
+const isNumber = (possibleNumber) =>
+  !!possibleNumber !== possibleNumber && !isNaN(Number(possibleNumber))
+
+/**
  * Request the metadata for all the violation databases
  */
 const makeOpenDataMetadataRequest = async () => {
@@ -3057,15 +3164,35 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
 
 const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
   const violationsWithBoroughs = await Promise.all(
-      violations.map(async (violation) => {
+    violations.map(async (violation) => {
       // Let's get a human-readable address
       const addressOrLocation = getViolationLocation(violation)
 
       // If we already have the borough, use it.
-      if (violation.violation_county) {
-        return {
-          ...violation,
-          location: addressOrLocation,
+      const potentialBorough = violation.violation_county || violation.county
+
+      if (potentialBorough) {
+        const borough = counties[potentialBorough]
+        if (borough) {
+          return {
+            ...violation,
+            location: addressOrLocation,
+            violation_county: borough,
+          }
+        }
+      }
+
+      // If we have the precinct, we can use that instead.
+      const potentialPrecinct = violation.violation_precinct || violation.precinct
+
+      if (potentialPrecinct && isNumber(potentialPrecinct)) {
+        const violationPrecinct = parseInt(potentialPrecinct).toString()
+        if (violationPrecinct in precinctsByBorough) {
+          return {
+            ...violation,
+            location: addressOrLocation,
+            violation_county: precinctsByBorough[violationPrecinct],
+          }
         }
       }
 
@@ -3435,6 +3562,9 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
 const standardizeDisplayedLocation = (location) => {
   let standardizedLocation = location
 
+  // Fix specific bad location strings
+  standardizedLocation = applyStreetSpecificLocationFixes(standardizedLocation)
+
   const numberSuffixRegex = /(st|nd|rd|th)(st|rd|av(e)?)/gi
   standardizedLocation = standardizedLocation.replace(
     numberSuffixRegex,
@@ -3647,9 +3777,6 @@ const standardizeDisplayedLocation = (location) => {
 
   // Replace Abbreviations: at
   standardizedLocation = standardizedLocation.replace(/@/g, 'and')
-
-  // Fix specific bad location strings
-  standardizedLocation = applyStreetSpecificLocationFixes(standardizedLocation)
 
   return standardizedLocation
 }
