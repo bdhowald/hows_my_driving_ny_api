@@ -3327,8 +3327,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         violation.violation_code ||
         namesToCodes[readableViolationDescription] ||
         null,
-      violation_county:
-        counties[violation.violation_county || violation.county] || null,
+      violation_county: violation.violation_county || null,
       violation_in_front_of_or_opposite:
         violation.violation_in_front_of_or_opposite || null,
       violation_legal_code: violation.violation_legal_code || null,
