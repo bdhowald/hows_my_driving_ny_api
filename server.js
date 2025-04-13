@@ -3347,17 +3347,17 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
   if (result.length) {
     console.log(
       `Retrieved geocode from database: ${result[0].borough} for lookup string`,
-      `${streetWithoutDirections} from original ${streetAddress}`
+      `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     potentialBorough = result[0].borough
   } else {
     console.log(
       `No geocode found in database for lookup string`,
-      `${streetWithoutDirections} from original ${streetAddress}`
+      `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     console.log(
       `Retrieving geocode from Google for lookup string`,
-      `${streetWithoutDirections} from original ${streetAddress}`
+      `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     const geocodeFromGoogle = await getGoogleGeocode(streetWithoutDirections)
 
