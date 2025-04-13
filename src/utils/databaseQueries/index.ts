@@ -343,18 +343,23 @@ export const getExistingLookupResult = async (
  * @param geocode - street address, borough, and geocoding service to insert into database
  */
 export const insertGeocodeIntoDatabase = async (
-  geocode: DatabaseGeocode
+  geocode: DatabaseGeocode,
+  loggingKey: string,
 ) => {
   const databaseConnection = await instantiateConnection()
 
   try {
     console.log(
+      loggingKey,
       `About to insert a geocode (${JSON.stringify(geocode)}) in the database`
     )
     const results = await databaseConnection.query('insert into geocodes set ?', geocode)
     const result = results[0] as mysql.ResultSetHeader
 
-    console.log(`Geocode (${JSON.stringify(geocode)}) successfully inserted at ${result.insertId}`)
+    console.log(
+      loggingKey,
+      `Geocode (${JSON.stringify(geocode)}) successfully inserted at ${result.insertId}`
+    )
 
     return true
   } catch(error) {

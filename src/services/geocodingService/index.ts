@@ -14,13 +14,20 @@ const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
-const getBoroughService = async (streetAddress: string | undefined): Promise<Borough> => {
+const getBoroughService = async (streetAddress: string | undefined, loggingKey: string,): Promise<Borough> => {
   if (!streetAddress) {
     return Borough.NoBoroughAvailable
   }
+
   const streetWithoutDirections = streetAddress
     .replace(/[ENSW]\/?B/i, '')
     .trim()
+
+  console.log(
+    loggingKey,
+    'Attempting to retrieve borough for lookup string',
+    `'${streetWithoutDirections}'`
+  )
 
   let potentialBorough: string | Borough | undefined
 
@@ -30,21 +37,24 @@ const getBoroughService = async (streetAddress: string | undefined): Promise<Bor
 
   if (result.length) {
     console.log(
+      loggingKey,
       `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
       `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     potentialBorough = result[0].borough
   } else {
     console.log(
+      loggingKey,
       `No geocode found in database for lookup string`,
       `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     console.log(
+      loggingKey,
       `Retrieving geocode from Google for lookup string`,
       `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     const geocodeFromGoogle: DatabaseGeocode | undefined =
-      await getGoogleGeocode(streetWithoutDirections)
+      await getGoogleGeocode(streetWithoutDirections, loggingKey)
 
     if (!geocodeFromGoogle) {
       return Borough.NoBoroughAvailable
@@ -52,7 +62,7 @@ const getBoroughService = async (streetAddress: string | undefined): Promise<Bor
 
     potentialBorough = geocodeFromGoogle.borough
 
-    await insertGeocodeIntoDatabase(geocodeFromGoogle)
+    await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
   }
 
   if (potentialBorough in Borough) {
@@ -63,7 +73,8 @@ const getBoroughService = async (streetAddress: string | undefined): Promise<Bor
 }
 
 const getGoogleGeocode = async (
-  streetAddress: string
+  streetAddress: string,
+  loggingKey: string
 ): Promise<DatabaseGeocode | undefined> => {
   const googleMapsClient = instantiateGoogleMapsClient()
 
@@ -87,7 +98,10 @@ const getGoogleGeocode = async (
       const bestResponse = geocodeResponse.data.results[0]
 
       if (!bestResponse?.address_components?.length) {
-        console.log('No geocode result or result has insufficient data')
+        console.log(
+          loggingKey,
+          'No geocode result or result has insufficient data'
+        )
         return
       }
 
@@ -98,6 +112,7 @@ const getGoogleGeocode = async (
 
       if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
         console.log(
+          loggingKey,
           'Returned geocode from Google is not for New York City',
           `Returned city is '${potentiallyNewYorkCity?.long_name}'`
         )
@@ -111,6 +126,7 @@ const getGoogleGeocode = async (
 
       if (!potentialBorough?.long_name) {
         console.log(
+          loggingKey,
           'Returned geocode from Google does not have a borough'
         )
         return

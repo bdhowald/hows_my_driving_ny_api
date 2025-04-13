@@ -1264,6 +1264,9 @@ describe('normalizeViolations', () => {
       violationTime: '09:11P',
     }
 
+    const loggingKey = `[summons_number=${rawFiscalYearDatabaseViolation.summonsNumber}]`
+      + `[vehicle=${rawFiscalYearDatabaseViolation.registrationState}:${rawFiscalYearDatabaseViolation.plateId}]`
+
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
@@ -1340,7 +1343,8 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
 
     expect(getBoroughService).toHaveBeenCalledWith(
-      `${houseNumber} ${streetName}`
+      `${houseNumber} ${streetName}`,
+      loggingKey,
     )
   })
 

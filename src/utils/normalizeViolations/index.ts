@@ -42,7 +42,8 @@ export default async (
 
 const getBorough = async (
   violation: RawViolation,
-  fullAddress: string | undefined
+  fullAddress: string | undefined,
+  loggingKey: string,
 ): Promise<Borough> => {
   if ('violationCounty' in violation && violation.violationCounty) {
     return boroughs[violation.violationCounty]
@@ -69,7 +70,7 @@ const getBorough = async (
     }
   }
 
-  const potentialBorough: Borough = await getBoroughService(fullAddress)
+  const potentialBorough: Borough = await getBoroughService(fullAddress, loggingKey)
 
   return potentialBorough
 }
@@ -381,20 +382,6 @@ const normalizeViolation = async (
 ): Promise<Violation | undefined> => {
   const violation = camelizeKeys(rawViolation) as RawViolation
 
-  const humanizedDescription = getHumanizedDescription(violation)
-  const precinct = getPrecinct(violation)
-  const fullAddress = getFullAddress(violation)
-  const violationCounty = await getBorough(violation, fullAddress)
-  const fineData = getFineDataForViolation(violation)
-  const formattedTimes = getFormattedTimes(
-    violation.issueDate,
-    violation.violationTime
-  )
-
-  if (formattedTimes?.formattedTimeUtc && DateTime.utc() < formattedTimes?.formattedTimeUtc) {
-    return Promise.resolve(undefined)
-  }
-
   const plateId = 'plateId' in violation ? violation.plateId : violation.plate
 
   const plateType =
@@ -404,6 +391,22 @@ const normalizeViolation = async (
     'registrationState' in violation
       ? violation.registrationState
       : violation.state
+
+  const geocodingLoggingKey = `[summons_number=${violation.summonsNumber}][vehicle=${registrationState}:${plateId}]`
+
+  const humanizedDescription = getHumanizedDescription(violation)
+  const precinct = getPrecinct(violation)
+  const fullAddress = getFullAddress(violation)
+  const violationCounty = await getBorough(violation, fullAddress, geocodingLoggingKey)
+  const fineData = getFineDataForViolation(violation)
+  const formattedTimes = getFormattedTimes(
+    violation.issueDate,
+    violation.violationTime
+  )
+
+  if (formattedTimes?.formattedTimeUtc && DateTime.utc() < formattedTimes?.formattedTimeUtc) {
+    return Promise.resolve(undefined)
+  }
 
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,

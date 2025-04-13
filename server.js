@@ -1573,22 +1573,41 @@ const getGoogleGeocode = async (streetAddress) => {
 
     if (geocodeResponse.data.results?.length) {
       const bestResponse = geocodeResponse.data.results[0]
+
+      if (!bestResponse?.address_components?.length) {
+        console.log('No geocode result or result has insufficient data')
+        return
+      }
+
+      const potentiallyNewYorkCity = bestResponse.address_components.find(
+        (addressComponent) =>
+          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+      )
+
+      if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
+        console.log(
+          'Returned geocode from Google is not for New York City',
+          `Returned city is '${potentiallyNewYorkCity?.long_name}'`
+        )
+        return
+      }
+
       const potentialBorough = bestResponse.address_components.find(
         (addressComponent) =>
           addressComponent.types.indexOf(AddressType.sublocality) !== -1
       )
 
-      const potentialCity = bestResponse.address_components.find(
-        (addressComponent) =>
-          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
-      )
+      if (!potentialBorough?.long_name) {
+        console.log(
+          'Returned geocode from Google does not have a borough'
+        )
+        return
+      }
 
-      if (potentialBorough && potentialCity?.long_name === NEW_YORK) {
-        return {
-          lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
-          borough: potentialBorough.long_name,
-          geocoding_service: 'google',
-        }
+      return {
+        lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
+        borough: potentialBorough.long_name,
+        geocoding_service: 'google',
       }
     }
     return
@@ -2217,7 +2236,7 @@ const getViolationBorough = async (violation) => {
     return Promise.resolve("No Borough Available")
   }
 
-  const boroughFromLocation = await retrieveBoroughFromGeocode(violation.location)
+  const boroughFromLocation = await retrieveBoroughFromGeocode(violation)
 
   return boroughFromLocation
 }
@@ -2901,10 +2920,21 @@ const inferViolationCodeFromOpenParkingAndCameraViolationDescription = (violatio
  * @param {mysql.Connection}      connection - the connection to the database we are querying
  * @param {Object<string,string>} geocode    - the geocode record we are inserting into the database
  */
-const insertGeocodeIntoDatabase = async (connection, geocode) => {
-  connection.query('insert into geocodes set ?', geocode, (error) => {
-    if (error) throw error
-  })
+const insertGeocodeIntoDatabase = async (geocode) => {
+  const databaseConnection = await instantiateConnection()
+
+  try {
+    console.log(
+      `About to insert a geocode (${JSON.stringify(geocode)}) in the database`
+    )
+    const result = await databaseConnection.query('insert into geocodes set ?', geocode)
+    console.log(`Geocode (${JSON.stringify(geocode)}) successfully inserted at ${result[0].insertId}`)
+  } catch(error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.end()
+  }
 }
 
 const insertNewLookup = async (newLookup) => {
@@ -3326,14 +3356,21 @@ const respondToNonFollowerFavorite = async (
  *
  * @param {string} streetAddress - the address whose borough we are trying to find
  */
-const retrieveBoroughFromGeocode = async (streetAddress) => {
+const retrieveBoroughFromGeocode = async (violation) => {
   if (!streetAddress) {
     return 'No Borough Available'
   }
 
+  const streetAddress = violation.location
+
   const streetWithoutDirections = streetAddress
     .replace(/[ENSW]\/?B/i, '')
     .trim()
+
+  console.log(
+    'Attempting to retrieve borough for lookup string',
+    `'${streetWithoutDirections}' for vehicle '${violation.state}:${violation.plate}'`
+  )
 
   let potentialBorough
 
@@ -3346,7 +3383,7 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
 
   if (result.length) {
     console.log(
-      `Retrieved geocode from database: ${result[0].borough} for lookup string`,
+      `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
       `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     potentialBorough = result[0].borough
@@ -3367,7 +3404,7 @@ const retrieveBoroughFromGeocode = async (streetAddress) => {
 
     potentialBorough = geocodeFromGoogle.borough
 
-    await insertGeocodeIntoDatabase(databaseConnection, geocodeFromGoogle)
+    await insertGeocodeIntoDatabase(geocodeFromGoogle)
   }
 
   // Close database connection
