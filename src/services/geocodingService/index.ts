@@ -9,7 +9,8 @@ import { Borough } from 'constants/boroughs'
 import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
 import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
 
-const NEW_YORK_GOOGLE_PARAMS = 'New York NY'
+const NEW_YORK = 'New York'
+const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
@@ -29,7 +30,7 @@ const getBoroughService = async (streetAddress: string | undefined): Promise<Bor
 
   if (result.length) {
     console.log(
-      `Retrieved geocode from database: ${result[0].borough} for lookup string`,
+      `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
       `'${streetWithoutDirections}' from original '${streetAddress}'`
     )
     potentialBorough = result[0].borough
@@ -84,22 +85,41 @@ const getGoogleGeocode = async (
 
     if (geocodeResponse.data.results?.length) {
       const bestResponse = geocodeResponse.data.results[0]
+
+      if (!bestResponse?.address_components?.length) {
+        console.log('No geocode result or result has insufficient data')
+        return
+      }
+
+      const potentiallyNewYorkCity = bestResponse.address_components.find(
+        (addressComponent: AddressComponent) =>
+          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+      )
+
+      if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
+        console.log(
+          'Returned geocode from Google is not for New York City',
+          `Returned city is '${potentiallyNewYorkCity?.long_name}'`
+        )
+        return
+      }
+
       const potentialBorough = bestResponse.address_components.find(
         (addressComponent: AddressComponent) =>
           addressComponent.types.indexOf(AddressType.sublocality) !== -1
       )
 
-      const potentialCity = bestResponse.address_components.find(
-        (addressComponent) =>
-          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
-      )
+      if (!potentialBorough?.long_name) {
+        console.log(
+          'Returned geocode from Google does not have a borough'
+        )
+        return
+      }
 
-      if (potentialBorough && potentialCity?.long_name === 'New York') {
-        return {
-          lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
-          borough: potentialBorough.long_name,
-          geocoding_service: 'google',
-        }
+      return {
+        lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
+        borough: potentialBorough.long_name,
+        geocoding_service: 'google',
       }
     }
     return

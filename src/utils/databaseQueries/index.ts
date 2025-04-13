@@ -348,7 +348,13 @@ export const insertGeocodeIntoDatabase = async (
   const databaseConnection = await instantiateConnection()
 
   try {
-    await databaseConnection.query('insert into geocodes set ?', geocode)
+    console.log(
+      `About to insert a geocode (${JSON.stringify(geocode)}) in the database`
+    )
+    const results = await databaseConnection.query('insert into geocodes set ?', geocode)
+    const result = results[0] as mysql.ResultSetHeader
+
+    console.log(`Geocode (${JSON.stringify(geocode)}) successfully inserted at ${result.insertId}`)
 
     return true
   } catch(error) {

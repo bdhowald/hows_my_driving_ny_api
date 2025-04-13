@@ -205,9 +205,9 @@ describe('getBoroughService', () => {
           {
             address_components: [
               {
-                long_name: 'A City',
-                short_name: 'A Big City',
-                types: ['political', 'locality', 'locality_level_1'],
+                long_name: 'New York',
+                short_name: 'NY',
+                types: [ 'administrative_area_level_1', 'political' ]
               },
             ],
           },
@@ -243,6 +243,33 @@ describe('getBoroughService', () => {
                 types: ['political', 'sublocality', 'sublocality_level_1'],
               },
             ],
+          },
+        ],
+      },
+    }
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => googleMapsGeocodeResponse),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
+
+    expect(await getBoroughService(address)).toBe('No Borough Available')
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
+  it("should return 'No Borough Available' if the Google result has no address data", async () => {
+    const googleMapsGeocodeResponse = {
+      data: {
+        results: [
+          {
+            address_components: [],
           },
         ],
       },
