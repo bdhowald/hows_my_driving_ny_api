@@ -14,9 +14,10 @@ describe('getBoroughService', () => {
   })
 
   const address = '123 Fake Street'
+  const loggingKey = '[summons_number=1234567890][vehicle=NY:ABC1234]'
 
   it("should return 'No Borough Available' if no address is given", async () => {
-    expect(await getBoroughService(undefined)).toBe('No Borough Available')
+    expect(await getBoroughService(undefined, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(0)
   })
@@ -28,7 +29,7 @@ describe('getBoroughService', () => {
 
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([boroughFromDatabase])
 
-    expect(await getBoroughService(address)).toBe(boroughFromDatabase.borough)
+    expect(await getBoroughService(address, loggingKey)).toBe(boroughFromDatabase.borough)
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
   })
@@ -93,7 +94,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe(brooklyn)
+    expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -148,7 +149,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe(brooklyn)
+    expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -189,7 +190,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -222,7 +223,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -255,7 +256,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -282,7 +283,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -305,7 +306,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
@@ -326,7 +327,7 @@ describe('getBoroughService', () => {
     ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
-    expect(await getBoroughService(address)).toBe('No Borough Available')
+    expect(await getBoroughService(address, loggingKey)).toBe('No Borough Available')
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(errorMessage)
 

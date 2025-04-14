@@ -14,7 +14,7 @@ const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
-const getBoroughService = async (streetAddress: string | undefined, loggingKey: string,): Promise<Borough> => {
+const getBoroughService = async (streetAddress: string | undefined, loggingKey: string): Promise<Borough> => {
   if (!streetAddress) {
     return Borough.NoBoroughAvailable
   }
@@ -62,7 +62,10 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
     potentialBorough = geocodeFromGoogle.borough
 
-    await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
+    if (potentialBorough in Borough) {
+      // Only insert geocode if it's for a borough.
+      await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
+    }
   }
 
   if (potentialBorough in Borough) {

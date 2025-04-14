@@ -188,14 +188,14 @@ describe('normalizeViolations', () => {
       archaicDescription: 'FEEDING METER',
       humanizedDescription: 'Feeding Meter',
       issueDate: '2019-06-10',
-      violationCode: '33'
+      violationCode: '33',
     },
     // on or after 2019-06-11
     {
       archaicDescription: 'FEEDING METER',
       humanizedDescription: 'Misuse of Parking Permit',
       issueDate: '2019-06-11',
-      violationCode: '33'
+      violationCode: '33',
     },
 
     // violation code 22
@@ -346,6 +346,153 @@ describe('normalizeViolations', () => {
       expect(normalizedViolations[0]).toEqual(expectedViolation)
     }
   )
+
+  test.each([
+    // violation code 12
+    // before 2019-12-06
+    {
+      humanizedDescription: 'No Standing - Snow Emergency',
+      issueDate: '2019-12-05',
+      violationCode: '12' as '12',
+    },
+    // on or after 2019-12-06
+    {
+      humanizedDescription: 'Mobile Bus Lane Violation',
+      issueDate: '2019-12-06',
+      violationCode: '12' as '12',
+    },
+
+    // violation code 15
+    // before 2024-08-19
+    {
+      humanizedDescription: 'No Standing - Off-Street Lot',
+      issueDate: '2024-08-18',
+      violationCode: '15' as '15',
+    },
+    // on or after 2024-08-19
+    {
+      humanizedDescription: 'Mobile MTA Double Parking Violation',
+      issueDate: '2024-08-19',
+      violationCode: '15' as '15',
+    },
+
+    // violation code 22
+    // before 2018-08-01
+    {
+      archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
+      humanizedDescription: 'No Parking - Except Hotel Loading',
+      issueDate: '2018-07-31',
+      violationCode: '22' as '22',
+    },
+    // on or after 2018-08-01
+    {
+      archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
+      humanizedDescription: 'No Standing - Taxi/For-Hire Vehicle Relief Stand',
+      issueDate: '2018-08-01',
+      violationCode: '22' as '22',
+    },
+
+    // violation code 33
+    // before 2019-06-11
+    {
+      archaicDescription: 'FEEDING METER',
+      humanizedDescription: 'Feeding Meter',
+      issueDate: '2019-06-10',
+      violationCode: '33' as '33',
+    },
+    // on or after 2019-06-11
+    {
+      archaicDescription: 'FEEDING METER',
+      humanizedDescription: 'Misuse of Parking Permit',
+      issueDate: '2019-06-11',
+      violationCode: '33' as '33',
+    },
+
+    // violation code 57
+    // before 2023-10-01
+    {
+      archaicDescription: 'BLUE ZONE',
+      humanizedDescription: 'Weigh in Motion Violation',
+      issueDate: '2023-10-01',
+      violationCode: '57' as '57',
+    },
+    // on or after 2023-10-01
+    {
+      archaicDescription: 'BLUE ZONE',
+      humanizedDescription: 'No Parking - Blue Zone',
+      issueDate: '2023-09-30',
+      violationCode: '57' as '57',
+    },
+  ])
+  (
+    'should normalize a fiscal year database violation with violation code $violationCode issued on $issueDate',
+    async ({ humanizedDescription, issueDate, violationCode }) => {
+      const databasePathname = '/resource/869v-vr48.json'
+      const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
+
+      const formattedIssueDateTime = DateTime.fromISO(`${issueDate}T09:11:00`, {
+        zone: 'America/New_York',
+      })
+
+      const rawFiscalYearDatabaseViolation: RawViolation =
+        rawFiscalYearDatabaseViolationFactory.build({
+          issueDate,
+          violationCode,
+        })
+
+      const expectedViolation = {
+        ...rawFiscalYearDatabaseViolation,
+        amountDue: undefined,
+        fineAmount: undefined,
+        fined: undefined,
+        formattedTime: formattedIssueDateTime.toISO(),
+        formattedTimeEastern: formattedIssueDateTime.toISO(),
+        formattedTimeUtc: formattedIssueDateTime.toUTC().toISO(),
+        fromDatabases: [
+          {
+            dataUpdatedAt,
+            endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+            name: 'Parking Violations Issued - Fiscal Year 2023',
+          },
+        ],
+        houseNumber: undefined,
+        humanizedDescription,
+        interestAmount: undefined,
+        issuerPrecinct: 43,
+        issuingAgency: 'P',
+        judgmentEntryDate: undefined,
+        location: 'I/o Taylor Ave Guerlain',
+        outstanding: undefined,
+        paid: undefined,
+        paymentAmount: undefined,
+        penaltyAmount: undefined,
+        reduced: undefined,
+        reductionAmount: undefined,
+        sanitized: {
+          issuingAgency: 'New York Police Department (NYPD)',
+          vehicleBodyType: 'Van',
+          violationStatus: undefined,
+        },
+        summonsImage: undefined,
+        violationCounty: 'Bronx',
+        violationInFrontOfOrOpposite: undefined,
+        violationLegalCode: undefined,
+        violationPostCode: undefined,
+        violationPrecinct: 43,
+        violationStatus: undefined,
+      }
+
+      const normalizedViolations = await normalizeViolations(
+        [rawFiscalYearDatabaseViolation],
+        databasePathname,
+        dataUpdatedAt,
+      )
+
+      expect(normalizedViolations[0]).toEqual(expectedViolation)
+    }
+  )
+
+
 
   it('should properly handle violation codes that have changed over time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
@@ -727,7 +874,7 @@ describe('normalizeViolations', () => {
       vehicleMake: undefined,
       vehicleYear: undefined,
       violationCode: '67',
-      violationCounty: undefined,
+      violationCounty: 'No Borough Available',
       violationInFrontOfOrOpposite: undefined,
       violationLegalCode: undefined,
       violationLocation: undefined,
@@ -826,7 +973,7 @@ describe('normalizeViolations', () => {
       vehicleMake: undefined,
       vehicleYear: undefined,
       violationCode: '5',
-      violationCounty: undefined,
+      violationCounty: 'No Borough Available',
       violationInFrontOfOrOpposite: 'F',
       violationLegalCode: undefined,
       violationLocation: undefined,

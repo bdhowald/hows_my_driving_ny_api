@@ -205,7 +205,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
       startDate: new Date(1970, 0, 1),
     },
     {
-      description: HumanizedDescription.MobileBusLaneViolation,
+      description: HumanizedDescription.MobileMtaBusStopViolation,
       startDate: new Date(2024, 7, 19),
     },
   ],

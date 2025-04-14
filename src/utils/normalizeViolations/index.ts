@@ -48,6 +48,9 @@ const getBorough = async (
   if ('violationCounty' in violation && violation.violationCounty) {
     return boroughs[violation.violationCounty]
   }
+  if ('county' in violation && violation.county) {
+    return boroughs[violation.county]
+  }
 
   if (
     'violationPrecinct' in violation &&
@@ -59,15 +62,15 @@ const getBorough = async (
     }
   }
 
-  if ('county' in violation && violation.county) {
-    return boroughs[violation.county]
-  }
-
   if ('precinct' in violation && isNumber(violation.precinct)) {
     const precinct = parseInt(violation.precinct).toString()
     if (objectHasKey(precinctsByBorough, precinct)) {
       return precinctsByBorough[precinct]
     }
+  }
+
+  if (!fullAddress) {
+    return Borough.NoBoroughAvailable
   }
 
   const potentialBorough: Borough = await getBoroughService(fullAddress, loggingKey)
@@ -286,10 +289,10 @@ const getHumanizedDescription = (
 ): HumanizedDescription => {
   // Fiscal year database uses one of two fields to describe the violation
   const fiscalYearDescriptionKey =
-    'violationDescription' in violation
-      ? violation.violationDescription
-      : 'violationCode' in violation
+    'violationCode' in violation
       ? violation.violationCode
+      : 'violationDescription' in violation
+      ? violation.violationDescription
       : undefined
 
   if (fiscalYearDescriptionKey) {
@@ -392,12 +395,12 @@ const normalizeViolation = async (
       ? violation.registrationState
       : violation.state
 
-  const geocodingLoggingKey = `[summons_number=${violation.summonsNumber}][vehicle=${registrationState}:${plateId}]`
+  const geocodeLoggingKey = `[summons_number=${violation.summonsNumber}]`
+    + `[vehicle=${registrationState}:${plateId}]`
 
   const humanizedDescription = getHumanizedDescription(violation)
   const precinct = getPrecinct(violation)
-  const fullAddress = getFullAddress(violation)
-  const violationCounty = await getBorough(violation, fullAddress, geocodingLoggingKey)
+  const addressOrLocation = getFullAddress(violation)
   const fineData = getFineDataForViolation(violation)
   const formattedTimes = getFormattedTimes(
     violation.issueDate,
@@ -407,6 +410,12 @@ const normalizeViolation = async (
   if (formattedTimes?.formattedTimeUtc && DateTime.utc() < formattedTimes?.formattedTimeUtc) {
     return Promise.resolve(undefined)
   }
+
+  const violationBorough = await getBorough(
+    violation,
+    addressOrLocation,
+    geocodeLoggingKey,
+  )
 
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,
@@ -442,7 +451,7 @@ const normalizeViolation = async (
     issuingAgency: getFieldFromViolationIfPresent(violation, 'issuingAgency'),
     judgmentEntryDate: getFieldFromViolationIfPresent(violation, 'judgmentEntryDate'),
     lawSection: getFieldFromViolationIfPresent(violation, 'lawSection'),
-    location: fullAddress,
+    location: addressOrLocation,
     meterNumber: getFieldFromViolationIfPresent(violation, 'meterNumber'),
     outstanding: fineData.outstanding,
     paid: fineData.paid,
@@ -476,7 +485,7 @@ const normalizeViolation = async (
       humanizedDescription && violationsToCodes[humanizedDescription]
         ? violationsToCodes[humanizedDescription]
         : undefined,
-    violationCounty: violationCounty,
+    violationCounty: violationBorough,
     violationInFrontOfOrOpposite:
       'violationInFrontOfOrOpposite' in violation
         ? getFieldFromViolationIfPresent(violation, 'violationInFrontOfOrOpposite')

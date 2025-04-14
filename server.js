@@ -612,36 +612,122 @@ const stateAbbrRegex =
 const registrationTypesRegex =
   /^(AGC|AGR|AMB|APP|ARG|ATD|ATV|AYG|BOB|BOT|CBS|CCK|CHC|CLG|CMB|CME|CMH|COM|CSP|DLR|FAR|FPW|GAC|GSM|HAC|HAM|HIR|HIS|HOU|HSM|IRP|ITP|JCA|JCL|JSC|JWV|LMA|LMB|LMC|LOC|LTR|LUA|MCD|MCL|MED|MOT|NLM|NYA|NYC|NYS|OMF|OML|OMO|OMR|OMS|OMT|OMV|ORC|ORG|ORM|PAS|PHS|PPH|PSD|RGC|RGL|SCL|SEM|SNO|SOS|SPC|SPO|SRF|SRN|STA|STG|SUP|THC|TOW|TRA|TRC|TRL|USC|USS|VAS|VPL|WUG)$/
 
+const BRONX = "Bronx"
+const BROOKLYN = "Brooklyn"
+const MANHATTAN = "Manhattan"
+const QUEENS = "Queens"
+const STATEN_ISLAND = "Staten Island"
+
 const counties = {
-  BRONX: "Bronx",
-  Bronx: "Bronx",
-  BROOK: "Brooklyn",
-  Brook: "Brooklyn",
-  BX: "Bronx",
-  Bx: "Bronx",
-  BK: "Brooklyn",
-  Bk: "Brooklyn",
-  K: "Brooklyn",
-  KINGS: "Brooklyn",
-  Kings: "Brooklyn",
-  MAH: "Manhattan",
-  MANHA: "Manhattan",
-  MN: "Manhattan",
-  NEUY: "Manhattan",
-  NY: "Manhattan",
-  PBX: "Bronx",
-  PK: "Brooklyn",
-  PNY: "Manhattan",
-  Q: "Queens",
-  QN: "Queens",
-  QNS: "Queens",
-  Qns: "Queens",
-  QUEEN: "Queens",
-  Queen: "Queens",
-  R: "Staten Island",
-  RICH: "Staten Island",
-  Rich: "Staten Island",
-  ST: "Staten Island",
+  BRONX: BRONX,
+  Bronx: BRONX,
+  BROOK: BROOKLYN,
+  Brook: BROOKLYN,
+  BX: BRONX,
+  Bx: BRONX,
+  BK: BROOKLYN,
+  Bk: BROOKLYN,
+  K: BROOKLYN,
+  KINGS: BROOKLYN,
+  Kings: BROOKLYN,
+  MAH: MANHATTAN,
+  MANHA: MANHATTAN,
+  MN: MANHATTAN,
+  NEUY: MANHATTAN,
+  NY: MANHATTAN,
+  PBX: BRONX,
+  PK: BROOKLYN,
+  PNY: MANHATTAN,
+  Q: QUEENS,
+  QN: QUEENS,
+  QNS: QUEENS,
+  Qns: QUEENS,
+  QUEEN: QUEENS,
+  Queen: QUEENS,
+  R: STATEN_ISLAND,
+  RICH: STATEN_ISLAND,
+  Rich: STATEN_ISLAND,
+  ST: STATEN_ISLAND,
+}
+
+const precinctsByBorough = {
+  '1': MANHATTAN,
+  '5': MANHATTAN,
+  '6': MANHATTAN,
+  '7': MANHATTAN,
+  '9': MANHATTAN,
+  '10': MANHATTAN,
+  '13': MANHATTAN,
+  '14': MANHATTAN,
+  '17': MANHATTAN,
+  '18': MANHATTAN,
+  '19': MANHATTAN,
+  '20': MANHATTAN,
+  '22': MANHATTAN,
+  '23': MANHATTAN,
+  '24': MANHATTAN,
+  '25': MANHATTAN,
+  '26': MANHATTAN,
+  '28': MANHATTAN,
+  '30': MANHATTAN,
+  '32': MANHATTAN,
+  '33': MANHATTAN,
+  '34': MANHATTAN,
+  '40': BRONX,
+  '41': BRONX,
+  '42': BRONX,
+  '43': BRONX,
+  '44': BRONX,
+  '45': BRONX,
+  '46': BRONX,
+  '47': BRONX,
+  '48': BRONX,
+  '49': BRONX,
+  '50': BRONX,
+  '52': BRONX,
+  '60': BROOKLYN,
+  '61': BROOKLYN,
+  '62': BROOKLYN,
+  '63': BROOKLYN,
+  '66': BROOKLYN,
+  '67': BROOKLYN,
+  '68': BROOKLYN,
+  '69': BROOKLYN,
+  '70': BROOKLYN,
+  '71': BROOKLYN,
+  '72': BROOKLYN,
+  '73': BROOKLYN,
+  '75': BROOKLYN,
+  '76': BROOKLYN,
+  '77': BROOKLYN,
+  '78': BROOKLYN,
+  '79': BROOKLYN,
+  '81': BROOKLYN,
+  '83': BROOKLYN,
+  '84': BROOKLYN,
+  '88': BROOKLYN,
+  '90': BROOKLYN,
+  '94': BROOKLYN,
+  '100': QUEENS,
+  '101': QUEENS,
+  '102': QUEENS,
+  '103': QUEENS,
+  '104': QUEENS,
+  '105': QUEENS,
+  '106': QUEENS,
+  '107': QUEENS,
+  '108': QUEENS,
+  '109': QUEENS,
+  '110': QUEENS,
+  '111': QUEENS,
+  '112': QUEENS,
+  '113': QUEENS,
+  '114': QUEENS,
+  '115': QUEENS,
+  '120': STATEN_ISLAND,
+  '121': STATEN_ISLAND,
+  '122': STATEN_ISLAND,
+  '123': STATEN_ISLAND,
 }
 
 const issuingAgencies = {
@@ -1401,7 +1487,7 @@ const getAggregateFrequencySummaryData = (violations) => {
     }
 
     const violationYear =
-      violation?.formatted_time_eastern.toFormat("y") || "No Year Available"
+      violation?.formatted_time_eastern?.toFormat("y") || "No Year Available"
 
     if (years[violationYear]) {
       years[violationYear] += 1
@@ -2228,23 +2314,75 @@ const getVehicleBodyType = (bodyTypeish) => {
   }
 }
 
-const getViolationBorough = async (violation) => {
-  if (violation.violation_county) {
-    return Promise.resolve(violation.violation_county)
-  }
-  if (!violation.location) {
-    return Promise.resolve("No Borough Available")
+const getViolationWithLocationData = async (violation) => {
+  // Let's get a human-readable address
+  const addressOrLocation = getViolationLocation(violation)
+
+  // If we already have the borough, use it.
+  const potentialBorough = violation.violation_county || violation.county
+
+  if (potentialBorough) {
+    const borough = counties[potentialBorough]
+    if (borough) {
+      return {
+        ...violation,
+        location: addressOrLocation,
+        violation_county: borough,
+      }
+    }
   }
 
-  const boroughFromLocation = await retrieveBoroughFromGeocode(violation)
+  // If we have the precinct, we can use that instead.
+  const potentialPrecinct = violation.violation_precinct || violation.precinct
 
-  return boroughFromLocation
+  if (potentialPrecinct && isNumber(potentialPrecinct)) {
+    const violationPrecinct = parseInt(potentialPrecinct).toString()
+    if (violationPrecinct in precinctsByBorough) {
+      return {
+        ...violation,
+        location: addressOrLocation,
+        violation_county: precinctsByBorough[violationPrecinct],
+      }
+    }
+  }
+
+  if (!addressOrLocation) {
+    return {
+      ...violation,
+      location: undefined,
+      violation_county: 'No Borough Available',
+    }
+  }
+
+  const geocodeLoggingKey = `[summons_number=${violation.summons_number}]`
+    + `[vehicle=${violation.registration_state}:${violation.plate_id}]`
+
+  const addressOrLocationWithoutDirectionalPrefixes = addressOrLocation
+    .replace(/[ENSW]\/?B/i, '')
+    .trim()
+
+  const boroughFromLocation = await retrieveBoroughFromGeocode(
+    addressOrLocationWithoutDirectionalPrefixes,
+    addressOrLocation,
+    geocodeLoggingKey,
+  )
+
+  return {
+    ...violation,
+    location: addressOrLocation,
+    violation_county: boroughFromLocation
+  }
 }
 
 const getViolationCodesResponse = (violationCodes) => {
   return "hello"
 }
 
+/**
+ * 
+ * @param {Violation} violation - the violation whose location we want
+ * @returns {string | null}
+ */
 const getViolationLocation = (violation) => {
   let fullStreetName
 
@@ -2913,6 +3051,14 @@ const inferViolationCodeFromOpenParkingAndCameraViolationDescription = (violatio
   return violationDescription
 }
 
+/**
+ * Indicates whether a value represents a number
+ *
+ * @param {any} possibleNumber a possible number of any type
+ * @returns {boolean} whether or not possibleNumber is a number
+ */
+const isNumber = (possibleNumber) =>
+  !!possibleNumber !== possibleNumber && !isNaN(Number(possibleNumber))
 
 /**
  * Insert a new geocode lookup from Google into the database.
@@ -3130,7 +3276,11 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
   )
 
 const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
-  const returnViolations = await violations.map(async (violation, index) => {
+  const violationsWithBoroughs = await Promise.all(violations.map(async (violation) =>
+    await getViolationWithLocationData(violation)
+  ))
+
+  const returnViolations = violationsWithBoroughs.map((violation) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
 
@@ -3232,8 +3382,7 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         violation.violation_code ||
         namesToCodes[readableViolationDescription] ||
         null,
-      violation_county:
-        counties[violation.violation_county || violation.county] || null,
+      violation_county: violation.violation_county || null,
       violation_in_front_of_or_opposite:
         violation.violation_in_front_of_or_opposite || null,
       violation_legal_code: violation.violation_legal_code || null,
@@ -3246,16 +3395,6 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         : parseInt(violation.violation_precinct || violation.precinct),
       violation_status: violation.violation_status,
       violation_time: violation.violation_time || null,
-    }
-
-    const determinedViolationLocation = getViolationLocation(newViolation)
-    if (determinedViolationLocation) {
-      newViolation.location = determinedViolationLocation
-    }
-
-    const violationBorough = await getViolationBorough(newViolation, index)
-    if (violationBorough && !newViolation.violation_county) {
-      newViolation.violation_county = violationBorough
     }
 
     return newViolation
@@ -3354,22 +3493,26 @@ const respondToNonFollowerFavorite = async (
 /**
  * Obtain a geocode record with the borough information we need
  *
- * @param {string} streetAddress - the address whose borough we are trying to find
+ * @param {string} normalizedAddress - the address modified for search
+ * @param {string} originalAddress - the unmodified address
+ * @param {string} loggingKey - the key to use when logging
+ * 
+ * @return {Promise<string>}
  */
-const retrieveBoroughFromGeocode = async (violation) => {
-  if (!streetAddress) {
+const retrieveBoroughFromGeocode = async (
+  normalizedAddress,
+  originalAddress,
+  loggingKey,
+) => {
+  if (!normalizedAddress) {
+    console.log(loggingKey, 'No address available')
     return 'No Borough Available'
   }
 
-  const streetAddress = violation.location
-
-  const streetWithoutDirections = streetAddress
-    .replace(/[ENSW]\/?B/i, '')
-    .trim()
-
   console.log(
+    loggingKey,
     'Attempting to retrieve borough for lookup string',
-    `'${streetWithoutDirections}' for vehicle '${violation.state}:${violation.plate}'`
+    `'${normalizedAddress}'`
   )
 
   let potentialBorough
@@ -3378,25 +3521,28 @@ const retrieveBoroughFromGeocode = async (violation) => {
 
   const result = await getGeocodeFromDatabase(
     databaseConnection,
-    streetWithoutDirections
+    normalizedAddress,
   )
 
   if (result.length) {
     console.log(
+      loggingKey,
       `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
+      `'${normalizedAddress}' from original '${originalAddress}'`
     )
     potentialBorough = result[0].borough
   } else {
     console.log(
+      loggingKey,
       `No geocode found in database for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
+      `'${normalizedAddress}' from original '${originalAddress}'`
     )
     console.log(
+      loggingKey,
       `Retrieving geocode from Google for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
+      `'${normalizedAddress}' from original '${originalAddress}'`
     )
-    const geocodeFromGoogle = await getGoogleGeocode(streetWithoutDirections)
+    const geocodeFromGoogle = await getGoogleGeocode(normalizedAddress)
 
     if (!geocodeFromGoogle) {
       return 'No Borough Available'

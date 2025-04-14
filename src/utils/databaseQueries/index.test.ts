@@ -768,6 +768,8 @@ describe('databaseQueries', () => {
   })
 
   describe('insertGeocodeIntoDatabase', () => {
+    const loggingKey = '[summons_number=1234567890][vehicle=NY:ABC1234]'
+
     it('should insert a geocode into the database', async () => {
       const address = '99 Schermerhorn Street New York NY'
 
@@ -789,7 +791,7 @@ describe('databaseQueries', () => {
       databaseConnection.query
         .mockResolvedValueOnce([{ insertId: '123' }])
 
-      expect(await insertGeocodeIntoDatabase(geocode)).toBe(true)
+      expect(await insertGeocodeIntoDatabase(geocode, loggingKey)).toBe(true)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
         'insert into geocodes set ?',
@@ -824,7 +826,7 @@ describe('databaseQueries', () => {
       databaseConnection.query.mockRejectedValueOnce(error)
 
       await expect(
-        insertGeocodeIntoDatabase(geocode)
+        insertGeocodeIntoDatabase(geocode, loggingKey)
       ).rejects.toBe(error)
 
       expect(databaseConnection.query).toHaveBeenCalledWith(
