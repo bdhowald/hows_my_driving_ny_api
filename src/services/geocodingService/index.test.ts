@@ -34,6 +34,80 @@ describe('getBoroughService', () => {
     expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
   })
 
+  it('should only query Google once for an address if a repeat call is satisifed by the database', async () => {
+    const brooklyn = 'Brooklyn'
+
+    const googleMapsGeocodeResponse = {
+      data: {
+        results: [
+          {
+            address_components: [
+              {
+                long_name: '99',
+                short_name: '99',
+                types: ['street_number'],
+              },
+              {
+                long_name: 'Schermerhorn Street',
+                short_name: 'Schermerhorn St',
+                types: ['route'],
+              },
+              {
+                long_name: 'Downtown Brooklyn',
+                short_name: 'Downtown Brooklyn',
+                types: ['neighborhood', 'political'],
+              },
+              {
+                long_name: brooklyn,
+                short_name: 'Brooklyn',
+                types: ['political', 'sublocality', 'sublocality_level_1'],
+              },
+              {
+                long_name: 'Kings County',
+                short_name: 'Kings County',
+                types: ['administrative_area_level_2', 'political'],
+              },
+              {
+                long_name: 'New York',
+                short_name: 'NY',
+                types: ['administrative_area_level_1', 'political'],
+              },
+              {
+                long_name: 'United States',
+                short_name: 'US',
+                types: ['country', 'political'],
+              },
+              {
+                long_name: '11201',
+                short_name: '11201',
+                types: ['postal_code'],
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    const googleMapsClient = {
+      geocode: jest.fn(() => googleMapsGeocodeResponse),
+    }
+
+    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(getBoroughFromDatabaseGeocode as jest.Mock)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ borough: 'Brooklyn' }])
+
+    // Call twice
+    expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
+    expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(2)
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledWith(address)
+
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+  })
+
   it('should query Google for the borough if no database geocode and return one if it finds one', async () => {
     const brooklyn = 'Brooklyn'
     const googleMapsGeocodeResponse = {

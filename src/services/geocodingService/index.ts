@@ -9,6 +9,17 @@ import { Borough } from 'constants/boroughs'
 import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
 import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
 
+class Mutex {
+  mutex = Promise.resolve()
+
+  lock = () =>
+    new Promise((resolve) => {
+      this.mutex = this.mutex.then(() => new Promise(resolve));
+    })
+}
+
+const GEOCODE_MUTEX = new Mutex()
+
 const NEW_YORK = 'New York'
 const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
 
@@ -31,41 +42,64 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
   let potentialBorough: string | Borough | undefined
 
-  const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
-    streetWithoutDirections
+  console.log(
+    loggingKey,
+    `obtaining mutex for address search for ${streetWithoutDirections}`
   )
 
-  if (result.length) {
-    console.log(
-      loggingKey,
-      `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
-    )
-    potentialBorough = result[0].borough
-  } else {
-    console.log(
-      loggingKey,
-      `No geocode found in database for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
-    )
-    console.log(
-      loggingKey,
-      `Retrieving geocode from Google for lookup string`,
-      `'${streetWithoutDirections}' from original '${streetAddress}'`
-    )
-    const geocodeFromGoogle: DatabaseGeocode | undefined =
-      await getGoogleGeocode(streetWithoutDirections, loggingKey)
+  // Request a lock guarding geocode search
+  const unlock = await GEOCODE_MUTEX.lock() as () => Promise<unknown>
 
-    if (!geocodeFromGoogle) {
-      return Borough.NoBoroughAvailable
+  console.log(
+    loggingKey,
+    `obtained mutex for address search for ${streetWithoutDirections}`
+  )
+
+  try {
+    const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
+      streetWithoutDirections
+    )
+
+    if (result.length) {
+      console.log(
+        loggingKey,
+        `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
+        `'${streetWithoutDirections}' from original '${streetAddress}'`
+      )
+      potentialBorough = result[0].borough
+    } else {
+      console.log(
+        loggingKey,
+        `No geocode found in database for lookup string`,
+        `'${streetWithoutDirections}' from original '${streetAddress}'`
+      )
+      console.log(
+        loggingKey,
+        `Retrieving geocode from Google for lookup string`,
+        `'${streetWithoutDirections}' from original '${streetAddress}'`
+      )
+      const geocodeFromGoogle: DatabaseGeocode | undefined =
+        await getGoogleGeocode(streetWithoutDirections, loggingKey)
+
+      if (!geocodeFromGoogle) {
+        return Borough.NoBoroughAvailable
+      }
+
+      potentialBorough = geocodeFromGoogle.borough
+
+      if (potentialBorough in Borough) {
+        // Only insert geocode if it's for a borough.
+        await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
+      }
     }
+  } finally {
+    // release mutex
+    unlock()
 
-    potentialBorough = geocodeFromGoogle.borough
-
-    if (potentialBorough in Borough) {
-      // Only insert geocode if it's for a borough.
-      await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
-    }
+    console.log(
+      loggingKey,
+      `released mutex for address search for ${streetWithoutDirections}`
+    )
   }
 
   if (potentialBorough in Borough) {

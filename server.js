@@ -6,6 +6,18 @@ import { DateTime } from 'luxon'
 import * as http from 'http'
 import * as mysql from 'mysql2/promise'
 
+class Mutex {
+  mutex = Promise.resolve()
+
+  lock() {
+    return new Promise((resolve) => {
+      this.mutex = this.mutex.then(() => new Promise(resolve));
+    })
+  }
+}
+
+const GEOCODE_MUTEX = new Mutex()
+
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
 
@@ -3276,11 +3288,9 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
   )
 
 const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
-  const violationsWithBoroughs = await Promise.all(violations.map(async (violation) =>
-    await getViolationWithLocationData(violation)
-  ))
+  const returnViolations = violations.map(async (rawViolation) => {
+    const violation = await getViolationWithLocationData(rawViolation)
 
-  const returnViolations = violationsWithBoroughs.map((violation) => {
     const readableViolationDescription =
       getReadableViolationDescription(violation)
 
@@ -3496,7 +3506,7 @@ const respondToNonFollowerFavorite = async (
  * @param {string} normalizedAddress - the address modified for search
  * @param {string} originalAddress - the unmodified address
  * @param {string} loggingKey - the key to use when logging
- * 
+ *
  * @return {Promise<string>}
  */
 const retrieveBoroughFromGeocode = async (
@@ -3517,44 +3527,69 @@ const retrieveBoroughFromGeocode = async (
 
   let potentialBorough
 
-  const databaseConnection = await instantiateConnection()
-
-  const result = await getGeocodeFromDatabase(
-    databaseConnection,
-    normalizedAddress,
+  console.log(
+    loggingKey,
+    `obtaining mutex for address search for ${normalizedAddress}`
   )
 
-  if (result.length) {
-    console.log(
-      loggingKey,
-      `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
-      `'${normalizedAddress}' from original '${originalAddress}'`
-    )
-    potentialBorough = result[0].borough
-  } else {
-    console.log(
-      loggingKey,
-      `No geocode found in database for lookup string`,
-      `'${normalizedAddress}' from original '${originalAddress}'`
-    )
-    console.log(
-      loggingKey,
-      `Retrieving geocode from Google for lookup string`,
-      `'${normalizedAddress}' from original '${originalAddress}'`
-    )
-    const geocodeFromGoogle = await getGoogleGeocode(normalizedAddress)
+  // Request a lock guarding geocode search
+  const unlock = await GEOCODE_MUTEX.lock()
 
-    if (!geocodeFromGoogle) {
-      return 'No Borough Available'
+  console.log(
+    loggingKey,
+    `obtained mutex for address search for ${normalizedAddress}`
+  )
+
+  const databaseConnection = await instantiateConnection()
+
+  try {
+    const result = await getGeocodeFromDatabase(
+      databaseConnection,
+      normalizedAddress,
+    )
+
+    if (result.length) {
+      console.log(
+        loggingKey,
+        `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
+        `'${normalizedAddress}' from original '${originalAddress}'`
+      )
+      potentialBorough = result[0].borough
+    } else {
+      console.log(
+        loggingKey,
+        `No geocode found in database for lookup string`,
+        `'${normalizedAddress}' from original '${originalAddress}'`
+      )
+      console.log(
+        loggingKey,
+        `Retrieving geocode from Google for lookup string`,
+        `'${normalizedAddress}' from original '${originalAddress}'`
+      )
+
+      const geocodeFromGoogle = await getGoogleGeocode(normalizedAddress)
+
+      console.log(geocodeFromGoogle)
+
+      if (!geocodeFromGoogle) {
+        return 'No Borough Available'
+      }
+
+      potentialBorough = geocodeFromGoogle.borough
+
+      await insertGeocodeIntoDatabase(geocodeFromGoogle)
     }
+  } finally {
+    // Close database connection
+    databaseConnection.end()
 
-    potentialBorough = geocodeFromGoogle.borough
-
-    await insertGeocodeIntoDatabase(geocodeFromGoogle)
+    // release mutex
+    unlock()
+    console.log(
+      loggingKey,
+      `released mutex for address search for ${normalizedAddress}`
+    )
   }
-
-  // Close database connection
-  databaseConnection.end()
 
   if (potentialBorough) {
     return potentialBorough
