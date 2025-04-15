@@ -21,7 +21,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('1752 Pk Ave 122 St')
+      expect(fullAddress).toBe('1752 Pk Avenue 122nd Street')
     })
 
     it('should when it has a houseNumber, streetName, and intersectingStreet, and houseNumber is 20 chars long with a trailing space', () => {
@@ -38,7 +38,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('Supeeer Long Street Pk Ave 122 St')
+      expect(fullAddress).toBe('Supeeer Long Street Pk Avenue 122nd Street')
     })
 
     it('should when it has a houseNumber, streetName, and intersectingStreet, and streetName is 20 chars long', () => {
@@ -72,7 +72,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('157 Rockaway Beach Blvd Jacob Riis Park East')
+      expect(fullAddress).toBe('157 Rockaway Beach Boulevard Jacob Riis Park East')
     })
 
     it('should when it has a houseNumber and streetName, but no intersectingStreet', () => {
@@ -88,7 +88,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('51 E 44th St')
+      expect(fullAddress).toBe('51 East 44th Street')
     })
 
     it('should when it has a streetName and intersectingStreet, but no houseNumber', () => {
@@ -104,7 +104,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('C/o 126 St 38 Ave')
+      expect(fullAddress).toBe('C/o 126th Street 38th Avenue')
     })
 
     it('should when it has a streetName and intersectingStreet, but no houseNumber, and streetName is 20 chars long', () => {
@@ -120,7 +120,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe("E/s Of West Farms Road 100' S/o East 173")
+      expect(fullAddress).toBe("E/s Of West Farms Road 100' South of East 173")
     })
 
     it('should when it has a streetName and intersectingStreet, but no houseNumber, and streetName is 19 chars long', () => {
@@ -136,7 +136,7 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('Midland Beach Lot 6 Father Capodanno Blv')
+      expect(fullAddress).toBe('Midland Beach Lot 6 Father Capodanno Boulevard')
     })
 
     it('should when it only has a streetName', () => {

@@ -1,5 +1,7 @@
 import { RawViolation } from 'types/violations'
 
+import standardizeDisplayedLocation from './standardizeLocation/standardizeLocation'
+
 const STREET_FIELD_MAX_LENGTH = 20
 
 export default (violation: RawViolation): string | undefined => {
@@ -26,7 +28,7 @@ export default (violation: RawViolation): string | undefined => {
     .map((strPart) => strPart.charAt(0).toUpperCase() + strPart.substr(1))
     .join(' ')
 
-  return normalizedCapitalizedAddress
+  return standardizeDisplayedLocation(normalizedCapitalizedAddress)
 }
 
 const gatherAddressParts = (

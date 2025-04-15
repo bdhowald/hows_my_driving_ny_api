@@ -111,7 +111,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     issuingAgency: 'P',
     judgmentEntryDate: undefined,
     lawSection: '408',
-    location: 'I/o Taylor Ave Guerlain',
+    location: 'I/o Taylor Avenue Guerlain',
     meterNumber: '-',
     outstanding: 0,
     paid: 175,
