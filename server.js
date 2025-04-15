@@ -10,6 +10,17 @@ const googleMapsClient = require("@google/maps").createClient({
   Promise,
 })
 
+class Mutex {
+  mutex = Promise.resolve()
+
+  lock = () =>
+    new Promise((resolve) => {
+      this.mutex = this.mutex.then(() => new Promise(resolve));
+    })
+}
+
+const GEOCODE_MUTEX = new Mutex()
+
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
 
@@ -2307,32 +2318,57 @@ const getViolationBorough = async (
     `Attempting to retrieve borough for lookup string '${normalizedAddress}'`
   )
 
-  const boroughFromLocation = await connection
-    .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
-      normalizedAddress + " New York NY",
-    ])
-    .then(async (results) => {
-      if (results.length) {
-        console.log(
-          loggingKey,
-          `Retrieved geocode from database: '${results[0].borough}' for lookup string`,
-          `'${normalizedAddress}' from original '${originalAddress}'`
-        )
-        return results[0].borough
-      } else {
-        console.log(
-          loggingKey,
-          `No geocode found in database for lookup string`,
-          `'${normalizedAddress}' from original '${originalAddress}'`
-        )
-        console.log(
-          loggingKey,
-          `Retrieving geocode from Google for lookup string`,
-          `'${normalizedAddress}' from original '${originalAddress}'`
-        )
-        return await retrieveBoroughFromGeocode(normalizedAddress, loggingKey)
-      }
-    })
+  console.log(
+    loggingKey,
+    `obtaining mutex for address search for ${normalizedAddress}`
+  )
+
+  // Request a lock guarding geocode search
+  const unlock = await GEOCODE_MUTEX.lock()
+
+  console.log(
+    loggingKey,
+    `obtained mutex for address search for ${normalizedAddress}`
+  )
+
+  let boroughFromLocation
+
+  try {
+    boroughFromLocation = await connection
+      .promiseQuery("select borough from geocodes WHERE lookup_string = ?", [
+        normalizedAddress + " New York NY",
+      ])
+      .then(async (results) => {
+        if (results.length) {
+          console.log(
+            loggingKey,
+            `Retrieved geocode from database: '${results[0].borough}' for lookup string`,
+            `'${normalizedAddress}' from original '${originalAddress}'`
+          )
+          return results[0].borough
+        } else {
+          console.log(
+            loggingKey,
+            `No geocode found in database for lookup string`,
+            `'${normalizedAddress}' from original '${originalAddress}'`
+          )
+          console.log(
+            loggingKey,
+            `Retrieving geocode from Google for lookup string`,
+            `'${normalizedAddress}' from original '${originalAddress}'`
+          )
+          return await retrieveBoroughFromGeocode(normalizedAddress, loggingKey)
+        }
+      })
+  } finally {
+    // release mutex
+    unlock()
+
+    console.log(
+      loggingKey,
+      `released mutex for address search for ${normalizedAddress}`
+    )
+  }
 
   return boroughFromLocation
 }
