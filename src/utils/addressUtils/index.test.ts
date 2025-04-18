@@ -120,7 +120,23 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe("E/s Of West Farms Road 100' South of East 173")
+      expect(fullAddress).toBe("E/s of West Farms Road 100' south of East 173")
+    })
+
+    it('should when it has a streetName and intersectingStreet, but no houseNumber, and streetName is 20 chars long with a trailing period', () => {
+      const streetName = 'OCEAN PKWY(N/B)@AVE.'
+      const intersectingStreet = 'X-LN-3'
+
+      const rawFiscalYearDatabaseViolation: RawViolation =
+        rawFiscalYearDatabaseViolationFactory.build({
+          houseNumber: undefined,
+          streetName,
+          intersectingStreet,
+        })
+
+      const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
+
+      expect(fullAddress).toBe('Ocean Parkway and Avenue X')
     })
 
     it('should when it has a streetName and intersectingStreet, but no houseNumber, and streetName is 19 chars long', () => {
