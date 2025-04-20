@@ -4064,7 +4064,7 @@ const server = http.createServer(async (req, res) => {
         )
       ).then((allResponses) => {
         const body = { data: allResponses }
-        const eTag = createHash('md5').update(body).digest('hex')
+        const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
         res.setHeader('ETag', `"${eTag}"`)
 
         if (req.headers['if-none-match'] === `"${eTag}"`) {
