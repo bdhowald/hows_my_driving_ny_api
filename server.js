@@ -4059,11 +4059,13 @@ const server = http.createServer(async (req, res) => {
       ).then((allResponses) => {
         const body = { data: allResponses }
         const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
+
         res.setHeader('ETag', `"${eTag}"`)
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
 
         if (req.headers['if-none-match'] === `"${eTag}"`) {
           res.writeHead(304)
-          res.end()
+          res.statusCode = 304
 
           return
         }
@@ -4200,15 +4202,19 @@ const server = http.createServer(async (req, res) => {
     ).then((allResponses) => {
       const body = { data: allResponses }
       const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
+
       res.setHeader('ETag', `"${eTag}"`)
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
 
       if (req.headers['if-none-match'] === `"${eTag}"`) {
-        res.writeHead(304)
+        res.statusCode = 304
         res.end()
+
+        return
       }
 
       res.writeHead(200)
-      res.end(JSON.stringify({ data: allResponses }))
+      res.end(JSON.stringify(body))
     })
 
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which
