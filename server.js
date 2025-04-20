@@ -4064,7 +4064,6 @@ const server = http.createServer(async (req, res) => {
         res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
 
         if (req.headers['if-none-match'] === `"${eTag}"`) {
-          res.writeHead(304)
           res.statusCode = 304
 
           return
