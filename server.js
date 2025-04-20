@@ -1151,6 +1151,24 @@ const detectVehicles = (potentialVehicles) => {
 }
 
 /**
+ * Determine the most recent datetime that open data databases were updated.
+ * In practice, this will likely be Open Parking and Camera Violations, but
+ * could be any of them in practice.
+ */
+const determineOpenDataLastUpdatedTime = async () => {
+  try {
+    const openDataMetadata = await makeOpenDataMetadataRequest()
+    const databaseUpdatedAtTimes = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt))
+    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
+    return latestDatabaseUpdatedTime
+  } catch(error) {
+    console.error
+  }
+
+  return new Date()
+}
+
+/**
  * NYC Department of Finance (DOF) reuses violation codes over the years.
  * Using the cutover dates for several of these violation code changes
  * (inferred by some detective work), we can determine what the correct
@@ -4006,6 +4024,9 @@ const server = http.createServer(async (req, res) => {
       console.log(JSON.stringify(response))
     }
   } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
+    const openDataLastUpdatedTime = await determineOpenDataLastUpdatedTime()
+    const eTagRequestHeader = req.headers['if-none-match']
+
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -4025,6 +4046,14 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(body))
 
       return
+    }
+
+    const currentETag = `lookup-${identifier}-${openDataLastUpdatedTime.getTime()}`
+
+    if (eTagRequestHeader === currentETag) {
+      // If the supplied eTag matches the current one, return a 304 (Not Modified)
+      res.statusCode = 304
+      return res.end()
     }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
@@ -4058,17 +4087,9 @@ const server = http.createServer(async (req, res) => {
         )
       ).then((allResponses) => {
         const body = { data: allResponses }
-        const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
 
-        res.setHeader('ETag', `"${eTag}"`)
+        res.setHeader('ETag', currentETag)
         res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
-
-        if (req.headers['if-none-match'] === `"${eTag}"`) {
-          res.statusCode = 304
-          res.end()
-
-          return
-        }
 
         res.writeHead(200)
         res.end(JSON.stringify(body))
@@ -4101,6 +4122,9 @@ const server = http.createServer(async (req, res) => {
     //   });
     // }
   } else if (req.url.match(API_LOOKUP_PATH)) {
+    const openDataLastUpdatedTime = await determineOpenDataLastUpdatedTime()
+    const eTagRequestHeader = req.headers['if-none-match']
+
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -4189,6 +4213,14 @@ const server = http.createServer(async (req, res) => {
 
     const vehicles = detectVehicles(potentialVehicles)
 
+    const currentETag = `lookup-${potentialVehicles.join('-')}-${openDataLastUpdatedTime.getTime()}`
+
+    if (eTagRequestHeader === currentETag) {
+      // If the supplied eTag matches the current one, return a 304 (Not Modified)
+      res.statusCode = 304
+      return res.end()
+    }
+
     const externalData = {
       lookup_source: lookupSource,
       fingerprint_id: fingerprintId,
@@ -4201,17 +4233,9 @@ const server = http.createServer(async (req, res) => {
       )
     ).then((allResponses) => {
       const body = { data: allResponses }
-      const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
 
-      res.setHeader('ETag', `"${eTag}"`)
+      res.setHeader('ETag', currentETag)
       res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
-
-      if (req.headers['if-none-match'] === `"${eTag}"`) {
-        res.statusCode = 304
-        res.end()
-
-        return
-      }
 
       res.writeHead(200)
       res.end(JSON.stringify(body))
