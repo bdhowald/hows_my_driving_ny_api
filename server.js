@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const axios = require("axios")
-const { createHmac } = require("node:crypto")
+const { createHash, createHmac } = require("node:crypto")
 const { DateTime } = require("luxon")
 const http = require("http")
 const mysql = require("mysql")
@@ -4063,6 +4063,9 @@ const server = http.createServer(async (req, res) => {
             await getVehicleResponse(vehicle, fields, externalData)
         )
       ).then((allResponses) => {
+        const eTag = createHash('md5').update(body).digest('hex')
+        res.setHeader('ETag', `"${eTag}"`)
+
         res.writeHead(200)
         res.end(JSON.stringify({ data: allResponses }))
       })
