@@ -4064,6 +4064,8 @@ const server = http.createServer(async (req, res) => {
         if (req.headers['if-none-match'] === `"${eTag}"`) {
           res.writeHead(304)
           res.end()
+
+          return
         }
 
         res.writeHead(200)
