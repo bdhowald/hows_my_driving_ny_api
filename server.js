@@ -4063,6 +4063,7 @@ const server = http.createServer(async (req, res) => {
             await getVehicleResponse(vehicle, fields, externalData)
         )
       ).then((allResponses) => {
+        const body = { data: allResponses }
         const eTag = createHash('md5').update(body).digest('hex')
         res.setHeader('ETag', `"${eTag}"`)
 
@@ -4072,7 +4073,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         res.writeHead(200)
-        res.end(JSON.stringify({ data: allResponses }))
+        res.end(JSON.stringify(body))
       })
     })
 
