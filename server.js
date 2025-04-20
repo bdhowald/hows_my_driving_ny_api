@@ -4202,6 +4202,15 @@ const server = http.createServer(async (req, res) => {
         getVehicleResponse(vehicle, fields, externalData)
       )
     ).then((allResponses) => {
+      const body = { data: allResponses }
+      const eTag = createHash('md5').update(JSON.stringify(body)).digest('hex')
+      res.setHeader('ETag', `"${eTag}"`)
+
+      if (req.headers['if-none-match'] === `"${eTag}"`) {
+        res.writeHead(304)
+        res.end()
+      }
+
       res.writeHead(200)
       res.end(JSON.stringify({ data: allResponses }))
     })
