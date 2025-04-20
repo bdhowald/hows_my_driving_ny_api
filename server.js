@@ -4097,7 +4097,7 @@ const server = http.createServer(async (req, res) => {
           res.writeHead(200, { 'Content-Encoding': 'gzip' })
           const gzip = zlib.createGzip()
           gzip.pipe(res)
-          gzip.end(body)
+          gzip.end(JSON.stringify(body))
           return
         }
 
@@ -4252,7 +4252,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, { 'Content-Encoding': 'gzip' })
         const gzip = zlib.createGzip()
         gzip.pipe(res)
-        gzip.end(body)
+        gzip.end(JSON.stringify(body))
         return
       }
 
