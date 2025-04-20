@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 const axios = require("axios")
-const { createHash, createHmac } = require("node:crypto")
+const { createHmac } = require("node:crypto")
 const { DateTime } = require("luxon")
 const http = require("http")
 const mysql = require("mysql")
+const zlib = require('zlib')
 
 const googleMapsClient = require("@google/maps").createClient({
   key: process.env.GOOGLE_PLACES_API_KEY,
@@ -4087,9 +4088,18 @@ const server = http.createServer(async (req, res) => {
         )
       ).then((allResponses) => {
         const body = { data: allResponses }
+        const acceptEncoding = req.headers['accept-encoding'] || ''
 
         res.setHeader('ETag', currentETag)
         res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
+
+        if (acceptEncoding.includes('gzip')) {
+          res.writeHead(200, { 'Content-Encoding': 'gzip' })
+          const gzip = zlib.createGzip()
+          gzip.pipe(res)
+          gzip.end(body)
+          return
+        }
 
         res.writeHead(200)
         res.end(JSON.stringify(body))
@@ -4233,9 +4243,18 @@ const server = http.createServer(async (req, res) => {
       )
     ).then((allResponses) => {
       const body = { data: allResponses }
+      const acceptEncoding = req.headers['accept-encoding'] || ''
 
       res.setHeader('ETag', currentETag)
       res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
+
+      if (acceptEncoding.includes('gzip')) {
+        res.writeHead(200, { 'Content-Encoding': 'gzip' })
+        const gzip = zlib.createGzip()
+        gzip.pipe(res)
+        gzip.end(body)
+        return
+      }
 
       res.writeHead(200)
       res.end(JSON.stringify(body))
