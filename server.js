@@ -4065,6 +4065,7 @@ const server = http.createServer(async (req, res) => {
 
         if (req.headers['if-none-match'] === `"${eTag}"`) {
           res.statusCode = 304
+          res.end()
 
           return
         }
