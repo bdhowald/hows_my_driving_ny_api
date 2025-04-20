@@ -1950,12 +1950,6 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     let flattenedResponses = []
     let rectifiedPlate = plate
 
-    const endpointResponses = await makeOpenDataVehicleRequests(
-      plate,
-      state,
-      plateTypes
-    )
-
     const allOpenDataResponses = await Promise.all([
       makeOpenDataVehicleRequests(
         plate,
