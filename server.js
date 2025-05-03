@@ -4246,7 +4246,7 @@ const server = http.createServer(async (req, res) => {
       const acceptEncoding = req.headers['accept-encoding'] || ''
 
       res.setHeader('ETag', currentETag)
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
+      res.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
 
       if (acceptEncoding.includes('gzip')) {
         res.writeHead(200, { 'Content-Encoding': 'gzip' })
