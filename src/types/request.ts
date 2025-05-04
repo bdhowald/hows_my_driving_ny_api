@@ -13,13 +13,19 @@ export type ExternalData = {
 
 export type ResponseBody = {
   data?: VehicleResponse[]
-  errorCode?: HttpStatusCode
-  errorMessage?: string
+  error_message?: string
   response_token?: string
+}
+
+export type ExistingLookupResponse = {
+  body?: ResponseBody
+  etag?: string
+  status_code: HttpStatusCode
 }
 
 export type VehicleResponse = {
   error?: string
+  statusCode: HttpStatusCode
   successfulLookup: boolean
   vehicle?: ApiLookupResult
 }

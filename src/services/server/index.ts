@@ -12,23 +12,38 @@ import {
   handleTwitterRequestChallenge,
   handleTwitterWebhookEvent,
 } from 'services/requestService'
+import { ExistingLookupResponse } from 'types/request'
+import { stat } from 'fs'
 
 const returnResponse = (
   responseObj: http.ServerResponse,
   httpStatusCode: number,
-  responseBody: {
+  responseBody?: {
     data?: unknown[]
     error?: string
     response_token?: string
-  }
+  },
+  etag?: string
 ) => {
   responseObj.setHeader('Content-Type', 'application/json; charset=utf-8')
   responseObj.setHeader('Access-Control-Allow-Origin', '*')
-  responseObj.writeHead(httpStatusCode)
+
+  responseObj.statusCode = httpStatusCode
+
+  if (httpStatusCode === HttpStatusCode.NotModified) {
+    responseObj.end()
+    return
+  }
+
+  if (httpStatusCode === HttpStatusCode.Ok && etag) {
+    responseObj.setHeader('ETag', etag)
+    responseObj.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
+  }
+
   responseObj.end(
-    JSON.stringify(responseBody, (_, value) =>
-      typeof value === 'undefined' ? null : value
-    )
+    JSON.stringify(responseBody, (_, value) => {
+      return typeof value === 'undefined' ? null : value
+    })
   )
 }
 
@@ -111,13 +126,13 @@ const createServer = () =>
           )
         }
       } else if (request.url?.match(EXISTING_LOOKUP_PATH)) {
-        const result = await handleExistingLookup(request)
+        const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleExistingLookup(request)
 
-        returnResponse(response, HttpStatusCode.Ok, result)
+        returnResponse(response, statusCode, body, etag)
       } else if (request.url?.match(API_LOOKUP_PATH)) {
-        const result = await handleApiLookup(request)
+        const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleApiLookup(request)
 
-        returnResponse(response, HttpStatusCode.Ok, result)
+        returnResponse(response, statusCode, body, etag)
       } else {
         console.log('Unknown request path')
 

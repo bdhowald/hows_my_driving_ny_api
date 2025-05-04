@@ -339,6 +339,7 @@ describe('getAndProcessApiLookup', () => {
     }
 
     const baseExpected: VehicleResponse = {
+      statusCode: 200,
       successfulLookup: true,
       vehicle: {
         cameraStreakData: {
@@ -1326,6 +1327,7 @@ describe('getAndProcessApiLookup', () => {
         error:
           'Sorry, there was an error querying open data for ' +
           potentialVehicle.originalString,
+        statusCode: 502,
         successfulLookup: false,
       }
 
@@ -1378,6 +1380,7 @@ describe('getAndProcessApiLookup', () => {
         error:
           'Sorry, there was an error querying open data for ' +
           potentialVehicle.originalString,
+        statusCode: 502,
         successfulLookup: false,
       }
 
@@ -1427,6 +1430,7 @@ describe('getAndProcessApiLookup', () => {
       error:
         'Sorry, a plate and state could not be inferred from ' +
         potentialVehicle.originalString,
+      statusCode: 400,
       successfulLookup: false,
     }
 
@@ -1571,6 +1575,7 @@ describe('getAndProcessApiLookup', () => {
     )
 
     const expected: VehicleResponse = {
+      statusCode: 200,
       successfulLookup: true,
       vehicle: {
         cameraStreakData: {

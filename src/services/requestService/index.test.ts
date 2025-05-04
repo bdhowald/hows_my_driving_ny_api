@@ -10,6 +10,7 @@ import { violationFactory } from '__fixtures__/violations'
 import { Borough } from 'constants/boroughs'
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import AggregateFineData from 'models/aggregateFineData'
+import OpenDataService from 'services/openDataService'
 import { VehicleResponse } from 'types/request'
 import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
 import { getExistingLookupResult } from 'utils/databaseQueries'
@@ -30,6 +31,8 @@ jest.mock('utils/twitter')
 describe('requestService', () => {
   const hosts = ['api.howsmydrivingny.nyc', 'localhost:8080']
 
+  const openDateLastUpdatedTime = new Date('2025-04-01')
+
   hosts.forEach((host) => {
     const hostIsLocal = host === 'localhost:8080'
       ? 'when host is local'
@@ -46,6 +49,7 @@ describe('requestService', () => {
         const state = 'NY'
 
         const apiQueryResponse: VehicleResponse = {
+          statusCode: 200,
           successfulLookup: true,
           vehicle: {
             cameraStreakData: {
@@ -430,9 +434,13 @@ describe('requestService', () => {
         // @ts-expect-error  Figure out how to decamelize only the top-level betters.
         decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
 
-        const expected = {
-          data: [decamelizedResponse],
-        }
+        const expected = decamelizeKeysOneLevel({
+          body: {
+            data: [decamelizedResponse],
+          },
+          etag: 'lookup-ABC1234:NY-1746325413000',
+          statusCode: 200,
+        })
 
         const incomingRequest = {
           headers: { host },
@@ -460,6 +468,7 @@ describe('requestService', () => {
         const state = 'NY'
 
         const apiQueryResponse: VehicleResponse = {
+          statusCode: 200,
           successfulLookup: true,
           vehicle: {
             cameraStreakData: {
@@ -526,9 +535,13 @@ describe('requestService', () => {
           },
         }
 
-        const expected = {
-          data: [decamelizeKeys(apiQueryResponse)],
-        }
+        const expected = decamelizeKeys({
+          body: {
+            data: [apiQueryResponse],
+          },
+          etag: 'lookup-ABC1234:NY-1746325413000',
+          statusCode: 200,
+        })
 
         const incomingRequest = {
           headers: { host },
@@ -552,12 +565,16 @@ describe('requestService', () => {
         const apiQueryResponse: VehicleResponse = {
           error:
           `Sorry, a plate and state could not be inferred from ${plateQueryParam}`,
+          statusCode: 400,
           successfulLookup: false,
         }
 
-        const expected = {
-          data: [decamelizeKeys(apiQueryResponse)],
-        }
+        const expected = decamelizeKeys({
+          body: {
+            data: [apiQueryResponse],
+          },
+          statusCode: HttpStatusCode.BadRequest,
+        })
 
         const incomingRequest = {
           headers: { host },
@@ -573,14 +590,127 @@ describe('requestService', () => {
         expect(result).toEqual(expected)
       })
 
+      it('should return a response for a query with a vehicle that does not represent a valid plate and a vehicle that does', async () => {
+        const now = DateTime.now()
+        const uniqueIdentifier = 'a1b2c3d4'
+
+        const plate = 'ABC1234'
+        const state = 'NY'
+
+        const validPlateQueryParam = `${plate}:${state}`
+        const invalidPlateQueryParam = `${plate}:`
+
+        const successfulApiQueryResponse: VehicleResponse = {
+          statusCode: 200,
+          successfulLookup: true,
+          vehicle: {
+            cameraStreakData: {
+              busLaneCameraViolations: {
+                maxStreak: 0,
+                streakEnd: null,
+                streakStart: null,
+                total: 0,
+              },
+              cameraViolations: {
+                maxStreak: 0,
+                streakEnd: null,
+                streakStart: null,
+                total: 0,
+              },
+              cameraViolationsWithBusLaneCameraViolations: {
+                maxStreak: 0,
+                streakEnd: null,
+                streakStart: null,
+                total: 0,
+              },
+              redLightCameraViolations: {
+                maxStreak: 0,
+                streakEnd: null,
+                streakStart: null,
+                total: 0,
+              },
+              schoolZoneSpeedCameraViolations: {
+                maxStreak: 0,
+                streakEnd: null,
+                streakStart: null,
+                total: 0,
+              },
+            },
+            fines: new AggregateFineData({
+              totalFined: 0,
+              totalInJudgment: 0,
+              totalOutstanding: 0,
+              totalPaid: 0,
+              totalReduced: 0,
+            }),
+            plate,
+            plateTypes: undefined,
+            previousLookupDate: undefined,
+            previousViolationCount: undefined,
+            rectifiedPlate: plate,
+            state,
+            statistics: {
+              boroughs: {},
+              violationTypes: {},
+              years: {},
+            },
+            timesQueried: 0,
+            tweetParts: [
+              `As of ${now.toFormat('hh:mm:ss a ZZZZ')} on ${now.toFormat(
+                'LLLL dd, y'
+              )}: #NY_ABC1234 has been queried 0 times.\n\n`,
+              'Total parking and camera violation tickets for #NY_ABC1234: 0\n\n' +
+                `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
+            ],
+            uniqueIdentifier,
+            violations: [],
+            violationsCount: 0,
+          },
+        }
+
+        const unsuccessfulApiQueryResponse: VehicleResponse = {
+          error:
+          `Sorry, a plate and state could not be inferred from ${invalidPlateQueryParam}`,
+          statusCode: 400,
+          successfulLookup: false,
+        }
+
+        const expected = decamelizeKeys({
+          body: {
+            data: [
+              unsuccessfulApiQueryResponse,
+              successfulApiQueryResponse,
+            ],
+          },
+          statusCode: HttpStatusCode.MultiStatus,
+        })
+
+        const incomingRequest = {
+          headers: { host },
+          url: `/api/v1?plate=${invalidPlateQueryParam}&plate=${validPlateQueryParam}`,
+        } as http.IncomingMessage
+
+        ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
+          unsuccessfulApiQueryResponse
+        ).mockResolvedValueOnce(
+          successfulApiQueryResponse
+        )
+
+        const result = await handleApiLookup(incomingRequest)
+
+        expect(result).toEqual(expected)
+      })
+
       it('should return an error response if there is a problem parsing the plate input', async () => {
         const expected = decamelizeKeys({
-          errorCode: HttpStatusCode.BadRequest,
-          errorMessage:
-            "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
-            "or 'plate=<PLATE>&state=<STATE>', ex: " +
-            "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
+          body: {
+            errorMessage:
+              "Missing state: use either 'plate=<PLATE>:<STATE>', ex: " +
+              "'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj', " +
+              "or 'plate=<PLATE>&state=<STATE>', ex: " +
+              "'api.howsmydrivingny.nyc/api/v1?plate=abc1234&state=ny'",
+          },
+          statusCode: HttpStatusCode.BadRequest,
         })
 
         const incomingRequest = {
@@ -592,15 +722,57 @@ describe('requestService', () => {
 
         expect(result).toEqual(expected)
       })
+
+      it("should return a 304 ('Not Modified') if the eTag in the 'if-none-match' header matches the current value and plate has no plate types", async () => {
+        const expected = decamelizeKeys({
+          statusCode: 304,
+        })
+
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
+        )
+
+        const incomingRequest = {
+          headers: { host, 'if-none-match': `lookup-ABC1234:NY-${openDateLastUpdatedTime.getTime()}` },
+          url: '/api/v1?plate=ABC1234:NY',
+        } as http.IncomingMessage
+
+        const result = await handleApiLookup(incomingRequest)
+
+        expect(result).toEqual(expected)
+      })
+
+      it("should return a 304 ('Not Modified') if the eTag in the 'if-none-match' header matches the current value and plate has plate types", async () => {
+        const expected = decamelizeKeys({
+          statusCode: 304,
+        })
+
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
+        )
+
+        const incomingRequest = {
+          headers: { host, 'if-none-match': `lookup-ABC1234:NY:PAS-${openDateLastUpdatedTime.getTime()}` },
+          url: '/api/v1?plate=ABC1234:NY:PAS',
+        } as http.IncomingMessage
+
+        const result = await handleApiLookup(incomingRequest)
+
+        expect(result).toEqual(expected)
+      })
     })
 
     describe(`handleExistingLookup ${hostIsLocal}`, () => {
       it('should return an error response if there is no identifier of an existing lookup', async () => {
-        const expected = {
-          errorCode: HttpStatusCode.BadRequest,
-          errorMessage:
-            "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'",
-        }
+        const expected = decamelizeKeys({
+          body: {
+            errorMessage:
+              "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'",
+          },
+          statusCode: 400,
+        })
 
         const incomingRequest = {
           headers: { host: 'api.howsmydrivingny.nyc' },
@@ -629,6 +801,7 @@ describe('requestService', () => {
         }
 
         const apiQueryResponse: VehicleResponse = {
+          statusCode: 200,
           successfulLookup: true,
           vehicle: {
             cameraStreakData: {
@@ -917,15 +1090,24 @@ describe('requestService', () => {
         // @ts-expect-error  Figure out how to decamelize only the top-level betters.
         decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
 
-        const expected = {
-          data: [decamelizedResponse],
-        }
+        const expected = decamelizeKeysOneLevel({
+          body: {
+            data: [decamelizedResponse],
+          },
+          etag: 'lookup-a1b2c3d4-1743465600000',
+          statusCode: 200,
+        })
 
         ;(getExistingLookupResult as jest.Mock).mockResolvedValueOnce(
           existingIdentifierQueryResult
         )
         ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
           apiQueryResponse
+        )
+
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
         )
 
         const incomingRequest = {
@@ -941,7 +1123,10 @@ describe('requestService', () => {
       it('should return a response when the identifier yields no existing lookup', async () => {
         const existingIdentifierQueryResult = null
 
-        const expected = { data: [] }
+        const expected = decamelizeKeys({
+          body: { data: [] },
+          statusCode: 200,
+        })
 
         ;(getExistingLookupResult as jest.Mock).mockResolvedValueOnce(
           existingIdentifierQueryResult
@@ -949,6 +1134,26 @@ describe('requestService', () => {
 
         const incomingRequest = {
           headers: { host },
+          url: '/api/v1/lookup/a1b2c3d4',
+        } as http.IncomingMessage
+
+        const result = await handleExistingLookup(incomingRequest)
+
+        expect(result).toEqual(expected)
+      })
+
+      it("should return a 304 ('Not Modified') if the eTag in the 'if-none-match' header matches the current value", async () => {
+        const expected = decamelizeKeys({
+          statusCode: 304,
+        })
+
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
+        )
+
+        const incomingRequest = {
+          headers: { host, 'if-none-match': `lookup-a1b2c3d4-${openDateLastUpdatedTime.getTime()}` },
           url: '/api/v1/lookup/a1b2c3d4',
         } as http.IncomingMessage
 

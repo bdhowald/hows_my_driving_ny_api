@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios'
+import { AxiosResponse, HttpStatusCode } from 'axios'
 import { DateTime } from 'luxon'
 
 import { DatabasePathName } from 'constants/endpoints'
@@ -66,6 +66,7 @@ const getAndProcessApiLookup = async (
       error:
         'Sorry, a plate and state could not be inferred from ' +
         vehicle.originalString,
+      statusCode: HttpStatusCode.BadRequest,
       successfulLookup: false,
     }
   }
@@ -78,6 +79,7 @@ const getAndProcessApiLookup = async (
     error:
       'Sorry, there was an error querying open data for ' +
       vehicle.originalString,
+    statusCode: HttpStatusCode.BadGateway,
     successfulLookup: false,
   }
 
@@ -99,7 +101,7 @@ const getAndProcessApiLookup = async (
   const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
     if (!response.config.url) {
       throw Error('Missing response url')
-    } 
+    }
     const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
     const databasePathname = `${dataUri}.json` as DatabasePathName
     reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
@@ -220,6 +222,7 @@ const getAndProcessApiLookup = async (
   }
 
   const result: VehicleResponse = {
+    statusCode: HttpStatusCode.Ok,
     successfulLookup: true,
     vehicle: apiLookupResult,
   }

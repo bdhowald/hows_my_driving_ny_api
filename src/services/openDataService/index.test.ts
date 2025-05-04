@@ -518,15 +518,52 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
   })
 })
 
-describe('makeOpenDataMetadataRequest', () => {
-  it('should request the metadata for alll violation databases', async () => {
-    const violationTableMetadataResponse = { data: [
-      {
+describe('determineOpenDataLastUpdatedTime', () => {
+  it('should return the latest updated at time among the databases', async () => {
+    const violationTableMetadataResponse = {
+      data: {
         "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
         "id": "869v-vr48",
       }
-    ] }
+    }
+    const violationTableMetadataResponseWithLatestUpdatedAtTimestamp = {
+      data: {
+        "dataUpdatedAt": "2024-12-01T12:34:56.000Z",
+        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
+        "id": "869v-vr48",
+      }
+    }
+
+    ;(axios.get as jest.Mock)
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2014
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2015
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2016
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2017
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2018
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2019
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2020
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2021
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2022
+      .mockResolvedValueOnce(violationTableMetadataResponseWithLatestUpdatedAtTimestamp) // FY 2023
+      .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2024
+      .mockResolvedValueOnce(violationTableMetadataResponse) // OPACV
+
+    await expect(OpenDataService.determineOpenDataLastUpdatedTime()).resolves.toEqual(
+      new Date("2024-12-01T12:34:56.000Z")
+    )
+  })
+})
+
+describe('makeOpenDataMetadataRequest', () => {
+  it('should request the metadata for alll violation databases', async () => {
+    const violationTableMetadataResponse = {
+      data: {
+        "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
+        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
+        "id": "869v-vr48",
+      }
+    }
 
     ;(axios.get as jest.Mock)
       .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2014

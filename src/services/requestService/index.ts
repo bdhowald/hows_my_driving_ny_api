@@ -8,8 +8,13 @@ import {
 } from 'constants/endpoints'
 import LookupSource from 'constants/lookupSources'
 import QueryParser from 'models/queryParser'
-import { ExternalData, ResponseBody, VehicleResponse } from 'types/request'
-import { PotentialVehicle } from 'types/vehicles'
+import OpenDataService from 'services/openDataService'
+import {
+  ExistingLookupResponse,
+  ExternalData,
+  VehicleResponse
+} from 'types/request'
+import { PotentialVehicle, } from 'types/vehicles'
 import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
 import { getExistingLookupResult } from 'utils/databaseQueries'
 import detectVehicles from 'utils/detectVehicles'
@@ -25,8 +30,11 @@ import { handleTwitterAccountActivityApiEvents } from 'utils/twitter'
  */
 export const handleApiLookup = async (
   request: http.IncomingMessage
-): Promise<ResponseBody> => {
+): Promise<ExistingLookupResponse> => {
   const requestUrl = request.url as string
+
+  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime()
+  const eTagRequestHeader = request.headers['if-none-match']
 
   const host = request.headers.host
   const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
@@ -41,14 +49,22 @@ export const handleApiLookup = async (
 
   if ('error' in parsedQueryResults) {
     const errorBody = {
-      errorCode: HttpStatusCode.BadRequest,
       errorMessage: parsedQueryResults.error,
     }
 
-    return decamelizeKeys(errorBody)
+    return decamelizeKeys(
+      { body: decamelizeKeysOneLevel(errorBody), statusCode: HttpStatusCode.BadRequest }
+    ) as ExistingLookupResponse
   }
 
   const vehicles = detectVehicles(parsedQueryResults.potentialVehicles)
+
+  const currentETag = `lookup-${parsedQueryResults.potentialVehicles.join('-')}-${openDataLastUpdatedTime.getTime()}`
+
+  if (eTagRequestHeader === currentETag) {
+    // If the supplied eTag matches the current one, return a 304 (Not Modified)
+    return decamelizeKeysOneLevel({ statusCode: HttpStatusCode.NotModified}) as ExistingLookupResponse
+  }
 
   const analyticsData = queryParser.getAnalyticsData()
 
@@ -96,6 +112,9 @@ export const handleApiLookup = async (
 
   const vehicleResponses = await Promise.all(vehicleResponsePromises)
 
+  let anyFailedQueries = false
+  let anySuccessfulQueries = false
+
   const decamelized = vehicleResponses.map((vehicleResponse) => {
     const decamelizedVehicleResponse = decamelizeKeys(
       vehicleResponse
@@ -112,10 +131,31 @@ export const handleApiLookup = async (
       decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
     }
 
+    if ('error' in vehicleResponse) {
+      anyFailedQueries = true
+    } else {
+      anySuccessfulQueries = true
+    }
+
     return decamelizedVehicleResponse
   }) as VehicleResponse[]
 
-  return { data: decamelized }
+  const statusCode = anyFailedQueries
+    ? anySuccessfulQueries
+      ? HttpStatusCode.MultiStatus
+      : HttpStatusCode.BadRequest
+    : HttpStatusCode.Ok
+
+  const response = {
+    body: { data: decamelized },
+    statusCode,
+    ...(statusCode === HttpStatusCode.Ok
+      ? { etag: currentETag }
+      : undefined
+    )
+  }
+
+  return decamelizeKeysOneLevel(response) as ExistingLookupResponse
 }
 
 /**
@@ -125,8 +165,11 @@ export const handleApiLookup = async (
  */
 export const handleExistingLookup = async (
   request: http.IncomingMessage
-): Promise<ResponseBody> => {
+): Promise<ExistingLookupResponse> => {
   const requestUrl = request.url as string
+
+  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime()
+  const eTagRequestHeader = request.headers['if-none-match']
 
   const host = request.headers.host
   const protocol = host === LOCAL_SERVER_LOCATION ? 'http' : 'https'
@@ -143,16 +186,28 @@ export const handleExistingLookup = async (
 
   if (!identifier) {
     const body = {
-      errorCode: HttpStatusCode.BadRequest,
       errorMessage:
         "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'",
     }
-    return body
+    return decamelizeKeys(
+      { body, statusCode: HttpStatusCode.BadRequest }
+    ) as ExistingLookupResponse
+  }
+
+  const currentETag = `lookup-${identifier}-${openDataLastUpdatedTime.getTime()}`
+
+  if (eTagRequestHeader === currentETag) {
+    // If the supplied eTag matches the current one, return a 304 (Not Modified)
+    return decamelizeKeys(
+      { statusCode: HttpStatusCode.NotModified}
+    ) as ExistingLookupResponse
   }
 
   const previousLookupResult = await getExistingLookupResult(identifier)
   if (!previousLookupResult) {
-    return { data: [] }
+    return decamelizeKeys(
+      { body: { data: [] }, statusCode: HttpStatusCode.Ok}
+    ) as ExistingLookupResponse
   }
 
   const potentialVehicle = [
@@ -192,7 +247,9 @@ export const handleExistingLookup = async (
     return decamelizedVehicleResponse
   }) as VehicleResponse[]
 
-  return { data: decamelized }
+  return decamelizeKeysOneLevel(
+    { body: { data: decamelized }, etag: currentETag, statusCode: HttpStatusCode.Ok }
+  ) as ExistingLookupResponse
 }
 
 /**

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 import {
   handleApiLookup,
@@ -6,6 +6,8 @@ import {
   handleTwitterRequestChallenge,
   handleTwitterWebhookEvent,
 } from 'services/requestService'
+import { decamelizeKeys } from 'utils/camelize'
+
 import createServer from '.'
 
 jest.mock('services/requestService')
@@ -33,9 +35,14 @@ describe('createServer', () => {
   })
 
   it('should query for a vehicle', async () => {
-    ;(handleApiLookup as jest.Mock).mockResolvedValueOnce({
-      data: [],
-    })
+    ;(handleApiLookup as jest.Mock).mockResolvedValueOnce(
+      decamelizeKeys({
+        body: {
+          data: [],
+        },
+        statusCode: 200,
+      })
+    )
 
     await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
 
@@ -43,26 +50,44 @@ describe('createServer', () => {
   })
 
   it('should handle an unsuccessful query for a vehicle', async () => {
-    const unsuccessfulResponse = {
-      errorCode: 400,
-      errorMessage:
-        "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
-        "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'",
-    }
+    const errorMessage =  "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
+     "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'"
+
+    const unsuccessfulResponse = decamelizeKeys({
+      body: {
+        errorMessage,
+      },
+      statusCode: 400,
+    })
+
+    const expected = decamelizeKeys({
+      errorMessage,
+    })
 
     ;(handleApiLookup as jest.Mock).mockResolvedValueOnce(unsuccessfulResponse)
 
-    const response = await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
-
-    expect(response.data).toEqual(unsuccessfulResponse)
+    try {
+      await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
+    } catch(error: unknown) {
+      if (axios.isAxiosError(error)) {
+        expect(error.response?.data).toEqual(expected)
+      } else {
+        fail('Error was in unexpected format')
+      }
+    }
 
     expect(handleApiLookup as jest.Mock).toHaveBeenCalledTimes(1)
   })
 
   it('should query for an existing lookup', async () => {
-    ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce({
-      data: [],
-    })
+    ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce(
+      decamelizeKeys({
+        body: {
+          data: [],
+        },
+        statusCode: 200,
+      })
+    )
 
     await axios.get(`${apiEndpoint}/lookup/a1b2c3d4`)
 
@@ -70,17 +95,30 @@ describe('createServer', () => {
   })
 
   it('should handle an unsuccessful request for an existing lookup', async () => {
-    const unsuccessfulResponse = {
-      errorCode: 400,
-      errorMessage:
-        "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'",
-    }
+    const errorMessage = "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'"
+
+    const unsuccessfulResponse = decamelizeKeys({
+      body: {
+        errorMessage,
+      },
+      statusCode: 400,
+    })
+
+    const expected = decamelizeKeys({
+      errorMessage,
+    })
 
     ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce(unsuccessfulResponse)
 
-    const response = await axios.get(`${apiEndpoint}/lookup/a1b2c3d4`)
-
-    expect(response.data).toEqual(unsuccessfulResponse)
+    try {
+      await axios.get(`${apiEndpoint}/lookup/a1b2c3d4`)
+    } catch(error: unknown) {
+      if (axios.isAxiosError(error)) {
+        expect(error.response?.data).toEqual(expected)
+      } else {
+        fail('Error was in unexpected format')
+      }
+    }
 
     expect(handleExistingLookup as jest.Mock).toHaveBeenCalledTimes(1)
   })

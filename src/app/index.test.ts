@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import * as mysql from 'mysql2/promise'
 
 import {
@@ -28,147 +28,123 @@ describe('app', () => {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2017-11-15T17:04:39+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
-          "id": "jt7v-77mi",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2017-11-15T17:04:39+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
+        "id": "jt7v-77mi",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2017-09-14T17:47:45+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
-          "id": "c284-tqph",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2017-09-14T17:47:45+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
+        "id": "c284-tqph",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2017-09-14T17:49:20+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
-          "id": "kiv2-tbus",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2017-09-14T17:49:20+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
+        "id": "kiv2-tbus",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2017-08-10T01:43:31+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
-          "id": "2bnn-yakx",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2017-08-10T01:43:31+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
+        "id": "2bnn-yakx",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2018-07-31T18:38:30+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
-          "id": "a5td-mswe",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2018-07-31T18:38:30+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
+        "id": "a5td-mswe",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2019-07-17T15:21:47+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
-          "id": "faiq-9dfq",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2019-07-17T15:21:47+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
+        "id": "faiq-9dfq",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2020-08-06T13:30:36+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
-          "id": "p7t3-5i9s",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2020-08-06T13:30:36+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
+        "id": "p7t3-5i9s",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2021-08-04T19:29:37+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
-          "id": "kvfd-bves",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2021-08-04T19:29:37+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
+        "id": "kvfd-bves",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2022-08-09T18:44:55+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
-          "id": "7mxj-7a6y",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2022-08-09T18:44:55+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
+        "id": "7mxj-7a6y",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2023-11-14T17:54:58+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
-          "id": "869v-vr48",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
+        "id": "869v-vr48",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2025-03-16T19:36:56+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
-          "id": "pvqr-7yc4",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2025-03-16T19:36:56+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
+        "id": "pvqr-7yc4",
+      }
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
       },
-      data: [
-        {
-          "dataUpdatedAt": "2025-03-29T09:21:18+000",
-          "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
-          "id": "nc67-uf89",
-        }
-      ]
+      data: {
+        "dataUpdatedAt": "2025-03-29T09:21:18+0000",
+        "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
+        "id": "nc67-uf89",
+      }
     }
-  ]
+  ] as AxiosResponse<any, any>[]
 
   const queryForPlate = async (
     plate: string, state: string, plateTypes: string
@@ -412,15 +388,17 @@ describe('app', () => {
           }),
         ],
       },
-    ]
+    ] as AxiosResponse<any, any>[]
 
     it('should return the expected fields', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
         openDataTableMetadataResponses
       )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataResponses
+      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
+        new Date('2025-03-29T09:21:18.000Z')
       )
+      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
+        .mockResolvedValueOnce(openDataResponses)
 
       const response = await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
       const { data } = response.data
@@ -488,8 +466,11 @@ describe('app', () => {
     })
 
     it('should create a record in the database', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
+      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
         openDataTableMetadataResponses
+      )
+      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
+        new Date('2025-03-29T09:21:18.000Z')
       )
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
@@ -525,6 +506,9 @@ describe('app', () => {
     it('should return a previous lookup result as part of a lookup result when one exists', async () => {
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
         openDataTableMetadataResponses
+      )
+      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
+        new Date('2025-03-29T09:21:18.000Z')
       )
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
@@ -570,6 +554,9 @@ describe('app', () => {
     it('should return an existing lookup', async () => {
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
         openDataTableMetadataResponses
+      )
+      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
+        new Date('2025-03-29T09:21:18.000Z')
       )
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)

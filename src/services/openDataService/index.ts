@@ -14,6 +14,24 @@ type MedallionReponse = {
   maxLastUpdatedDate: string
 }
 
+/**
+ * Determine the most recent datetime that open data databases were updated.
+ * In practice, this will likely be Open Parking and Camera Violations, but
+ * could be any of them in practice.
+ */
+const determineOpenDataLastUpdatedTime = async () => {
+  try {
+    const openDataMetadata = await makeOpenDataMetadataRequest()
+    const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt).getTime())
+    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
+    return latestDatabaseUpdatedTime
+  } catch(error) {
+    console.error
+  }
+
+  return new Date()
+}
+
 const handleAxiosErrors = (error: AxiosError) => {
   if (error.response) {
     // The request was made and the server responded with a status code
@@ -199,4 +217,8 @@ const retrievePossibleMedallionVehiclePlate = async (
   return currentMedallionHolder.dmvLicensePlateNumber
 }
 
-export default { makeOpenDataMetadataRequest, makeOpenDataVehicleRequest }
+export default {
+  determineOpenDataLastUpdatedTime,
+  makeOpenDataMetadataRequest,
+  makeOpenDataVehicleRequest
+}

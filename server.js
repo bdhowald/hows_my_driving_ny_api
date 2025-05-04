@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import axios from 'axios'
-import { createHmac } from "crypto"
+import { createHash, createHmac } from "crypto"
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
@@ -1148,6 +1148,24 @@ const detectVehicles = (potentialVehicles) => {
 
     return vehicle
   })
+}
+
+/**
+ * Determine the most recent datetime that open data databases were updated.
+ * In practice, this will likely be Open Parking and Camera Violations, but
+ * could be any of them in practice.
+ */
+const determineOpenDataLastUpdatedTime = async () => {
+  try {
+    const openDataMetadata = await makeOpenDataMetadataRequest()
+    const databaseUpdatedAtTimes = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt))
+    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
+    return latestDatabaseUpdatedTime
+  } catch(error) {
+    console.error
+  }
+
+  return new Date()
 }
 
 /**
@@ -4162,6 +4180,9 @@ const server = http.createServer(async (req, res) => {
       console.log(JSON.stringify(response))
     }
   } else if (req.url.match(EXISTING_LOOKUP_PATH)) {
+    const openDataLastUpdatedTime = await determineOpenDataLastUpdatedTime()
+    const eTagRequestHeader = req.headers['if-none-match']
+
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -4181,6 +4202,14 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(body))
 
       return
+    }
+
+    const currentETag = `lookup-${identifier}-${openDataLastUpdatedTime.getTime()}`
+
+    if (eTagRequestHeader === currentETag) {
+      // If the supplied eTag matches the current one, return a 304 (Not Modified)
+      res.statusCode = 304
+      return res.end()
     }
 
     getPreviousQueryResult(identifier).then((previousLookup) => {
@@ -4213,8 +4242,13 @@ const server = http.createServer(async (req, res) => {
             await getVehicleResponse(vehicle, fields, externalData)
         )
       ).then((allResponses) => {
+        const body = { data: allResponses }
+
+        res.setHeader('ETag', currentETag)
+        res.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
+
         res.writeHead(200)
-        res.end(JSON.stringify({ data: allResponses }))
+        res.end(JSON.stringify(body))
       })
     })
 
@@ -4244,6 +4278,9 @@ const server = http.createServer(async (req, res) => {
     //   });
     // }
   } else if (req.url.match(API_LOOKUP_PATH)) {
+    const openDataLastUpdatedTime = await determineOpenDataLastUpdatedTime()
+    const eTagRequestHeader = req.headers['if-none-match']
+
     const host = req.headers.host
     const protocol = host === LOCAL_SERVER_LOCATION ? "http" : "https"
     const parser = new URL(req.url, `${protocol}://${host}`)
@@ -4332,6 +4369,15 @@ const server = http.createServer(async (req, res) => {
 
     const vehicles = detectVehicles(potentialVehicles)
 
+    const currentETag = `lookup-${potentialVehicles.join('-')}-${openDataLastUpdatedTime.getTime()}`
+
+    if (eTagRequestHeader === currentETag) {
+      // If the supplied eTag matches the current one, return a 304 (Not Modified)
+      console.log('etags matched!')
+      res.statusCode = 304
+      return res.end()
+    }
+
     const externalData = {
       lookup_source: lookupSource,
       fingerprint_id: fingerprintId,
@@ -4343,8 +4389,13 @@ const server = http.createServer(async (req, res) => {
         getVehicleResponse(vehicle, fields, externalData)
       )
     ).then((allResponses) => {
+      const body = { data: allResponses }
+
+      res.setHeader('ETag', currentETag)
+      res.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
+
       res.writeHead(200)
-      res.end(JSON.stringify({ data: allResponses }))
+      res.end(JSON.stringify(body))
     })
 
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which
