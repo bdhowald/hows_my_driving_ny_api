@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 
 import {
   handleApiLookup,
@@ -164,8 +164,16 @@ describe('createServer', () => {
   })
 
   it('should handle an unknown request path', async () => {
-    const response = await axios.get(`http://localhost:${serverPort}/api/unknown`).catch((_) => null)
+    const expected = { error: 'Unknown request type' }
 
-    expect(response).toBeNull()
+    try {
+      await axios.get(`http://localhost:${serverPort}/api/unknown`)
+    } catch(error: unknown) {
+      if (axios.isAxiosError(error)) {
+        expect(error.response?.data).toEqual(expected)
+      } else {
+        fail('Error was in unexpected format')
+      }
+    }
   })
 })

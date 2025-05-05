@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import axios from 'axios'
-import { createHash, createHmac } from "crypto"
+import { createHmac } from '@babel/cli'
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
 import * as mysql from 'mysql2/promise'
+import zlib from 'zlib'
 
 class Mutex {
   mutex = Promise.resolve()
@@ -4243,12 +4244,24 @@ const server = http.createServer(async (req, res) => {
         )
       ).then((allResponses) => {
         const body = { data: allResponses }
+        const stringifiedBody = JSON.stringify(body)
+        const acceptEncoding = req.headers['accept-encoding'] || ''
 
         res.setHeader('ETag', currentETag)
         res.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
 
+        if (acceptEncoding.includes('gzip')) {
+          res.statusCode = 200
+          res.setHeader('Content-Encoding', 'gzip')
+
+          const gzip = zlib.createGzip()
+          gzip.pipe(res)
+          gzip.end(stringifiedBody)
+          return
+        }
+
         res.writeHead(200)
-        res.end(JSON.stringify(body))
+        res.end(stringifiedBody)
       })
     })
 
@@ -4390,12 +4403,22 @@ const server = http.createServer(async (req, res) => {
       )
     ).then((allResponses) => {
       const body = { data: allResponses }
+      const stringifiedBody = JSON.stringify(body)
+      const acceptEncoding = req.headers['accept-encoding'] || ''
 
       res.setHeader('ETag', currentETag)
       res.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
 
+      if (acceptEncoding.includes('gzip')) {
+        res.writeHead(200, { 'Content-Encoding': 'gzip' })
+        const gzip = zlib.createGzip()
+        gzip.pipe(res)
+        gzip.end(stringifiedBody)
+        return
+      }
+
       res.writeHead(200)
-      res.end(JSON.stringify(body))
+      res.end(stringifiedBody)
     })
 
     // res.end(JSON.stringify({error: "Missing either plate_id or state, both of which

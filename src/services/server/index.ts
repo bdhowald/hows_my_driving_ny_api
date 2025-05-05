@@ -1,5 +1,6 @@
 import { HttpStatusCode } from 'axios'
 import http from 'http'
+import zlib from 'zlib'
 
 import {
   API_LOOKUP_PATH,
@@ -15,36 +16,55 @@ import {
 import { ExistingLookupResponse } from 'types/request'
 import { stat } from 'fs'
 
-const returnResponse = (
-  responseObj: http.ServerResponse,
+type ReturnResponseProps = {
+  etag?: string
   httpStatusCode: number,
   responseBody?: {
     data?: unknown[]
     error?: string
     response_token?: string
   },
-  etag?: string
-) => {
-  responseObj.setHeader('Content-Type', 'application/json; charset=utf-8')
-  responseObj.setHeader('Access-Control-Allow-Origin', '*')
+  responseObject: http.ServerResponse,
+  useGZip: boolean
+}
 
-  responseObj.statusCode = httpStatusCode
+const returnResponse = ({
+  etag,
+  httpStatusCode,
+  responseBody,
+  responseObject,
+  useGZip,
+}: ReturnResponseProps) => {
+  responseObject.setHeader('Content-Type', 'application/json; charset=utf-8')
+  responseObject.setHeader('Access-Control-Allow-Origin', '*')
+
+  responseObject.statusCode = httpStatusCode
 
   if (httpStatusCode === HttpStatusCode.NotModified) {
-    responseObj.end()
+    responseObject.end()
     return
   }
 
   if (httpStatusCode === HttpStatusCode.Ok && etag) {
-    responseObj.setHeader('ETag', etag)
-    responseObj.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
+    responseObject.setHeader('ETag', etag)
+    responseObject.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
   }
 
-  responseObj.end(
-    JSON.stringify(responseBody, (_, value) => {
-      return typeof value === 'undefined' ? null : value
-    })
-  )
+  const stringifiedBody = JSON.stringify(responseBody, (_, value) => {
+    return typeof value === 'undefined' ? null : value
+  })
+
+  if (useGZip) {
+    responseObject.statusCode = httpStatusCode
+    responseObject.setHeader('Content-Encoding', 'gzip')
+
+    const gzip = zlib.createGzip()
+    gzip.pipe(responseObject)
+    gzip.end(stringifiedBody)
+    return
+  }
+
+  responseObject.end(stringifiedBody)
 }
 
 // const stripReturnData = (obj: any, selectedFields: any) => {
@@ -75,6 +95,9 @@ const createServer = () =>
       response.setHeader('Content-Type', 'application/json;charset=utf-8')
       response.setHeader('Access-Control-Allow-Origin', '*')
 
+      const acceptEncoding = request.headers['accept-encoding'] || ''
+      const useGZip = acceptEncoding.includes('gzip')
+
       const receivedAtDate = new Date()
 
       console.log('--------------------------------------')
@@ -87,30 +110,37 @@ const createServer = () =>
 
           handleTwitterWebhookEvent(request)
 
-          returnResponse(response, HttpStatusCode.Ok, {
-            data: [{ success: true }],
+          returnResponse({
+            httpStatusCode: HttpStatusCode.Ok,
+            responseBody: {
+              data: [{ success: true }],
+            },
+            responseObject: response,
+            useGZip
           })
         } else if (request.method == 'GET') {
           console.log('Getting a challenge request.')
 
           try {
             const responseChallenge = handleTwitterRequestChallenge(request)
-            returnResponse(
-              response,
-              HttpStatusCode.Ok,
-              responseChallenge
-            )
+            returnResponse({
+              httpStatusCode: HttpStatusCode.Ok,
+              responseBody: responseChallenge,
+              responseObject: response,
+              useGZip,
+            })
           } catch (error) {
             console.log(error)
 
             const body = {
               error: 'Error responding to challenge request',
             }
-            returnResponse(
-              response,
-              HttpStatusCode.Ok,
-              body
-            )
+            returnResponse({
+              httpStatusCode: HttpStatusCode.Ok,
+              responseBody: body,
+              responseObject: response,
+              useGZip,
+            })
           }
         } else {
           console.log('Unknown webhook request from Twitter')
@@ -119,20 +149,33 @@ const createServer = () =>
             error: 'Unknown request type',
           }
 
-          returnResponse(
-            response,
-            HttpStatusCode.Ok,
-            body,
-          )
+          returnResponse({
+            httpStatusCode: HttpStatusCode.Ok,
+            responseBody: body,
+            responseObject: response,
+            useGZip,
+          })
         }
       } else if (request.url?.match(EXISTING_LOOKUP_PATH)) {
         const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleExistingLookup(request)
 
-        returnResponse(response, statusCode, body, etag)
+        returnResponse({
+          etag,
+          httpStatusCode: HttpStatusCode.Ok,
+          responseBody: body,
+          responseObject: response,
+          useGZip,
+        })
       } else if (request.url?.match(API_LOOKUP_PATH)) {
         const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleApiLookup(request)
 
-        returnResponse(response, statusCode, body, etag)
+        returnResponse({
+          etag,
+          httpStatusCode: HttpStatusCode.Ok,
+          responseBody: body,
+          responseObject: response,
+          useGZip,
+        })
       } else {
         console.log('Unknown request path')
 
@@ -140,11 +183,12 @@ const createServer = () =>
           error: 'Unknown request type',
         }
 
-        returnResponse(
-          response,
-          HttpStatusCode.NotFound,
-          body,
-        )
+        returnResponse({
+          httpStatusCode: HttpStatusCode.NotFound,
+          responseBody: body,
+          responseObject: response,
+          useGZip,
+        })
       }
     }
   )
