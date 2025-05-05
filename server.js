@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import axios from 'axios'
-import { createHmac } from '@babel/cli'
+import { createHmac, randomUUID } from "crypto"
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
@@ -1726,7 +1726,9 @@ const getGeocodeFromDatabase = async (
  *
  * @param {string} streetAddress - the address whose borough we are trying to find
  */
-const getGoogleGeocode = async (streetAddress) => {
+const getGoogleGeocode = async (streetAddress, summonsAndVehicleLoggingKey, requestId) => {
+  const requestLoggingKey = getRequestIdLoggingKey(requestId)
+
   const googleMapsClient = instantiateGoogleMapsClient()
 
   const geocodingArguments = {
@@ -1749,7 +1751,11 @@ const getGoogleGeocode = async (streetAddress) => {
       const bestResponse = geocodeResponse.data.results[0]
 
       if (!bestResponse?.address_components?.length) {
-        console.log('No geocode result or result has insufficient data')
+        console.log(
+          requestLoggingKey,
+          summonsAndVehicleLoggingKey,
+          'No geocode result or result has insufficient data'
+        )
         return
       }
 
@@ -1760,6 +1766,8 @@ const getGoogleGeocode = async (streetAddress) => {
 
       if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
         console.log(
+          requestLoggingKey,
+          summonsAndVehicleLoggingKey,
           'Returned geocode from Google is not for New York City',
           `Returned city is '${potentiallyNewYorkCity?.long_name}'`
         )
@@ -1773,6 +1781,8 @@ const getGoogleGeocode = async (streetAddress) => {
 
       if (!potentialBorough?.long_name) {
         console.log(
+          requestLoggingKey,
+          summonsAndVehicleLoggingKey,
           'Returned geocode from Google does not have a borough'
         )
         return
@@ -1786,7 +1796,13 @@ const getGoogleGeocode = async (streetAddress) => {
     }
     return
   } catch (error) {
-    console.error(error)
+    const errorMessage = `status code: ${error?.response?.status} | message: ${error?.response?.data?.error_message}`
+
+    console.error(
+      requestLoggingKey,
+      summonsAndVehicleLoggingKey,
+      errorMessage,
+    )
     return
   }
 }
@@ -1989,6 +2005,8 @@ const getReadableViolationDescription = (violation) => {
   return null
 }
 
+const getRequestIdLoggingKey = (requestId) => `[request_id=${requestId}]`
+
 const getSearchQueryStringAndArgs = (
   plate,
   state,
@@ -2047,6 +2065,8 @@ const getSearchQueryStringAndArgs = (
 }
 
 const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
+  const requestId = externalData.request_id
+
   const plate = vehicle.plate
   const state = vehicle.state
   const plateTypes = vehicle.types
@@ -2067,7 +2087,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       makeOpenDataVehicleRequests(
         plate,
         state,
-        plateTypes
+        plateTypes,
+        requestId,
       ),
       makeOpenDataMetadataRequest()
     ])
@@ -2101,7 +2122,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       const requestUrlObject = new URL(response.config.url)
       const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}`
       const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
-      return normalizeViolations(requestUrlObject.pathname, response.data, dataUpdatedAt)
+      return normalizeViolations(requestUrlObject.pathname, response.data, dataUpdatedAt, requestId)
     })
     await Promise.all(normalizedResponses).then((normalizedResponses) => {
       normalizedResponses.forEach((normalizedResponse) => {
@@ -2402,7 +2423,7 @@ const getVehicleBodyType = (bodyTypeish) => {
   }
 }
 
-const getViolationWithLocationData = async (violation) => {
+const getViolationWithLocationData = async (violation, requestId) => {
   // Let's get a human-readable address
   const addressOrLocation = getViolationLocation(violation)
 
@@ -2446,13 +2467,14 @@ const getViolationWithLocationData = async (violation) => {
     }
   }
 
-  const geocodeLoggingKey = `[summons_number=${violation.summons_number}]`
-    + `[vehicle=${violation.registration_state}:${violation.plate_id}]`
+  const geocodeLoggingKey = `[vehicle=${violation.registration_state}:${violation.plate_id}]`
+    + `[summons_number=${violation.summons_number}]`
 
   const boroughFromLocation = await retrieveBoroughFromGeocode(
     standardizedLocation,
     addressOrLocation,
     geocodeLoggingKey,
+    requestId,
   )
 
   return {
@@ -3221,11 +3243,14 @@ const makeOpenDataMetadataRequest = async () => {
   return await Promise.all(promises)
 }
 
-const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
+const makeOpenDataVehicleRequests = async (plate, state, plateTypes, requestId) => {
+  const requestLoggingKey = getRequestIdLoggingKey(requestId)
+  const vehicleLoggingKey = `[vehicle=${state}:${plate}]`
+
   let rectifiedPlate = plate
 
   try {
-    const possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(plate)
+    const possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(plate, requestId)
     if (possibleMedallionPlate) {
       rectifiedPlate = possibleMedallionPlate
     }
@@ -3233,11 +3258,11 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
     console.error(error)
   }
 
-  console.log("\n\n")
-  console.log("in makeOpenDataVehicleRequests")
-  console.log(`rectifiedPlate: ${rectifiedPlate}`)
-  console.log(`state: ${state.toUpperCase()}`)
-  console.log("\n\n")
+  console.log(
+    requestLoggingKey,
+    vehicleLoggingKey,
+    `Got rectified plate ${state}:${rectifiedPlate} from original plate ${state}:${plate}`
+  )
 
   const fiscalYearSearchParams = new URLSearchParams({
     $$app_token: "q198HrEaAdCJZD4XCLDl2Uq0G",
@@ -3305,11 +3330,19 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
 
   const startTime = new Date()
 
-  console.log('about to make violations calls')
+  console.log(
+    requestLoggingKey,
+    vehicleLoggingKey,
+    'about to make violations calls'
+  )
 
   const responses = await Promise.all(promises)
 
-  console.log(`violations calls took ${(new Date() - startTime)/1000.0} seconds`)
+  console.log(
+    requestLoggingKey,
+    vehicleLoggingKey,
+    `violations calls took ${(new Date() - startTime)/1000.0} seconds`
+  )
 
   return responses
 }
@@ -3369,9 +3402,9 @@ const modifyViolationsForResponse = (violations, selectedFields) =>
     )
   )
 
-const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) => {
+const normalizeViolations = async (requestPathname, violations, dataUpdatedAt, requestId) => {
   const returnViolations = violations.map(async (rawViolation) => {
-    const violation = await getViolationWithLocationData(rawViolation)
+    const violation = await getViolationWithLocationData(rawViolation, requestId)
 
     const readableViolationDescription =
       getReadableViolationDescription(violation)
@@ -3595,15 +3628,23 @@ const respondToNonFollowerFavorite = async (
 const retrieveBoroughFromGeocode = async (
   normalizedAddress,
   originalAddress,
-  loggingKey,
+  summonsAndVehicleLoggingKey,
+  requestId,
 ) => {
+  const requestLoggingKey = getRequestIdLoggingKey(requestId)
+
   if (!normalizedAddress) {
-    console.log(loggingKey, 'No address available')
+    console.log(
+      requestLoggingKey,
+      summonsAndVehicleLoggingKey,
+      'No address available'
+    )
     return 'No Borough Available'
   }
 
   console.log(
-    loggingKey,
+    requestLoggingKey,
+    summonsAndVehicleLoggingKey,
     'Attempting to retrieve borough for lookup string',
     `'${normalizedAddress}'`
   )
@@ -3611,7 +3652,8 @@ const retrieveBoroughFromGeocode = async (
   let potentialBorough
 
   console.log(
-    loggingKey,
+    requestLoggingKey,
+    summonsAndVehicleLoggingKey,
     `obtaining mutex for address search for ${normalizedAddress}`
   )
 
@@ -3619,7 +3661,8 @@ const retrieveBoroughFromGeocode = async (
   const unlock = await GEOCODE_MUTEX.lock()
 
   console.log(
-    loggingKey,
+    requestLoggingKey,
+    summonsAndVehicleLoggingKey,
     `obtained mutex for address search for ${normalizedAddress}`
   )
 
@@ -3633,26 +3676,31 @@ const retrieveBoroughFromGeocode = async (
 
     if (result.length) {
       console.log(
-        loggingKey,
+        requestLoggingKey,
+        summonsAndVehicleLoggingKey,
         `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
         `'${normalizedAddress}' from original '${originalAddress}'`
       )
       potentialBorough = result[0].borough
     } else {
       console.log(
-        loggingKey,
+        requestLoggingKey,
+        summonsAndVehicleLoggingKey,
         `No geocode found in database for lookup string`,
         `'${normalizedAddress}' from original '${originalAddress}'`
       )
       console.log(
-        loggingKey,
+        requestLoggingKey,
+        summonsAndVehicleLoggingKey,
         `Retrieving geocode from Google for lookup string`,
         `'${normalizedAddress}' from original '${originalAddress}'`
       )
 
-      const geocodeFromGoogle = await getGoogleGeocode(normalizedAddress)
-
-      console.log(geocodeFromGoogle)
+      const geocodeFromGoogle = await getGoogleGeocode(
+        normalizedAddress,
+        summonsAndVehicleLoggingKey,
+        requestId
+      )
 
       if (!geocodeFromGoogle) {
         return 'No Borough Available'
@@ -3669,7 +3717,8 @@ const retrieveBoroughFromGeocode = async (
     // release mutex
     unlock()
     console.log(
-      loggingKey,
+      requestLoggingKey,
+      summonsAndVehicleLoggingKey,
       `released mutex for address search for ${normalizedAddress}`
     )
   }
@@ -3732,7 +3781,10 @@ const retrieveBoroughFromGeocode = async (
 //     )
 // }
 
-const retrievePossibleMedallionVehiclePlate = async (plate) => {
+const retrievePossibleMedallionVehiclePlate = async (plate, requestId) => {
+  const requestLoggingKey = getRequestIdLoggingKey(requestId)
+  const vehicleLoggingKey = `[vehicle=NY:${plate}]`
+
   const medallionEndpoint =
     "https://data.cityofnewyork.us/resource/rhe8-mgbb.json"
 
@@ -3750,15 +3802,25 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
   )
 
   try {
-    console.log(`calling ${medallionUrlObject}...`)
+    console.log(
+      requestLoggingKey,
+      vehicleLoggingKey,
+      `calling ${medallionUrlObject}...`
+    )
     const startTime = new Date()
-    const medallionEndpointResponse = await axios
-      .get(medallionUrlObject)
-      .catch(handleAxiosErrors)
 
-    console.log(`medallion call took ${(new Date() - startTime)/1000.0} seconds`)
+    const medallionEndpointResponse = axios
+      .get('https://httpstat.us/503')
 
-    const medallionResults = medallionEndpointResponse.data
+    const medallionEndpointData = await medallionEndpointResponse
+
+    console.log(
+      requestLoggingKey,
+      vehicleLoggingKey,
+      `medallion call took ${(new Date() - startTime)/1000.0} seconds`
+    )
+
+    const medallionResults = medallionEndpointData.data
 
     if (!medallionResults.length) {
       return plate
@@ -3772,7 +3834,9 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
 
     return currentMedallionHolder.dmv_license_plate_number
   } catch (error) {
-    console.error(error)
+    console.log('Requesting medallion data failed')
+    handleAxiosErrors(error)
+    throw error
   }
 }
 
@@ -4055,10 +4119,12 @@ const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*")
 
   const receivedAtDate = new Date()
+  const requestId = randomUUID()
+  const loggingKey = getRequestIdLoggingKey(requestId)
 
   console.log("----------------------------------------------------")
-  console.log(`request received at: ${receivedAtDate}`)
-  console.log(`request url: ${req.url}`)
+  console.log(`${loggingKey} request received at: ${receivedAtDate}`)
+  console.log(`${loggingKey} request url: ${req.url}`)
   console.log("\n\n")
 
   if (req.url.match("/webhook/twitter")) {
@@ -4230,11 +4296,12 @@ const server = http.createServer(async (req, res) => {
       const vehicles = detectVehicles(potentialVehicle)
 
       const externalData = {
-        lookup_source: EXISTING_LOOKUP_SOURCE,
-        fingerprint_id: null,
-        mixpanel_id: null,
-        unique_identifier: identifier,
         existing_lookup_created_at: previousLookup.created_at,
+        fingerprint_id: null,
+        lookup_source: EXISTING_LOOKUP_SOURCE,
+        mixpanel_id: null,
+        request_id: requestId,
+        unique_identifier: identifier,
       }
 
       Promise.all(
@@ -4331,9 +4398,10 @@ const server = http.createServer(async (req, res) => {
       )
 
       const externalData = {
-        lookup_source: lookupSource,
         fingerprint_id: fingerprintId,
+        lookup_source: lookupSource,
         mixpanel_id: mixpanelId,
+        request_id: requestId,
       }
 
       getViolationCodesResponse(violationCodes, fields, externalData)
@@ -4392,9 +4460,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     const externalData = {
-      lookup_source: lookupSource,
       fingerprint_id: fingerprintId,
+      lookup_source: lookupSource,
       mixpanel_id: mixpanelId,
+      request_id: requestId,
     }
 
     Promise.all(
