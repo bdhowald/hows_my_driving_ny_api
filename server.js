@@ -944,8 +944,8 @@ const initializeConnection = (config) => {
  * Some address data is so hairy that it requires specific fixes.
  * Let's apply them.
  */
-const applyStreetSpecificLocationFixes = (inputLocation) => {
-  let standardizedLocation = inputLocation
+const applyLocationSpecificLocationFixes = (inputLocation) => {
+  let standardizedLocation = applyStreetSpecificLocationFixes(inputLocation)
 
   standardizedLocation = standardizedLocation.replace(/Crossbay/, 'Cross Bay')
   standardizedLocation = standardizedLocation.replace(
@@ -985,6 +985,56 @@ const applyStreetSpecificLocationFixes = (inputLocation) => {
   standardizedLocation = standardizedLocation.replace(
     /E Tremont Ave @ St Lawrence Ave/,
     'East Tremont Avenue and Saint Lawrence Avenue',
+  )
+
+  return standardizedLocation
+}
+
+/**
+ * Replace abbreviations for street names
+ */
+const applyStreetSpecificLocationFixes = (inputLocation) => {
+  let standardizedLocation = inputLocation
+
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Albans/,
+    'Saint Albans',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Ann'?s/,
+    "Saint Ann's",
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Edwards/,
+    'Saint Edwards',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Felix/,
+    'Saint Felix',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? James/,
+    'Saint James',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? John'?s/,
+    "Saint John's",
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Luke'?s/,
+    "Saint Luke's",
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Marks/,
+    'Saint Marks',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Nicholas/,
+    'Saint Nicholas',
+  )
+  standardizedLocation = standardizedLocation.replace(
+    /St\.? Paul'?s/,
+    "Saint Paul's",
   )
 
   return standardizedLocation
@@ -3621,7 +3671,7 @@ const standardizeDisplayedLocation = (location) => {
   let standardizedLocation = location
 
   // Fix specific bad location strings
-  standardizedLocation = applyStreetSpecificLocationFixes(standardizedLocation)
+  standardizedLocation = applyLocationSpecificLocationFixes(standardizedLocation)
 
   // Strip cruft
   standardizedLocation = standardizedLocation.replace(/-[a-z][0-9a-z]-[0-9]/g, '')
