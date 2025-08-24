@@ -283,7 +283,7 @@ const retrievePossibleMedallionVehiclePlate = async (
     asyncRequestFn: () => axios.get(stringifiedMedallionRequestUrl),
     onRetry: () => {
       console.log(
-        `Request to ${openParkingAndCameraViolationsEndpoint} failed, possibly retrying`
+        `Request to ${stringifiedMedallionRequestUrl} failed, possibly retrying`
       )
     }
   })
