@@ -20,6 +20,8 @@ class Mutex {
     })
 }
 
+const BASE_DELAY = 1000
+
 const GEOCODE_MUTEX = new Mutex()
 
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
@@ -3123,7 +3125,14 @@ const makeOpenDataMetadataRequest = async () => {
     const resourceIdentifier = endpoint.replace('/resource/', '')
     const metadataUrl = new URL(resourceIdentifier, NYC_OPEN_DATA_PORTAL_METADATA_PREFIX)
 
-    return axios.get(metadataUrl.toString())
+    const stringifiedMetadataUrl = metadataUrl.toString()
+
+    return makeRequestWithRetries({
+      asyncRequestFn: () => axios.get(stringifiedMetadataUrl),
+      onRetry: () => {
+        console.log(`Request to ${stringifiedMetadataUrl} failed, possibly retrying`)
+      }
+    }).catch(handleAxiosErrors)
   })
 
   return await Promise.all(promises)
@@ -3175,8 +3184,16 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   // Fiscal Year Databases
   const promises = FISCAL_YEAR_PATHS.map(async (path) => {
     const endpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${path}`
-    const fiscalYearUrlObject = new URL(`?${fiscalYearSearchParams}`, endpoint)
-    return axios.get(fiscalYearUrlObject.toString()).catch(handleAxiosErrors)
+    const fiscalYearUrl = new URL(`?${fiscalYearSearchParams}`, endpoint)
+
+    const stringifiedFiscalYearUrl = fiscalYearUrl.toString()
+
+    return makeRequestWithRetries({
+      asyncRequestFn: () => axios.get(stringifiedFiscalYearUrl),
+      onRetry: () => {
+        console.log(`Request to ${stringifiedFiscalYearUrl} failed, possibly retrying`)
+      }
+    }).catch(handleAxiosErrors)
   })
 
   // Open Parking & Camera Violations Database
@@ -3204,16 +3221,65 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
   // }
 
-  const urlObject = new URL(
+  const openParkingAndCameraViolationsUrl = new URL(
     `?${openParkingAndCameraViolationsSearchParams}`,
     `${NYC_OPEN_DATA_PORTAL_HOST}${OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH}`
   )
 
-  promises.push(axios.get(urlObject.toString()).catch(handleAxiosErrors))
+  const stringifiedOpenParkingAndCameraViolationsUrl = openParkingAndCameraViolationsUrl.toString()
+
+  promises.push(
+    makeRequestWithRetries({
+      asyncRequestFn: () => axios.get(stringifiedOpenParkingAndCameraViolationsUrl),
+      onRetry: () => {
+        console.log(`Request to ${stringifiedOpenParkingAndCameraViolationsUrl} failed, possibly retrying`)
+      }
+    }).catch(handleAxiosErrors)
+  )
 
   const responses = await Promise.all(promises)
 
   return responses
+}
+
+const makeRequestWithRetries = async ({
+  asyncRequestFn,
+  maxRetries = 5,
+  baseDelay = BASE_DELAY,
+  shouldRetry = () => true,
+  onRetry = () => {},
+  jitter = true,
+}) => {
+  let attempt = 0
+
+  while (attempt <= maxRetries) {
+    try {
+      return await asyncRequestFn()
+    } catch (error) {
+      if (attempt === maxRetries) {
+        console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)
+        throw error
+      }
+
+      if (!shouldRetry) {
+        console.log(`Retry condition failed, throwing error`)
+        throw error
+      }
+
+      // delay grows by power of two each time
+      const delay = jitter
+        ? Math.random() * baseDelay * 2 ** attempt
+        : baseDelay * 2 ** attempt
+
+      onRetry(attempt + 1, error, delay)
+
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+
+    attempt++
+  }
+
+  throw new Error('Unexpected exit from makeRequestWithRetries')
 }
 
 const mergeDuplicateViolationRecords = (violations) => {
@@ -3634,15 +3700,24 @@ const retrievePossibleMedallionVehiclePlate = async (plate) => {
     $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`,
   })
 
-  const medallionUrlObject = new URL(
+  const medallionUrl = new URL(
     `?${medallionEndpointSearchParams}`,
     medallionEndpoint
   )
 
   try {
-    const medallionEndpointResponse = await axios
-      .get(medallionUrlObject)
-      .catch(handleAxiosErrors)
+    const stringifiedMedallionRequestUrl = medallionUrl.toString()
+
+    const medallionDatabaseRequest = makeRequestWithRetries({
+      asyncRequestFn: () => axios.get(stringifiedMedallionRequestUrl),
+      onRetry: () => {
+        console.log(
+          `Request to ${stringifiedMedallionRequestUrl} failed, possibly retrying`
+        )
+      }
+    }).catch(handleAxiosErrors)
+
+    const medallionEndpointResponse = await medallionDatabaseRequest
 
     const medallionResults = medallionEndpointResponse.data
 
