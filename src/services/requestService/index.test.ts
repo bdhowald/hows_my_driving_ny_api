@@ -42,6 +42,11 @@ describe('requestService', () => {
       it('should return a response for a vehicle with violations', async () => {
         jest.useFakeTimers()
 
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
+        )
+
         const now = DateTime.now()
         const uniqueIdentifier = 'a1b2c3d4'
 
@@ -438,7 +443,7 @@ describe('requestService', () => {
           body: {
             data: [decamelizedResponse],
           },
-          etag: 'lookup-ABC1234:NY-1746325413000',
+          etag: 'lookup-ABC1234:NY-1743465600000',
           statusCode: 200,
         })
 
@@ -460,6 +465,11 @@ describe('requestService', () => {
 
       it('should return a response for a vehicle with no violations', async () => {
         jest.useFakeTimers()
+
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
+          openDateLastUpdatedTime
+        )
 
         const now = DateTime.now()
         const uniqueIdentifier = 'a1b2c3d4'
@@ -539,7 +549,7 @@ describe('requestService', () => {
           body: {
             data: [apiQueryResponse],
           },
-          etag: 'lookup-ABC1234:NY-1746325413000',
+          etag: 'lookup-ABC1234:NY-1743465600000',
           statusCode: 200,
         })
 
