@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
+import { LRUCache } from 'lru-cache'
 
 import {
   fiscalYearEndpoints,
@@ -9,6 +10,8 @@ import {
 } from 'constants/endpoints'
 import { BASE_DELAY } from 'constants/requests'
 import { camelizeKeys } from 'utils/camelize'
+
+const TEST_ENVIRONMENT = 'test'
 
 type MedallionReponse = {
   dmvLicensePlateNumber: string
@@ -23,6 +26,8 @@ type RetryOptions = {
   onRetry?: (attempt: number, error: any, delay: number) => void
   shouldRetry?: (error: any) => boolean
 }
+
+let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
 
 /**
  * Determine the most recent datetime that open data databases were updated.
@@ -40,6 +45,26 @@ const determineOpenDataLastUpdatedTime = async () => {
   }
 
   return new Date()
+}
+
+const cacheOptions = {
+  max: 100,
+  ttl: 1000 * 60 * 60 * 6, // one hour
+}
+
+/**
+ *
+ * Initialize the cache if it is not yet ready.
+ */
+const initializeCache = () => {
+  if (process.env.NODE_ENV === TEST_ENVIRONMENT) {
+    return new LRUCache(cacheOptions)
+  }
+
+  if (!lruCache) {
+    lruCache = new LRUCache(cacheOptions)
+  }
+  return lruCache
 }
 
 const handleAxiosErrors = (error: AxiosError) => {
@@ -119,8 +144,9 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
 
     const stringifiedMetadataUrl = metadataUrl.toString()
 
-    const metadataRequest = makeRequestWithRetries({
+    const metadataRequest = makeRequestWithCache({
       asyncRequestFn: () => axios.get(stringifiedMetadataUrl),
+      cacheKey: stringifiedMetadataUrl,
       onRetry: () => {
         console.log(
           `Request to ${stringifiedMetadataUrl} failed, possibly retrying`
@@ -131,7 +157,14 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
     return metadataRequest
   })
 
-  return await Promise.all(promises)
+  const settledPromises = await Promise.allSettled(promises)
+
+  const rejected = settledPromises.filter(result => result.status === 'rejected')
+  if (rejected.length > 0) {
+    throw rejected[0].reason
+  }
+
+  return settledPromises.map(result => (result as PromiseFulfilledResult<any>).value)
 }
 
 const makeOpenDataVehicleRequest = async (
@@ -220,14 +253,65 @@ const makeOpenDataVehicleRequest = async (
   return await Promise.all(promises)
 }
 
-const makeRequestWithRetries = async ({
-  asyncRequestFn,
-  maxRetries = 5,
-  baseDelay = BASE_DELAY,
-  shouldRetry = (args: any) => true,
-  onRetry = (args: any) => {},
-  jitter = true,
-}: RetryOptions
+/**
+ *
+ * Fetch a url's response from the cache, if it exists, otherwise undefined.
+ */
+const makeRequestWithCache = async (
+  retryOptions: RetryOptions & { cacheKey?: string }
+): Promise<AxiosResponse> => {
+  const localLruCache = initializeCache()
+
+  const cacheKey = retryOptions.cacheKey
+
+  if (cacheKey && localLruCache.has(cacheKey)) {
+    const cachedResponse = localLruCache.get(cacheKey) as Promise<AxiosResponse>
+
+    if (cachedResponse) {
+      return cachedResponse
+    }
+  }
+
+  // Start retrying with backoff
+  const requestPromise = makeRequestWithRetries(retryOptions)
+    .then(response => {
+      if (cacheKey) {
+        // Cache the resolved response wrapped in a resolved Promise
+        localLruCache.set(cacheKey, Promise.resolve(response))
+      }
+      return response
+    })
+    .catch(error => {
+      if (cacheKey && localLruCache.has(cacheKey)) {
+        // On failure, remove from cache so next call retries fresh
+        localLruCache.delete(cacheKey)
+      }
+      throw error
+    })
+
+  if (cacheKey) {
+    // Cache the in-flight promise immediately
+    localLruCache.set(cacheKey, requestPromise)
+  }
+
+  return requestPromise
+}
+
+/**
+ *
+ * Makes a request with retry capability, taking in arguments like max retries,
+ * a base delay amount, a jitter amount, and functions to determine if a retry
+ * should happen and what to do when a retry is needed.
+ */
+const makeRequestWithRetries = async (
+  {
+    asyncRequestFn,
+    maxRetries = 5,
+    baseDelay = BASE_DELAY,
+    shouldRetry = (args: any) => true,
+    onRetry = (args: any) => {},
+    jitter = true,
+  }: RetryOptions
 ): Promise<AxiosResponse> => {
   let attempt = 0
 
@@ -297,8 +381,6 @@ const retrievePossibleMedallionVehiclePlate = async (
   if (!medallionResults.length) {
     return undefined
   }
-
-  console.log(medallionResults)
 
   const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
     const previousDate = new Date(prev.maxLastUpdatedDate)

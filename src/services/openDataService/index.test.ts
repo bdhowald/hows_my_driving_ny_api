@@ -22,8 +22,6 @@ jest.mock('constants/requests', () => ({
 
 describe('OpenDataService.makeOpenDataVehicleRequest', () => {
   describe('querying various open data tables', () => {
-    const baseDelayExistingValue = OpenDataService.BASE_DELAY
-
     beforeEach(() => {
       ;(axios.get as jest.Mock).mockReset()
     })
@@ -569,7 +567,7 @@ describe('determineOpenDataLastUpdatedTime', () => {
 })
 
 describe('makeOpenDataMetadataRequest', () => {
-  it('should request the metadata for alll violation databases', async () => {
+  it('should request the metadata for all violation databases', async () => {
     const violationTableMetadataResponse = {
       data: {
         "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
@@ -625,7 +623,7 @@ describe('makeOpenDataMetadataRequest', () => {
       {},
     )
 
-    ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+    ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
     await expect(OpenDataService.makeOpenDataMetadataRequest()).rejects.toEqual(simpleError)
   })

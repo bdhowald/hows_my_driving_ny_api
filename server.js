@@ -4,6 +4,7 @@ import { createHmac } from '@babel/cli'
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
+import { LRUCache } from 'lru-cache'
 import * as mysql from 'mysql2/promise'
 import zlib from 'zlib'
 
@@ -895,6 +896,24 @@ class PlateLookup {
     this.createdAt = createdAt
     this.numViolations = numViolations
   }
+}
+
+let lruCache = null
+
+const cacheOptions = {
+  max: 100,
+  ttl: 1000 * 60 * 60 * 6, // one hour
+}
+
+const initializeCache = () => {
+  if (process.env.NODE_ENV === TEST_ENVIRONMENT) {
+    return new LRUCache(cacheOptions)
+  }
+
+  if (!lruCache) {
+    lruCache = new LRUCache(cacheOptions)
+  }
+  return lruCache
 }
 
 const initializeConnection = async (config) => {
@@ -3219,15 +3238,23 @@ const makeOpenDataMetadataRequest = async () => {
 
     const stringifiedMetadataUrl = metadataUrl.toString()
 
-    return makeRequestWithRetries({
+    return makeRequestWithCache({
       asyncRequestFn: () => axios.get(stringifiedMetadataUrl),
+      cacheKey: stringifiedMetadataUrl,
       onRetry: () => {
         console.log(`Request to ${stringifiedMetadataUrl} failed, possibly retrying`)
       }
     }).catch(handleAxiosErrors)
   })
 
-  return await Promise.all(promises)
+  const settledPromises = await Promise.allSettled(promises)
+
+  const rejected = settledPromises.filter(result => result.status === 'rejected')
+  if (rejected.length > 0) {
+    throw rejected[0].reason
+  }
+
+  return settledPromises.map(result => result.value)
 }
 
 const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
@@ -3338,6 +3365,45 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   console.log(`violations calls took ${(new Date() - startTime)/1000.0} seconds`)
 
   return responses
+}
+
+/**
+ *
+ * Fetch a url's response from the cache, if it exists, otherwise undefined.
+ */
+const makeRequestWithCache = async (retryOptions) => {
+  const localLruCache = initializeCache()
+
+  const cacheKey = retryOptions.cacheKey
+
+  if (cacheKey && localLruCache.has(cacheKey)) {
+    const cachedResponse = localLruCache.get(cacheKey)
+    return cachedResponse
+  }
+
+  // Start retrying with backoff
+  const requestPromise = makeRequestWithRetries(retryOptions)
+    .then(response => {
+      if (cacheKey) {
+        // Cache the resolved response wrapped in a resolved Promise
+        localLruCache.set(cacheKey, Promise.resolve(response))
+      }
+      return response
+    })
+    .catch(error => {
+      if (cacheKey && localLruCache.has(cacheKey)) {
+        // On failure, remove from cache so next call retries fresh
+        localLruCache.delete(cacheKey)
+      }
+      throw error
+    })
+
+  if (cacheKey) {
+    // Cache the in-flight promise immediately
+    localLruCache.set(cacheKey, requestPromise)
+  }
+
+  return requestPromise
 }
 
 /**
