@@ -3242,6 +3242,12 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   return responses
 }
 
+/**
+ *
+ * Makes a request with retry capability, taking in arguments like max retries,
+ * a base delay amount, a jitter amount, and functions to determine if a retry
+ * should happen and what to do when a retry is needed.
+ */
 const makeRequestWithRetries = async ({
   asyncRequestFn,
   maxRetries = 5,
