@@ -7,14 +7,23 @@ import {
 import { RawViolation } from 'types/violations'
 
 import OpenDataService from '.'
+import { BASE_DELAY } from 'constants/requests';
 
 jest.mock('axios', () => ({
   ...jest.requireActual('axios'),
   get: jest.fn(),
 }));
 
+jest.mock('constants/requests', () => ({
+  // Ugly, but safest way to override BASE_DELAY
+  __esModule: true,
+  BASE_DELAY: 10,
+}))
+
 describe('OpenDataService.makeOpenDataVehicleRequest', () => {
   describe('querying various open data tables', () => {
+    const baseDelayExistingValue = OpenDataService.BASE_DELAY
+
     beforeEach(() => {
       ;(axios.get as jest.Mock).mockReset()
     })
@@ -440,7 +449,8 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       it('should log and rethrow a non-axios error', async () => {
         const nonAxiosError = new Error('Sorry, that did not work.')
 
-        ;(axios.get as jest.Mock).mockRejectedValueOnce(nonAxiosError)
+        // Mock the value permanently since the retry behavior will engage
+        ;(axios.get as jest.Mock).mockRejectedValue(nonAxiosError)
 
         await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(nonAxiosError.message))
       })
@@ -451,7 +461,8 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
           '401',
         )
 
-        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+        // Mock the value permanently since the retry behavior will engage
+        ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
         await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
       })
@@ -477,7 +488,8 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
           }
         )
 
-        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+        // Mock the value permanently since the retry behavior will engage
+        ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
         await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
       })
@@ -510,7 +522,8 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
           {},
         )
 
-        ;(axios.get as jest.Mock).mockRejectedValueOnce(axiosError)
+        // Mock the value permanently since the retry behavior will engage
+        ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
         await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(simpleError)
       })
