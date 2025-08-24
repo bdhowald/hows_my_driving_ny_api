@@ -233,7 +233,6 @@ const makeRequestWithRetries = async ({
 
   while (attempt <= maxRetries) {
     try {
-      console.log(`attempt is ${attempt+1}`)
       return await asyncRequestFn()
     } catch (error: unknown) {
       if (attempt === maxRetries) {
