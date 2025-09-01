@@ -1115,11 +1115,35 @@ const createNewLookup = async (
     unique_identifier: uniqueIdentifier,
   }
 
-  insertNewLookup(newLookup, (error, results, fields) => {
-    if (error) {
-      console.log(`error thrown at: ${new Date()}`)
-      throw error
-    }
+  return await new Promise((resolve, reject) => {
+    insertNewLookup(
+      newLookup,
+      async (error, insertResults, fields) => {
+        if (error) {
+          console.log(`error thrown at: ${new Date()}`)
+          reject(error)
+        }
+        const insertId = insertResults.insertId
+
+        const lookupDateResult = await new Promise((resolve, reject) => {
+          connection.query(
+            "select created_at from plate_lookups where id = ?",
+            [insertId],
+            async (error, selectResults, fields) => {
+              if (error) {
+                console.log(`error thrown at: ${new Date()}`)
+                reject(error)
+              }
+
+              const selectResult = selectResults[0]
+              resolve(selectResult)
+            }
+          )
+        })
+
+        resolve(lookupDateResult)
+      }
+    )
   })
 }
 
@@ -2156,11 +2180,18 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
             previousLookup = new PlateLookup(previousDate, previousCount)
           }
 
-          const uniqueIdentifier =
-            existingIdentifier || (await obtainUniqueIdentifier())
+          let lookupDate
+          let uniqueIdentifier
 
-          if (lookupSource !== EXISTING_LOOKUP_SOURCE) {
-            createNewLookup(
+          if (lookupSource === EXISTING_LOOKUP_SOURCE) {
+            // In this case, existingIdentifier is definitely defined.
+            uniqueIdentifier = existingIdentifier
+
+            lookupDate = existingLookupCreatedAt
+          } else {
+            uniqueIdentifier = await obtainUniqueIdentifier()
+
+            newlyCreatedLookup = await createNewLookup(
               plate,
               state,
               plateTypes,
@@ -2171,6 +2202,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
               fingerprintID,
               mixpanelID
             )
+
+            lookupDate = newlyCreatedLookup.created_at
           }
 
           const tweetParts = formPlateLookupTweets(
@@ -2191,6 +2224,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
           const fullVehicleLookup = {
             camera_streak_data: cameraStreakData,
             fines: fineData,
+            lookup_date: lookupDate,
             plate,
             plate_types: plateTypes,
             previous_lookup_date: previousDate,
@@ -3109,7 +3143,7 @@ const handleUserEvent = (event) => {
   console.log(`handleUserEvent is a stub method: ${JSON.stringify(event)}`)
 }
 
-const insertNewLookup = (newLookup, callback) => {
+const insertNewLookup = async (newLookup, callback) => {
   connection.query("insert into plate_lookups set ?", newLookup, callback)
 }
 
