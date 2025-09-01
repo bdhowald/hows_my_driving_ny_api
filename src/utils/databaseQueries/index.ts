@@ -77,7 +77,7 @@ export type VehicleQueryProps = {
  */
 export const createAndInsertNewLookup = async (
   newLookupArguments: CreateNewLookupArguments
-): Promise<string> => {
+): Promise<{ createdAt: string, uniqueIdentifier: string }> => {
   const {
     cameraData,
     existingIdentifier,
@@ -128,9 +128,9 @@ export const createAndInsertNewLookup = async (
     uniqueIdentifier,
   }
 
-  await insertNewLookup(newLookup)
+  const { created_at: createdAt } = await insertNewLookup(newLookup)
 
-  return uniqueIdentifier
+  return { createdAt, uniqueIdentifier }
 }
 
 /**
@@ -382,9 +382,16 @@ const insertNewLookup = async (newLookup: PlateLookup) => {
   const decamelizedLookup = decamelizeKeys(newLookup)
 
   try {
-    await databaseConnection.query(queryString, decamelizedLookup)
+    const insertResult = await databaseConnection.query(queryString, decamelizedLookup)
+    const insertResultSetHeader = insertResult[0] as mysql.ResultSetHeader
 
-    return true
+    const [selectResult, _] = await databaseConnection.query(
+      "select created_at from plate_lookups where id = ?",
+      [insertResultSetHeader.insertId],
+    )
+
+    const selectResultRow = (selectResult as mysql.RowDataPacket[])[0]
+    return selectResultRow
   } catch(error) {
     console.log(error)
     throw error

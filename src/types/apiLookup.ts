@@ -6,6 +6,7 @@ import { Violation } from 'types/violations'
 type ApiLookupResult = {
   cameraStreakData: CameraData
   fines: AggregateFineData
+  lookupDate: Date
   plate: string
   plateTypes: string[] | undefined
   previousLookupDate: Date | undefined

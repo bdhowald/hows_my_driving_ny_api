@@ -103,6 +103,45 @@ describe('databaseQueries', () => {
       state,
     }
 
+    const selectCountWhereUniqueIdentifierEqualsValueQueryResponse = [
+      [{ count: 0 }],
+    ]
+
+    const insertId = 1
+    const insertQueryResponse = [
+      {
+        fieldCount: 0,
+        affectedRows: 1,
+        insertId,
+        info: '',
+        serverStatus: 2,
+        warningStatus: 0,
+        changedRows: 0
+      } as mysql.ResultSetHeader,
+      undefined
+    ]
+
+    const selectCreatedAtQueryResponse = [
+      [ { created_at: '2025-04-03T11:45:06.000Z' } ],
+      [
+        {
+          catalog: 'def',
+          schema: 'traffic_violations_test',
+          name: 'created_at',
+          orgName: 'created_at',
+          table: 'plate_lookups',
+          orgTable: 'plate_lookups',
+          characterSet: 63,
+          encoding: 'binary',
+          columnLength: 19,
+          type: 12,
+          flags: [ 'NOT NULL' ],
+          decimals: 0,
+          typeName: 'DATETIME'
+        }
+      ],
+    ]
+
     it('should insert a new lookup with plate types into the database', async () => {
       jest.useFakeTimers()
 
@@ -120,9 +159,14 @@ describe('databaseQueries', () => {
       ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       databaseConnection.query.mockResolvedValueOnce(
-        [
-          [{ count: 0 }],
-        ],
+        // query for unique identifier
+        selectCountWhereUniqueIdentifierEqualsValueQueryResponse,
+      ).mockResolvedValueOnce(
+        // insert new record
+        insertQueryResponse,
+      ).mockResolvedValueOnce(
+        // query for created_at date of new record
+        selectCreatedAtQueryResponse,
       )
 
       await createAndInsertNewLookup(createNewLookupArguments)
@@ -151,7 +195,7 @@ describe('databaseQueries', () => {
         uniqueIdentifier: newUniqueIdentifier,
       }
 
-      expect(databaseConnection.query).toHaveBeenCalledTimes(2)
+      expect(databaseConnection.query).toHaveBeenCalledTimes(3)
 
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
@@ -162,6 +206,11 @@ describe('databaseQueries', () => {
         2,
         'insert into plate_lookups set ?',
         decamelizeKeys(newLookup),
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        3,
+        'select created_at from plate_lookups where id = ?',
+        [insertId],
       )
 
       jest.useRealTimers()
@@ -184,9 +233,14 @@ describe('databaseQueries', () => {
       ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
       databaseConnection.query.mockResolvedValueOnce(
-        [
-          [{ count: 0 }],
-        ],
+        // query for unique identifier
+        selectCountWhereUniqueIdentifierEqualsValueQueryResponse,
+      ).mockResolvedValueOnce(
+        // insert new record
+        insertQueryResponse,
+      ).mockResolvedValueOnce(
+        // query for created_at date of new record
+        selectCreatedAtQueryResponse,
       )
 
       const createNewLookupArgumentsWithoutPlateTypes = {
@@ -220,7 +274,7 @@ describe('databaseQueries', () => {
         uniqueIdentifier: newUniqueIdentifier,
       }
 
-      expect(databaseConnection.query).toHaveBeenCalledTimes(2)
+      expect(databaseConnection.query).toHaveBeenCalledTimes(3)
 
       expect(databaseConnection.query).toHaveBeenNthCalledWith(
         1,
@@ -231,6 +285,11 @@ describe('databaseQueries', () => {
         2,
         'insert into plate_lookups set ?',
         decamelizeKeys(newLookup),
+      )
+      expect(databaseConnection.query).toHaveBeenNthCalledWith(
+        3,
+        'select created_at from plate_lookups where id = ?',
+        [insertId],
       )
 
       jest.useRealTimers()
@@ -244,17 +303,23 @@ describe('databaseQueries', () => {
 
       ;(instantiateConnection as jest.Mock).mockResolvedValue(databaseConnection)
 
-      // We expect two calls
+      // We expect four calls
       databaseConnection.query
         .mockResolvedValueOnce(
+          // query for unique identifier finds existing record
           [
             [{ count: 1 }],
           ],
         )
         .mockResolvedValueOnce(
-          [
-            [{ count: 0 }],
-          ],
+          // query for next unique identifier returns nothing
+          selectCountWhereUniqueIdentifierEqualsValueQueryResponse,
+        ).mockResolvedValueOnce(
+          // insert new record
+          insertQueryResponse,
+        ).mockResolvedValueOnce(
+          // query for created_at date of new record
+          selectCreatedAtQueryResponse,
         )
 
       await createAndInsertNewLookup(createNewLookupArguments)

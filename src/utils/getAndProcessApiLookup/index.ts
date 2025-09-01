@@ -161,10 +161,13 @@ const getAndProcessApiLookup = async (
     await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
   let uniqueIdentifier: string | undefined
+  let lookupDate: Date | undefined
 
   if (lookupSource === LookupSource.ExistingLookup) {
     // In this case, existingIdentifier is definitely defined.
     uniqueIdentifier = existingIdentifier as string
+
+    lookupDate = existingLookupCreatedAt
   } else {
     const newLookupProps: CreateNewLookupArguments = {
       cameraData,
@@ -178,13 +181,15 @@ const getAndProcessApiLookup = async (
       state,
     }
 
-    const uniqueIdentifierOfNewLookup = await createAndInsertNewLookup(
+    const newlyCreatedLookup = await createAndInsertNewLookup(
       newLookupProps
     )
 
     // If we are doing a new lookup, update the identifier
     // to return to the client.
-    uniqueIdentifier = uniqueIdentifierOfNewLookup
+    uniqueIdentifier = newlyCreatedLookup.uniqueIdentifier
+
+    lookupDate = new Date(newlyCreatedLookup.createdAt)
   }
 
   const plateLookupTweetArguments: PlateLookupTweetArguments = {
@@ -205,6 +210,7 @@ const getAndProcessApiLookup = async (
   const apiLookupResult: ApiLookupResult = {
     cameraStreakData: cameraData,
     fines: aggregateFineData,
+    lookupDate: lookupDate as Date,
     plate,
     plateTypes,
     previousLookupDate:

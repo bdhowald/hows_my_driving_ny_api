@@ -164,7 +164,7 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
 
   const rejected = settledPromises.filter(result => result.status === 'rejected')
   if (rejected.length > 0) {
-    throw rejected[0].reason
+    throw (rejected[0] as PromiseRejectedResult).reason
   }
 
   return settledPromises.map(result => (result as PromiseFulfilledResult<any>).value)

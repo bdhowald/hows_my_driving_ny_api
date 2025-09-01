@@ -338,6 +338,8 @@ describe('getAndProcessApiLookup', () => {
       lookupSource: LookupSource.Api,
     }
 
+    const lookupDate = new Date(2019, 0, 1)
+
     const baseExpected: VehicleResponse = {
       statusCode: 200,
       successfulLookup: true,
@@ -381,6 +383,7 @@ describe('getAndProcessApiLookup', () => {
           totalPaid: 1050,
           totalReduced: 0,
         }),
+        lookupDate,
         plate,
         plateTypes: undefined,
         previousLookupDate: undefined,
@@ -768,7 +771,7 @@ describe('getAndProcessApiLookup', () => {
       }
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponses
@@ -856,7 +859,7 @@ describe('getAndProcessApiLookup', () => {
       }
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponses
@@ -971,7 +974,7 @@ describe('getAndProcessApiLookup', () => {
       }
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponses
@@ -1222,7 +1225,7 @@ describe('getAndProcessApiLookup', () => {
       }
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponses
@@ -1345,7 +1348,7 @@ describe('getAndProcessApiLookup', () => {
       ]
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponsesWithError
@@ -1391,7 +1394,7 @@ describe('getAndProcessApiLookup', () => {
       ]
 
       ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        uniqueIdentifier
+        { createdAt: lookupDate, uniqueIdentifier }
       )
       ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
         openDataTableMetadataResponses
@@ -1454,6 +1457,8 @@ describe('getAndProcessApiLookup', () => {
 
     const now = DateTime.now()
     const uniqueIdentifier = 'a1b2c3d4'
+
+    const lookupDate = new Date(2019, 0, 1)
 
     const plate = 'ABC1234'
     const state = 'NY'
@@ -1565,7 +1570,7 @@ describe('getAndProcessApiLookup', () => {
       },
     ])
     ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-      uniqueIdentifier
+      { createdAt: lookupDate, uniqueIdentifier }
     )
 
     const result = await getAndProcessApiLookup(
@@ -1617,6 +1622,7 @@ describe('getAndProcessApiLookup', () => {
           totalPaid: 0,
           totalReduced: 0,
         }),
+        lookupDate,
         plate,
         plateTypes: undefined,
         previousLookupDate: undefined,

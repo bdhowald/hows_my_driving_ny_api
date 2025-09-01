@@ -1070,7 +1070,7 @@ const createNewLookup = async (
     unique_identifier: uniqueIdentifier,
   }
 
-  await insertNewLookup(newLookup)
+  return await insertNewLookup(newLookup)
 }
 
 /**
@@ -2194,11 +2194,18 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
       previousLookup = new PlateLookup(previousDate, previousCount)
     }
 
-    const uniqueIdentifier =
-      existingIdentifier || (await obtainUniqueIdentifier())
+    let lookupDate
+    let uniqueIdentifier
 
-    if (lookupSource !== EXISTING_LOOKUP_SOURCE) {
-      createNewLookup(
+    if (lookupSource === EXISTING_LOOKUP_SOURCE) {
+      // In this case, existingIdentifier is definitely defined.
+      uniqueIdentifier = existingIdentifier
+
+      lookupDate = existingLookupCreatedAt
+    } else {
+      uniqueIdentifier = await obtainUniqueIdentifier()
+
+      newlyCreatedLookup = await createNewLookup(
         plate,
         state,
         plateTypes,
@@ -2209,6 +2216,8 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
         fingerprintID,
         mixpanelID
       )
+
+      lookupDate = newlyCreatedLookup.created_at
     }
 
     const tweetParts = formPlateLookupTweets(
@@ -2229,6 +2238,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     const fullVehicleLookup = {
       camera_streak_data: cameraStreakData,
       fines: fineData,
+      lookup_date: lookupDate,
       plate,
       plate_types: plateTypes,
       previous_lookup_date: previousDate,
@@ -3208,8 +3218,14 @@ const insertNewLookup = async (newLookup) => {
   const databaseConnection = await instantiateConnection()
 
   try {
-    const result = await databaseConnection.query("insert into plate_lookups set ?", newLookup)
-    return result[0]
+    const [insertResult, _] = await databaseConnection.query("insert into plate_lookups set ?", newLookup)
+
+    const [selectResult, __] = await databaseConnection.query(
+      "select created_at from plate_lookups where id = ?",
+      [insertResult.insertId],
+    )
+
+    return selectResult[0]
   } catch(error) {
     console.log(error)
     throw error
