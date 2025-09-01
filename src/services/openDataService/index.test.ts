@@ -7,7 +7,6 @@ import {
 import { RawViolation } from 'types/violations'
 
 import OpenDataService from '.'
-import { BASE_DELAY } from 'constants/requests';
 
 jest.mock('axios', () => ({
   ...jest.requireActual('axios'),

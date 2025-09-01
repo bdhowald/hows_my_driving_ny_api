@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import * as http from 'http'
 import { LRUCache } from 'lru-cache'
 import * as mysql from 'mysql2/promise'
+import pLimit from 'p-limit'
 import zlib from 'zlib'
 
 class Mutex {
@@ -21,6 +22,11 @@ class Mutex {
 const BASE_DELAY = 1000
 
 const GEOCODE_MUTEX = new Mutex()
+
+const TEST_ENVIRONMENT = 'test'
+
+const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
+const CONCURRENCY_LIMIT = pLimit(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
@@ -3424,7 +3430,7 @@ const makeRequestWithRetries = async ({
 
   while (attempt <= maxRetries) {
     try {
-      return await asyncRequestFn()
+      return await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
     } catch (error) {
       if (attempt === maxRetries) {
         console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)

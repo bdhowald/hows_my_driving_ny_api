@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { LRUCache } from 'lru-cache'
+import pLimit from 'p-limit'
 
 import {
   fiscalYearEndpoints,
@@ -11,7 +12,9 @@ import {
 import { BASE_DELAY } from 'constants/requests'
 import { camelizeKeys } from 'utils/camelize'
 
+const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
 const TEST_ENVIRONMENT = 'test'
+const CONCURRENCY_LIMIT = pLimit(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
 type MedallionReponse = {
   dmvLicensePlateNumber: string
@@ -317,7 +320,7 @@ const makeRequestWithRetries = async (
 
   while (attempt <= maxRetries) {
     try {
-      return await asyncRequestFn()
+      return await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
     } catch (error: unknown) {
       if (attempt === maxRetries) {
         console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)
