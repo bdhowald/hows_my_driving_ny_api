@@ -5,6 +5,7 @@ const { DateTime } = require("luxon")
 const http = require("http")
 const LRUCache = require("lru-cache")
 const mysql = require("mysql")
+const pLimit = require("p-limit")
 const zlib = require("zlib")
 
 const googleMapsClient = require("@google/maps").createClient({
@@ -23,6 +24,9 @@ class Mutex {
 
 const BASE_DELAY = 1000
 const TEST_ENVIRONMENT = 'test'
+
+const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
+const CONCURRENCY_LIMIT = pLimit(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
 const GEOCODE_MUTEX = new Mutex()
 
@@ -3329,7 +3333,7 @@ const makeRequestWithRetries = async ({
 
   while (attempt <= maxRetries) {
     try {
-      return await asyncRequestFn()
+      return await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
     } catch (error) {
       if (attempt === maxRetries) {
         console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)
