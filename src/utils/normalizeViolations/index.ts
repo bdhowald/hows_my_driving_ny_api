@@ -417,7 +417,12 @@ const normalizeViolation = async (
     geocodeLoggingKey,
   )
 
-  const violationCodeFromViolation = Number(getFieldFromViolationIfPresent(violation, 'violationCode'))
+  const violationCodeFromViolation = Number(
+    getFieldFromViolationIfPresent(violation, 'violationCode')
+  )
+  const issuerPrecinct = Number(
+    getFieldFromViolationIfPresent(violation, 'issuerPrecinct')
+  )
 
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,
@@ -446,9 +451,7 @@ const normalizeViolation = async (
     issueDate: violation.issueDate,
     issuerCode: getFieldFromViolationIfPresent(violation, 'issuerCode'),
     issuerCommand: getFieldFromViolationIfPresent(violation, 'issuerCommand'),
-    issuerPrecinct: 'issuerPrecinct' in violation
-      ? parseInt(getFieldFromViolationIfPresent(violation, 'issuerPrecinct'))
-      : undefined,
+    issuerPrecinct: issuerPrecinct || undefined,
     issuerSquad: getFieldFromViolationIfPresent(violation, 'issuerSquad'),
     issuingAgency: getFieldFromViolationIfPresent(violation, 'issuingAgency'),
     judgmentEntryDate: getFieldFromViolationIfPresent(violation, 'judgmentEntryDate'),

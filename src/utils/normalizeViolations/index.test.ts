@@ -492,8 +492,6 @@ describe('normalizeViolations', () => {
     }
   )
 
-
-
   it('should properly handle violation codes that have changed over time', async () => {
     const databasePathname = '/resource/869v-vr48.json'
     const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
@@ -600,6 +598,71 @@ describe('normalizeViolations', () => {
       },
       summonsImage: undefined,
       violationCode: '38',
+      violationCounty: 'Bronx',
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 43,
+      violationStatus: undefined,
+    }
+
+    const normalizedViolations = await normalizeViolations(
+      [rawFiscalYearDatabaseViolation],
+      databasePathname,
+      dataUpdatedAt,
+    )
+
+    expect(normalizedViolations[0]).toEqual(expectedViolation)
+  })
+
+  it("should interpret an issuer precinct of '0' as an undefined value", async () => {
+    const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
+
+    const formattedTime = DateTime.fromISO('2023-06-09T09:11:00', {
+      zone: 'America/New_York',
+    })
+
+    const rawFiscalYearDatabaseViolation: RawViolation =
+      rawFiscalYearDatabaseViolationFactory.build({
+        issuerPrecinct: '0',
+      })
+
+    const expectedViolation = {
+      ...rawFiscalYearDatabaseViolation,
+      amountDue: undefined,
+      fineAmount: undefined,
+      fined: undefined,
+      formattedTime: formattedTime.toISO(),
+      formattedTimeEastern: formattedTime.toISO(),
+      formattedTimeUtc: formattedTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          dataUpdatedAt,
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Parking Violations Issued - Fiscal Year 2023',
+        },
+      ],
+      houseNumber: undefined,
+      humanizedDescription: 'Blocking Pedestrian Ramp',
+      interestAmount: undefined,
+      issuerPrecinct: undefined,
+      issuingAgency: 'P',
+      judgmentEntryDate: undefined,
+      location: 'I/o Taylor Avenue Guerlain',
+      outstanding: undefined,
+      paid: undefined,
+      paymentAmount: undefined,
+      penaltyAmount: undefined,
+      reduced: undefined,
+      reductionAmount: undefined,
+      sanitized: {
+        issuingAgency: 'New York Police Department (NYPD)',
+        vehicleBodyType: 'Van',
+        violationStatus: undefined,
+      },
+      summonsImage: undefined,
+      violationCode: '67',
       violationCounty: 'Bronx',
       violationInFrontOfOrOpposite: undefined,
       violationLegalCode: undefined,
