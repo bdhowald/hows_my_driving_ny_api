@@ -2205,7 +2205,7 @@ const getVehicleResponse = async (vehicle, selectedFields, externalData) => {
     } else {
       uniqueIdentifier = await obtainUniqueIdentifier()
 
-      newlyCreatedLookup = await createNewLookup(
+      const newlyCreatedLookup = await createNewLookup(
         plate,
         state,
         plateTypes,
