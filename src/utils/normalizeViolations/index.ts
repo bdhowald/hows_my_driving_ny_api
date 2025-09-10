@@ -417,6 +417,8 @@ const normalizeViolation = async (
     geocodeLoggingKey,
   )
 
+  const violationCodeFromViolation = Number(getFieldFromViolationIfPresent(violation, 'violationCode'))
+
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,
     dateFirstObserved: getFieldFromViolationIfPresent(violation, 'dateFirstObserved'),
@@ -481,8 +483,9 @@ const normalizeViolation = async (
     vehicleExpirationDate: getFieldFromViolationIfPresent(violation, 'vehicleExpirationDate'),
     vehicleMake: getFieldFromViolationIfPresent(violation, 'vehicleMake'),
     vehicleYear: getFieldFromViolationIfPresent(violation, 'vehicleYear'),
-    violationCode:
-      humanizedDescription && violationsToCodes[humanizedDescription]
+    violationCode: violationCodeFromViolation
+      ? violationCodeFromViolation.toString()
+      : humanizedDescription && violationsToCodes[humanizedDescription]
         ? violationsToCodes[humanizedDescription]
         : undefined,
     violationCounty: violationBorough,

@@ -552,6 +552,167 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(expectedViolation)
   })
 
+  it('should use the violation code present on a violation before trying to infer it from the violation description', async () => {
+    const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
+
+    const formattedTime = DateTime.fromISO('2023-06-09T09:11:00', {
+      zone: 'America/New_York',
+    })
+
+    const rawFiscalYearDatabaseViolation: RawViolation =
+      rawFiscalYearDatabaseViolationFactory.build({
+        violationCode: '38',
+      })
+
+    const expectedViolation = {
+      ...rawFiscalYearDatabaseViolation,
+      amountDue: undefined,
+      fineAmount: undefined,
+      fined: undefined,
+      formattedTime: formattedTime.toISO(),
+      formattedTimeEastern: formattedTime.toISO(),
+      formattedTimeUtc: formattedTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          dataUpdatedAt,
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Parking Violations Issued - Fiscal Year 2023',
+        },
+      ],
+      houseNumber: undefined,
+      humanizedDescription: 'Failure to Display Meter Receipt',
+      interestAmount: undefined,
+      issuerPrecinct: 43,
+      issuingAgency: 'P',
+      judgmentEntryDate: undefined,
+      location: 'I/o Taylor Avenue Guerlain',
+      outstanding: undefined,
+      paid: undefined,
+      paymentAmount: undefined,
+      penaltyAmount: undefined,
+      reduced: undefined,
+      reductionAmount: undefined,
+      sanitized: {
+        issuingAgency: 'New York Police Department (NYPD)',
+        vehicleBodyType: 'Van',
+        violationStatus: undefined,
+      },
+      summonsImage: undefined,
+      violationCode: '38',
+      violationCounty: 'Bronx',
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 43,
+      violationStatus: undefined,
+    }
+
+    const normalizedViolations = await normalizeViolations(
+      [rawFiscalYearDatabaseViolation],
+      databasePathname,
+      dataUpdatedAt,
+    )
+
+    expect(normalizedViolations[0]).toEqual(expectedViolation)
+  })
+
+  it('should infer a violation code from the description of an open parking and camera database violation', async () => {
+    const databasePathname = '/resource/nc67-uf89.json'
+    const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
+    const humanizedDescription = 'Failure to Display Meter Receipt'
+
+    const rawOpenParkingAndCameraViolation = rawOpenParkingAndCameraViolationFactory.build({
+      violation: 'FAIL TO DSPLY MUNI METER RECPT',
+    })
+
+    const normalizedViolations = await normalizeViolations(
+      [rawOpenParkingAndCameraViolation],
+      databasePathname,
+      dataUpdatedAt,
+    )
+
+    const {
+      county,
+      licenseType,
+      plate,
+      precinct,
+      state,
+      violation,
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields
+    } = rawOpenParkingAndCameraViolation
+
+    const expectedViolation = {
+      ...rawOpenParkingAndCameraViolationMinusRemovedFields,
+      amountDue: 0,
+      dateFirstObserved: undefined,
+      daysParkingInEffect: undefined,
+      feetFromCurb: undefined,
+      fineAmount: 165,
+      fined: 175,
+      formattedTime: formattedTime.toISO(),
+      formattedTimeEastern: formattedTime.toISO(),
+      formattedTimeUtc: formattedTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          dataUpdatedAt,
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Open Parking and Camera Violations',
+        },
+      ],
+      fromHoursInEffect: undefined,
+      houseNumber: undefined,
+      humanizedDescription,
+      interestAmount: 0,
+      intersectingStreet: undefined,
+      issuerCode: undefined,
+      issuerCommand: undefined,
+      issuerPrecinct: undefined,
+      issuerSquad: undefined,
+      issuingAgency: 'POLICE DEPARTMENT',
+      judgmentEntryDate: undefined,
+      lawSection: undefined,
+      location: undefined,
+      meterNumber: undefined,
+      outstanding: 0,
+      paid: 175,
+      paymentAmount: 175,
+      penaltyAmount: 10,
+      plateId: 'KZH2758',
+      plateType: 'PAS',
+      reduced: 0,
+      reductionAmount: 0,
+      registrationState: 'NY',
+      sanitized: {
+        issuingAgency: 'New York Police Department (NYPD)',
+        vehicleBodyType: undefined,
+        violationStatus: undefined,
+      },
+      streetCode1: undefined,
+      streetCode2: undefined,
+      streetCode3: undefined,
+      streetName: undefined,
+      subDivision: undefined,
+      toHoursInEffect: undefined,
+      unregisteredVehicle: undefined,
+      vehicleBodyType: undefined,
+      vehicleColor: undefined,
+      vehicleExpirationDate: undefined,
+      vehicleMake: undefined,
+      vehicleYear: undefined,
+      violationCode: '69',
+      violationCounty: 'Bronx',
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationLocation: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 43,
+      violationStatus: undefined,
+    }
+
+    expect(normalizedViolations[0]).toEqual(expectedViolation)
+  })
+
   it('should handle a violation with a violation description it does not recognize', async () => {
     const databasePathname = '/resource/nc67-uf89.json'
     const dataUpdatedAt = '2025-03-29T09:21:18.000Z'

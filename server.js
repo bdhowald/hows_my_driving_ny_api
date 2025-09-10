@@ -3561,6 +3561,10 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
         }).toISODate()
       : null
 
+    const violationCodeFromViolation = Number(
+      violation.violationCode || null
+    )
+
     const newViolation = {
       amount_due: isNaN(parseFloat(violation.amount_due))
         ? null
@@ -3632,10 +3636,11 @@ const normalizeViolations = async (requestPathname, violations, dataUpdatedAt) =
       vehicle_expiration_date: violation.vehicle_expiration_date || null,
       vehicle_make: violation.vehicle_make || null,
       vehicle_year: violation.vehicle_year || null,
-      violation_code:
-        violation.violation_code ||
-        namesToCodes[readableViolationDescription] ||
-        null,
+      violation_code: violationCodeFromViolation
+        ? violationCodeFromViolation.toString()
+        : readableViolationDescription && namesToCodes[readableViolationDescription]
+        ? namesToCodes[readableViolationDescription]
+        : null,
       violation_county: violation.violation_county || null,
       violation_in_front_of_or_opposite:
         violation.violation_in_front_of_or_opposite || null,
