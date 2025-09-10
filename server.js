@@ -3362,7 +3362,7 @@ const makeOpenDataVehicleRequests = async (plate, state, plateTypes) => {
   //   opacvQueryString += '&$select=' + fieldsForExternalRequests.join(',')
   // }
 
-  const openParkingAndCameraViolationsUrl = openParkingAndCameraViolationsUrl = new URL(
+  const openParkingAndCameraViolationsUrl = new URL(
     `?${openParkingAndCameraViolationsSearchParams}`,
     `${NYC_OPEN_DATA_PORTAL_HOST}${OPEN_PARKING_AND_CAMERA_VIOLATIONS_PATH}`
   )
