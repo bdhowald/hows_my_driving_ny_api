@@ -238,11 +238,16 @@ export const handleExistingLookup = async (
       vehicleResponse
     ) as VehicleResponse
 
-    const decamelizedStatistics = decamelizeKeysOneLevel(
-      (vehicleResponse.vehicle as Record<any, any>).statistics
-    ) as Record<any, any>
+    if (
+      vehicleResponse.vehicle?.statistics &&
+      decamelizedVehicleResponse.vehicle?.statistics
+    ) {
+      const decamelizedStatistics = decamelizeKeysOneLevel(
+        vehicleResponse.vehicle.statistics
+      )
 
-    (decamelizedVehicleResponse.vehicle as Record<any, any>).statistics = decamelizedStatistics
+      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
+    }
 
     return decamelizedVehicleResponse
   }) as VehicleResponse[]
