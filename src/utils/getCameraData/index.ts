@@ -50,8 +50,8 @@ const findMaxCameraViolationsStreak = (
 
   return {
     maxStreak,
-    streakStart,
     streakEnd,
+    streakStart,
   }
 }
 
