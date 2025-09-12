@@ -87,7 +87,7 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
       potentialBorough = geocodeFromGoogle.borough
 
-      if (potentialBorough in Borough || potentialBorough == 'The Bronx') {
+      if (potentialBorough in Borough || potentialBorough === 'The Bronx') {
         // Only insert geocode if it's for a borough.
         await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
       }
@@ -102,7 +102,7 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
     )
   }
 
-  if (potentialBorough in Borough) {
+  if (potentialBorough in Borough || potentialBorough === 'The Bronx') {
     return potentialBorough as Borough
   }
 
