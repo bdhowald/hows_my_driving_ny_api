@@ -421,7 +421,7 @@ describe('requestService', () => {
           body: {
             data: [decamelizedResponse],
           },
-          etag: 'lookup-ABC1234:NY-1743465600000',
+          etag: '"lookup-ABC1234:NY-1743465600000"',
           statusCode: 200,
         })
 
@@ -504,7 +504,7 @@ describe('requestService', () => {
           body: {
             data: [apiQueryResponse],
           },
-          etag: 'lookup-ABC1234:NY-1743465600000',
+          etag: '"lookup-ABC1234:NY-1743465600000"',
           statusCode: 200,
         })
 
@@ -676,7 +676,7 @@ describe('requestService', () => {
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `lookup-ABC1234:NY-${openDateLastUpdatedTime.getTime()}` },
+          headers: { host, 'if-none-match': `"lookup-ABC1234:NY-${openDateLastUpdatedTime.getTime()}"` },
           url: '/api/v1?plate=ABC1234:NY',
         } as http.IncomingMessage
 
@@ -696,7 +696,7 @@ describe('requestService', () => {
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `lookup-ABC1234:NY:PAS-${openDateLastUpdatedTime.getTime()}` },
+          headers: { host, 'if-none-match': `"lookup-ABC1234:NY:PAS-${openDateLastUpdatedTime.getTime()}"` },
           url: '/api/v1?plate=ABC1234:NY:PAS',
         } as http.IncomingMessage
 
@@ -1013,7 +1013,7 @@ describe('requestService', () => {
           body: {
             data: [decamelizedResponse],
           },
-          etag: 'lookup-a1b2c3d4-1743465600000',
+          etag: '"lookup-a1b2c3d4-1743465600000"',
           statusCode: 200,
         })
 
@@ -1072,7 +1072,7 @@ describe('requestService', () => {
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `lookup-a1b2c3d4-${openDateLastUpdatedTime.getTime()}` },
+          headers: { host, 'if-none-match': `"lookup-a1b2c3d4-${openDateLastUpdatedTime.getTime()}"` },
           url: '/api/v1/lookup/a1b2c3d4',
         } as http.IncomingMessage
 

@@ -14,11 +14,11 @@ import {
   handleTwitterWebhookEvent,
 } from 'services/requestService'
 import { ExistingLookupResponse } from 'types/request'
-import { stat } from 'fs'
 
 type ReturnResponseProps = {
   etag?: string
   httpStatusCode: number,
+  receivedAtDate: Date,
   responseBody?: {
     data?: unknown[]
     error?: string
@@ -31,6 +31,7 @@ type ReturnResponseProps = {
 const returnResponse = ({
   etag,
   httpStatusCode,
+  receivedAtDate,
   responseBody,
   responseObject,
   useGZip,
@@ -47,7 +48,7 @@ const returnResponse = ({
 
   if (httpStatusCode === HttpStatusCode.Ok && etag) {
     responseObject.setHeader('ETag', etag)
-    responseObject.setHeader('Cache-Control', 'public, max-age=0, stale-while-revalidate=600')
+    responseObject.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=600')
   }
 
   const stringifiedBody = JSON.stringify(responseBody, (_, value) => {
@@ -61,6 +62,9 @@ const returnResponse = ({
     const gzip = zlib.createGzip()
     gzip.pipe(responseObject)
     gzip.end(stringifiedBody)
+
+    const now = new Date()
+    console.log(`[queried_plates=${etag}] Returning gzipped response (200) - request took ${(now.getTime() - receivedAtDate.getTime()) / 1000} seconds`)
     return
   }
 
@@ -115,6 +119,7 @@ const createServer = () =>
             responseBody: {
               data: [{ success: true }],
             },
+            receivedAtDate,
             responseObject: response,
             useGZip
           })
@@ -125,6 +130,7 @@ const createServer = () =>
             const responseChallenge = handleTwitterRequestChallenge(request)
             returnResponse({
               httpStatusCode: HttpStatusCode.Ok,
+              receivedAtDate,
               responseBody: responseChallenge,
               responseObject: response,
               useGZip,
@@ -137,6 +143,7 @@ const createServer = () =>
             }
             returnResponse({
               httpStatusCode: HttpStatusCode.Ok,
+              receivedAtDate,
               responseBody: body,
               responseObject: response,
               useGZip,
@@ -151,6 +158,7 @@ const createServer = () =>
 
           returnResponse({
             httpStatusCode: HttpStatusCode.Ok,
+            receivedAtDate,
             responseBody: body,
             responseObject: response,
             useGZip,
@@ -162,6 +170,7 @@ const createServer = () =>
         returnResponse({
           etag,
           httpStatusCode: HttpStatusCode.Ok,
+          receivedAtDate,
           responseBody: body,
           responseObject: response,
           useGZip,
@@ -172,6 +181,7 @@ const createServer = () =>
         returnResponse({
           etag,
           httpStatusCode: HttpStatusCode.Ok,
+          receivedAtDate,
           responseBody: body,
           responseObject: response,
           useGZip,
@@ -185,6 +195,7 @@ const createServer = () =>
 
         returnResponse({
           httpStatusCode: HttpStatusCode.NotFound,
+          receivedAtDate,
           responseBody: body,
           responseObject: response,
           useGZip,

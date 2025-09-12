@@ -59,7 +59,7 @@ export const handleApiLookup = async (
 
   const vehicles = detectVehicles(parsedQueryResults.potentialVehicles)
 
-  const currentETag = `lookup-${parsedQueryResults.potentialVehicles.join('-')}-${openDataLastUpdatedTime.getTime()}`
+  const currentETag = `"lookup-${parsedQueryResults.potentialVehicles.join('-')}-${openDataLastUpdatedTime.getTime()}"`
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
@@ -194,7 +194,7 @@ export const handleExistingLookup = async (
     ) as ExistingLookupResponse
   }
 
-  const currentETag = `lookup-${identifier}-${openDataLastUpdatedTime.getTime()}`
+  const currentETag = `"lookup-${identifier}-${openDataLastUpdatedTime.getTime()}"`
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
