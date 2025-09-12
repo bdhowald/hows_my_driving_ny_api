@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 
+import { cameraDataFactory, cameraDataWithNoCameraViolationsFactory } from '__fixtures__/cameraData'
 import AggregateFineData from 'models/aggregateFineData'
 import { getConnectionPool, instantiateConnection } from 'services/databaseService'
 
@@ -26,38 +27,7 @@ describe('twitter', () => {
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 0,
@@ -113,38 +83,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 64,
-            streakEnd: '2022-08-19T08:39:00.000-04:00',
-            streakStart: '2021-09-01T09:21:00.000-04:00',
-            total: 142,
-          },
-          cameraViolations: {
-            maxStreak: 65,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 127,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 101,
-            streakEnd: '2022-01-12T12:52:00.000-05:00',
-            streakStart: '2021-01-14T09:43:00.000-05:00',
-            total: 269,
-          },
-          redLightCameraViolations: {
-            maxStreak: 4,
-            streakEnd: '2022-01-27T11:32:00.000-05:00',
-            streakStart: '2021-03-24T13:25:00.000-04:00',
-            total: 5,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 62,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 122,
-          },
-        },
+        cameraData: cameraDataFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 73726.54999999999,
@@ -321,38 +260,14 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 64,
-            streakEnd: '2022-08-19T08:39:00.000-04:00',
-            streakStart: '2021-09-01T09:21:00.000-04:00',
-            total: 142,
-          },
-          cameraViolations: {
-            maxStreak: 65,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 127,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 101,
-            streakEnd: '2022-01-12T12:52:00.000-05:00',
-            streakStart: '2021-01-14T09:43:00.000-05:00',
-            total: 269,
-          },
+        cameraData: cameraDataFactory.build({
           redLightCameraViolations: {
             maxStreak: 6,
             streakEnd: '2022-01-27T11:32:00.000-05:00',
             streakStart: '2021-03-24T13:25:00.000-04:00',
             total: 6,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 62,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 122,
-          },
-        },
+          }
+        }),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 73726.54999999999,
@@ -533,38 +448,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 130,
@@ -653,38 +537,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 130,
@@ -764,38 +617,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 130,
@@ -870,38 +692,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 130,
@@ -979,38 +770,7 @@ describe('twitter', () => {
       const nowDateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 64,
-            streakEnd: '2022-08-19T08:39:00.000-04:00',
-            streakStart: '2021-09-01T09:21:00.000-04:00',
-            total: 142,
-          },
-          cameraViolations: {
-            maxStreak: 65,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 127,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 101,
-            streakEnd: '2022-01-12T12:52:00.000-05:00',
-            streakStart: '2021-01-14T09:43:00.000-05:00',
-            total: 269,
-          },
-          redLightCameraViolations: {
-            maxStreak: 4,
-            streakEnd: '2022-01-27T11:32:00.000-05:00',
-            streakStart: '2021-03-24T13:25:00.000-04:00',
-            total: 5,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 62,
-            streakEnd: '2021-12-23T10:22:00.000-05:00',
-            streakStart: '2020-12-29T10:44:00.000-05:00',
-            total: 122,
-          },
-        },
+        cameraData: cameraDataFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 73726.54999999999,
@@ -1174,38 +934,7 @@ describe('twitter', () => {
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 0,
@@ -1296,38 +1025,7 @@ describe('twitter', () => {
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
       const plateLookupTweetArguments: PlateLookupTweetArguments = {
-        cameraData: {
-          busLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          cameraViolationsWithBusLaneCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          redLightCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-          schoolZoneSpeedCameraViolations: {
-            maxStreak: 0,
-            streakEnd: null,
-            streakStart: null,
-            total: 0,
-          },
-        },
+        cameraData: cameraDataWithNoCameraViolationsFactory.build(),
         existingLookupCreatedAt: undefined,
         fineData: new AggregateFineData({
           totalFined: 0,

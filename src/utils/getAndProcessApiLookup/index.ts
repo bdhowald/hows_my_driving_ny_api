@@ -2,7 +2,7 @@ import { AxiosResponse, HttpStatusCode } from 'axios'
 import { DateTime } from 'luxon'
 
 import { DatabasePathName } from 'constants/endpoints'
-import { NEW_YORK_TIME_ZONE } from 'constants/locale'
+import { NEW_YORK_TIME_ZONE, UTC_TIME_ZONE } from 'constants/locale'
 import LookupSource from 'constants/lookupSources'
 import OpenDataService from 'services/openDataService'
 import ApiLookupResult from 'types/apiLookup'
@@ -164,7 +164,7 @@ const getAndProcessApiLookup = async (
   const previousLookupDateInUtc = vehicleLookupAndFrequencyResult.previousLookup
     ? DateTime.fromJSDate(
       vehicleLookupAndFrequencyResult.previousLookup?.createdAt,
-      { zone: 'UTC' },
+      { zone: UTC_TIME_ZONE },
     )
     : undefined
 
@@ -181,7 +181,7 @@ const getAndProcessApiLookup = async (
 
     lookupDateInUtc = DateTime.fromJSDate(
       existingLookupCreatedAt as Date,
-      { zone: 'UTC' },
+      { zone: UTC_TIME_ZONE },
     )
   } else {
     const newLookupProps: CreateNewLookupArguments = {
@@ -206,7 +206,7 @@ const getAndProcessApiLookup = async (
 
     lookupDateInUtc = DateTime.fromJSDate(
       newlyCreatedLookup.createdAt,
-      { zone: 'UTC' },
+      { zone: UTC_TIME_ZONE },
     )
   }
 

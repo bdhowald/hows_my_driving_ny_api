@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 
-import { NEW_YORK_TIME_ZONE } from 'constants/locale'
+import { NEW_YORK_TIME_ZONE, UTC_TIME_ZONE } from 'constants/locale'
 import CameraData from 'types/cameraData'
 import CameraStreakData from 'types/cameraStreakData'
 import { Violation } from 'types/violations'
@@ -15,8 +15,8 @@ const findMaxCameraViolationsStreak = (
   violationTimes: Array<string | null | undefined>
 ): CameraStreakData => {
   let maxStreak = 0
-  let streakEnd: string | null = null
-  let streakStart: string | null = null
+  let streakEndDateTime: DateTime | null = null
+  let streakStartDateTime: DateTime | null = null
 
   const dateTimes = violationTimes
     .filter(isPresent)
@@ -29,7 +29,7 @@ const findMaxCameraViolationsStreak = (
       (otherDate) => otherDate >= dateTime && otherDate < yearMinusOneDayLater
     )
 
-    const sortedYearLongTickets = yearLongTickets.sort((a, b) => {
+    const sortedYearLongTickets: DateTime[] = yearLongTickets.sort((a, b) => {
       if (a > b) {
         return 1
       }
@@ -43,15 +43,25 @@ const findMaxCameraViolationsStreak = (
 
     if (thisStreak > maxStreak) {
       maxStreak = thisStreak
-      streakEnd = sortedYearLongTickets[yearLongTickets.length - 1].toISO()
-      streakStart = sortedYearLongTickets[0].toISO()
+      streakEndDateTime = sortedYearLongTickets[yearLongTickets.length - 1]
+      streakStartDateTime = sortedYearLongTickets[0]
     }
   })
 
+  // Typescript gets confused
+  const streakEndInEastern = streakEndDateTime ? (streakEndDateTime as DateTime).toISO() : null
+  const streakEndInUtc = streakEndDateTime ? (streakEndDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO() : null
+  const streakStartInEastern = streakStartDateTime ? (streakStartDateTime as DateTime).toISO() : null
+  const streakStartInUtc = streakStartDateTime ? (streakStartDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO() : null
+
   return {
     maxStreak,
-    streakEnd,
-    streakStart,
+    streakEnd: streakEndInEastern,
+    streakEndEastern: streakEndInEastern,
+    streakEndUtc: streakEndInUtc,
+    streakStart: streakStartInEastern,
+    streakStartEastern: streakStartInEastern,
+    streakStartUtc: streakStartInUtc,
   }
 }
 

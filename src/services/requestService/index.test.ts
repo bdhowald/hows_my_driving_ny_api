@@ -2,6 +2,7 @@ import { HttpStatusCode } from 'axios'
 import http from 'http'
 import { DateTime } from 'luxon'
 
+import { cameraDataWithNoCameraViolationsFactory } from '__fixtures__/cameraData'
 import {
   TWEET_CREATE_EVENT_EXPECTED_SHA,
   TWEET_CREATE_EVENT_FIXTURE,
@@ -60,38 +61,7 @@ describe('requestService', () => {
           statusCode: 200,
           successfulLookup: true,
           vehicle: {
-            cameraStreakData: {
-              busLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolationsWithBusLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              redLightCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              schoolZoneSpeedCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-            },
+            cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),
             fines: new AggregateFineData({
               totalFined: 1050,
               totalInJudgment: 0,
@@ -492,38 +462,7 @@ describe('requestService', () => {
           statusCode: 200,
           successfulLookup: true,
           vehicle: {
-            cameraStreakData: {
-              busLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolationsWithBusLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              redLightCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              schoolZoneSpeedCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-            },
+            cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),
             fines: new AggregateFineData({
               totalFined: 0,
               totalInJudgment: 0,
@@ -633,38 +572,7 @@ describe('requestService', () => {
           statusCode: 200,
           successfulLookup: true,
           vehicle: {
-            cameraStreakData: {
-              busLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolationsWithBusLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              redLightCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              schoolZoneSpeedCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-            },
+            cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),
             fines: new AggregateFineData({
               totalFined: 0,
               totalInJudgment: 0,
@@ -841,38 +749,7 @@ describe('requestService', () => {
           statusCode: 200,
           successfulLookup: true,
           vehicle: {
-            cameraStreakData: {
-              busLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              cameraViolationsWithBusLaneCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              redLightCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-              schoolZoneSpeedCameraViolations: {
-                maxStreak: 0,
-                streakEnd: null,
-                streakStart: null,
-                total: 0,
-              },
-            },
+            cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),
             fines: new AggregateFineData({
               totalFined: 875,
               totalInJudgment: 0,
