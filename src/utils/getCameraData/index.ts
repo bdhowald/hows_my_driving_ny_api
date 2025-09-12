@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 
+import { NEW_YORK_TIME_ZONE } from 'constants/locale'
 import CameraData from 'types/cameraData'
 import CameraStreakData from 'types/cameraStreakData'
 import { Violation } from 'types/violations'
@@ -19,7 +20,7 @@ const findMaxCameraViolationsStreak = (
 
   const dateTimes = violationTimes
     .filter(isPresent)
-    .map((violationTime) => DateTime.fromISO(violationTime))
+    .map((violationTime) => DateTime.fromISO(violationTime, { zone: NEW_YORK_TIME_ZONE }))
 
   dateTimes.forEach((dateTime) => {
     const yearMinusOneDayLater = dateTime.set({ year: dateTime.year + 1, day: -1 })

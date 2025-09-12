@@ -2,6 +2,7 @@ import { AxiosResponse, HttpStatusCode } from 'axios'
 import { DateTime } from 'luxon'
 
 import { DatabasePathName } from 'constants/endpoints'
+import { NEW_YORK_TIME_ZONE } from 'constants/locale'
 import LookupSource from 'constants/lookupSources'
 import OpenDataService from 'services/openDataService'
 import ApiLookupResult from 'types/apiLookup'
@@ -160,14 +161,28 @@ const getAndProcessApiLookup = async (
   const vehicleLookupAndFrequencyResult: PreviousLookupAndFrequency =
     await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
+  const previousLookupDateInUtc = vehicleLookupAndFrequencyResult.previousLookup
+    ? DateTime.fromJSDate(
+      vehicleLookupAndFrequencyResult.previousLookup?.createdAt,
+      { zone: 'UTC' },
+    )
+    : undefined
+
+  const previousLookupDateInEastern = previousLookupDateInUtc
+    ? previousLookupDateInUtc.setZone(NEW_YORK_TIME_ZONE)
+    : undefined
+
   let uniqueIdentifier: string | undefined
-  let lookupDate: Date | undefined
+  let lookupDateInUtc: DateTime | undefined
 
   if (lookupSource === LookupSource.ExistingLookup) {
     // In this case, existingIdentifier is definitely defined.
     uniqueIdentifier = existingIdentifier as string
 
-    lookupDate = existingLookupCreatedAt
+    lookupDateInUtc = DateTime.fromJSDate(
+      existingLookupCreatedAt as Date,
+      { zone: 'UTC' },
+    )
   } else {
     const newLookupProps: CreateNewLookupArguments = {
       cameraData,
@@ -189,7 +204,10 @@ const getAndProcessApiLookup = async (
     // to return to the client.
     uniqueIdentifier = newlyCreatedLookup.uniqueIdentifier
 
-    lookupDate = new Date(newlyCreatedLookup.createdAt)
+    lookupDateInUtc = DateTime.fromJSDate(
+      newlyCreatedLookup.createdAt,
+      { zone: 'UTC' },
+    )
   }
 
   const plateLookupTweetArguments: PlateLookupTweetArguments = {
@@ -205,16 +223,20 @@ const getAndProcessApiLookup = async (
     uniqueIdentifier,
   }
 
+  const lookupDateInEastern = (lookupDateInUtc as DateTime).setZone('America/New_York')
   const tweetParts = formPlateLookupTweets(plateLookupTweetArguments)
 
   const apiLookupResult: ApiLookupResult = {
     cameraStreakData: cameraData,
     fines: aggregateFineData,
-    lookupDate: lookupDate as Date,
+    lookupDate:  lookupDateInEastern.toISO(),
+    lookupDateEastern: lookupDateInEastern.toISO(),
+    lookupDateUtc: lookupDateInUtc.toISO(),
     plate,
     plateTypes,
-    previousLookupDate:
-      vehicleLookupAndFrequencyResult.previousLookup?.createdAt,
+    previousLookupDate: previousLookupDateInEastern?.toISO(),
+    previousLookupDateEastern: previousLookupDateInEastern?.toISO(),
+    previousLookupDateUtc: previousLookupDateInUtc?.toISO(),
     previousViolationCount:
       vehicleLookupAndFrequencyResult.previousLookup?.numViolations,
     rectifiedPlate,

@@ -12,6 +12,7 @@ import {
   FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP,
   NYC_OPEN_DATA_PORTAL_HOST,
 } from 'constants/endpoints'
+import { NEW_YORK_TIME_ZONE } from 'constants/locale'
 import getBoroughService from 'services/geocodingService'
 import { RawViolation, Violation } from 'types/violations'
 import getFullAddress from 'utils/addressUtils'
@@ -265,7 +266,7 @@ const getFormattedTimes = (
   }
 
   const violationTimeInEasternTime = DateTime.fromISO(formattedTime, {
-    zone: 'America/New_York',
+    zone: NEW_YORK_TIME_ZONE,
   })
 
   return {

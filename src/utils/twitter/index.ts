@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { CAMERA_THRESHOLDS } from 'constants/dangerousVehicleAbatementAct'
 import { HOWS_MY_DRIVING_NY_WEBSITE_URL } from 'constants/endpoints'
 import { FINE_FIELDS } from 'constants/fines'
-import { US_DOLLAR_FORMAT_OBJECT } from 'constants/locale'
+import { NEW_YORK_TIME_ZONE, US_DOLLAR_FORMAT_OBJECT } from 'constants/locale'
 import {
   HOWS_MY_DRIVING_NY_USER_ID,
   STATUS_MAX_LENGTH,
@@ -111,23 +111,26 @@ const createRepeatLookupString = (
 
   if (previousLookup && numNewViolations > 0) {
     // Determine when the last lookup was...
-    const previousLookupDateTime = previousLookup.createdAt
-    const previousLookupDateTimeInUTC = DateTime.fromJSDate(
-      previousLookupDateTime,
-      { zone: 'America/New_York' }
+    const previousLookupDateTimeTimeZoneNaive = previousLookup.createdAt
+    const previousLookupDateTimeInUtc = DateTime.fromJSDate(
+      previousLookupDateTimeTimeZoneNaive,
     )
     const nowInUTC = DateTime.utc()
 
     // If at least five minutes have passed...
-    if (nowInUTC.minus({ minutes: 5 }) > previousLookupDateTimeInUTC) {
+    if (nowInUTC.minus({ minutes: 5 }) > previousLookupDateTimeInUtc) {
       // Add the new ticket info and previous lookup time to the string.
 
-      const previousLookupTimeInUTCString =
-        previousLookupDateTimeInUTC.toFormat('hh:mm:ss a ZZZZ')
-      const previousLookupDateInUTCString =
-        previousLookupDateTimeInUTC.toFormat('LLLL dd, y')
+      const previousLookupDateTimeInEastern = previousLookupDateTimeInUtc.setZone(
+        NEW_YORK_TIME_ZONE
+      )
 
-      const lastQueriedString = `This vehicle was last queried on ${previousLookupDateInUTCString} at ${previousLookupTimeInUTCString}.`
+      const previousLookupTimeInEasternString =
+        previousLookupDateTimeInEastern.toFormat('hh:mm:ss a ZZZZ')
+      const previousLookupDateInEasternString =
+        previousLookupDateTimeInEastern.toFormat('LLLL dd, y')
+
+      const lastQueriedString = `This vehicle was last queried on ${previousLookupDateInEasternString} at ${previousLookupTimeInEasternString}.`
       violationsString += lastQueriedString
 
       const plateHashTagString = getPlateHashTagString(plate, state)
@@ -189,11 +192,12 @@ const formPlateLookupTweets = (
     0
   )
 
-  const asOfDateTime = existingLookupCreatedAt
-    ? DateTime.fromJSDate(existingLookupCreatedAt)
-    : DateTime.utc()
+  const asOfDateTimeInEasternTime = existingLookupCreatedAt
+    ? DateTime.fromJSDate(existingLookupCreatedAt).setZone(
+        'America/New_York', { keepLocalTime: true }
+      )
+    : DateTime.now().setZone(NEW_YORK_TIME_ZONE)
 
-  const asOfDateTimeInEasternTime = asOfDateTime.setZone('America/New_York')
   const asOfTime = asOfDateTimeInEasternTime.toFormat('hh:mm:ss a ZZZZ')
   const asOfDate = asOfDateTimeInEasternTime.toFormat('LLLL dd, y')
   const timePrefix = `As of ${asOfTime} on ${asOfDate}:`

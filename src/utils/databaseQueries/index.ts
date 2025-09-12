@@ -77,7 +77,7 @@ export type VehicleQueryProps = {
  */
 export const createAndInsertNewLookup = async (
   newLookupArguments: CreateNewLookupArguments
-): Promise<{ createdAt: string, uniqueIdentifier: string }> => {
+): Promise<{ createdAt: Date, uniqueIdentifier: string }> => {
   const {
     cameraData,
     existingIdentifier,

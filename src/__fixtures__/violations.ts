@@ -2,6 +2,7 @@ import { Factory } from 'fishery'
 import { DateTime } from 'luxon'
 
 import { Borough } from 'constants/boroughs'
+import { NEW_YORK_TIME_ZONE } from 'constants/locale'
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import {
   RawFiscalYearDatabaseViolation,
@@ -78,7 +79,7 @@ export const rawOpenParkingAndCameraViolationFactory =
 export const violationFactory = Factory.define<Violation>(({ sequence }) => {
   const formattedTime = '2023-06-09T09:11'
   const violationInEasternTime = DateTime.fromISO(formattedTime, {
-    zone: 'America/New_York',
+    zone: NEW_YORK_TIME_ZONE,
   })
 
   return {

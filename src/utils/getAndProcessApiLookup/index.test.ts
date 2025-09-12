@@ -14,7 +14,7 @@ import {
   createAndInsertNewLookup,
   getPreviousLookupAndLookupFrequencyForVehicle,
 } from 'utils/databaseQueries'
-import { PreviousLookupAndFrequency } from 'types/query'
+import { PreviousLookupAndFrequency, PreviousLookupResult } from 'types/query'
 import { ExternalData, VehicleResponse } from 'types/request'
 import { PotentialVehicle } from 'types/vehicles'
 
@@ -338,7 +338,12 @@ describe('getAndProcessApiLookup', () => {
       lookupSource: LookupSource.Api,
     }
 
-    const lookupDate = new Date(2019, 0, 1)
+    const lookupDate = new Date(Date.UTC(2019, 0, 1, 5))
+    const lookupDateInUtc = DateTime.fromJSDate(
+      lookupDate,
+      { zone: 'UTC' },
+    )
+    const lookupDateInEastern = lookupDateInUtc.setZone('America/New_York')
 
     const baseExpected: VehicleResponse = {
       statusCode: 200,
@@ -383,10 +388,14 @@ describe('getAndProcessApiLookup', () => {
           totalPaid: 1050,
           totalReduced: 0,
         }),
-        lookupDate,
+        lookupDate: lookupDateInEastern.toISO(),
+        lookupDateUtc: lookupDateInUtc.toISO(),
+        lookupDateEastern: lookupDateInEastern.toISO(),
         plate,
         plateTypes: undefined,
         previousLookupDate: undefined,
+        previousLookupDateEastern: undefined,
+        previousLookupDateUtc: undefined,
         previousViolationCount: undefined,
         rectifiedPlate: plate,
         state,
@@ -734,7 +743,7 @@ describe('getAndProcessApiLookup', () => {
     it('should process the open data api response when no previous lookup', async () => {
       jest.useFakeTimers()
 
-      const now = DateTime.now()
+      const now = DateTime.now().setZone('America/New_York')
 
       const tweetParts = [
         `As of ${now.toFormat('hh:mm:ss a ZZZZ')} on ${now.toFormat(
@@ -800,8 +809,8 @@ describe('getAndProcessApiLookup', () => {
     it('should process the open data api response if a previous lookup exists', async () => {
       jest.useFakeTimers()
 
-      const now = DateTime.now()
-      const january12021 = new Date(2021, 0, 1)
+      const now = DateTime.now().setZone('America/New_York')
+      const january12021 = new Date(Date.UTC(2021, 0, 1, 5))
 
       const frequency = 2
       const previousLookupAndFrequency: PreviousLookupAndFrequency = {
@@ -811,6 +820,12 @@ describe('getAndProcessApiLookup', () => {
           numViolations: 4,
         },
       }
+
+      console.log(january12021)
+
+      // const previousLookupDateInUtc = DateTime.fromMillis(january12021.getTime(), { zone: 'utc' })
+      const previousLookupDateInUtc = DateTime.fromJSDate(january12021, { zone: 'UTC' })
+      const previousLookupDateInEastern = previousLookupDateInUtc.setZone('America/New_York')
 
       const luxonDate = DateTime.fromJSDate(january12021, {
         zone: 'America/New_York',
@@ -841,10 +856,13 @@ describe('getAndProcessApiLookup', () => {
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
 
+      console.log(previousLookupDateInUtc)
+
       const expectedVehicleResponse = {
         ...baseExpected.vehicle,
-        previousLookupDate:
-          previousLookupAndFrequency.previousLookup?.createdAt,
+        previousLookupDate: '2021-01-01T00:00:00.000-05:00',
+        previousLookupDateEastern: '2021-01-01T00:00:00.000-05:00',
+        previousLookupDateUtc: '2021-01-01T05:00:00.000Z',
         previousViolationCount:
           previousLookupAndFrequency.previousLookup?.numViolations,
         timesQueried: frequency,
@@ -886,14 +904,15 @@ describe('getAndProcessApiLookup', () => {
       jest.useFakeTimers()
 
       const january12021 = new Date(2021, 0, 1)
-      const january12021AsLuxonDate = DateTime.fromJSDate(january12021, {
-        zone: 'America/New_York',
-      })
+      const january12021AsLuxonDate = DateTime.fromJSDate(january12021).setZone(
+        'America/New_York',
+        { keepLocalTime: true },
+      )
 
-      const december12020 = new Date(2020, 11, 1)
-      const december12020AsLuxonDate = DateTime.fromJSDate(december12020, {
-        zone: 'America/New_York',
-      })
+      const december12020 = new Date(Date.UTC(2020, 11, 1, 5))
+      const december12020AsLuxonDateInEastern = DateTime.fromJSDate(december12020).setZone(
+        'America/New_York',
+      )
 
       const frequency = 2
       const previousLookupAndFrequency: PreviousLookupAndFrequency = {
@@ -910,8 +929,8 @@ describe('getAndProcessApiLookup', () => {
             'LLLL dd, y'
           )}: #NY_ABC1234 has been queried 2 times.\n\n` +
           'This vehicle was last queried on ' +
-          `${december12020AsLuxonDate.toFormat('LLLL dd, y')} at ` +
-          `${december12020AsLuxonDate.toFormat('hh:mm:ss a ZZZZ')}. ` +
+          `${december12020AsLuxonDateInEastern.toFormat('LLLL dd, y')} at ` +
+          `${december12020AsLuxonDateInEastern.toFormat('hh:mm:ss a ZZZZ')}. ` +
           'Since then, #NY_ABC1234 has received 2 new tickets.\n\n',
         'Total parking and camera violation tickets for #NY_ABC1234: 6\n\n' +
           '6 | Blocking Pedestrian Ramp\n',
@@ -935,8 +954,9 @@ describe('getAndProcessApiLookup', () => {
           totalPaid: 875,
           totalReduced: 0,
         }),
-        previousLookupDate:
-          previousLookupAndFrequency.previousLookup?.createdAt,
+        previousLookupDate: '2020-12-01T00:00:00.000-05:00',
+        previousLookupDateEastern: '2020-12-01T00:00:00.000-05:00',
+        previousLookupDateUtc: '2020-12-01T05:00:00.000Z',
         previousViolationCount:
           previousLookupAndFrequency.previousLookup?.numViolations,
         statistics: {
@@ -1000,7 +1020,7 @@ describe('getAndProcessApiLookup', () => {
     it('should process the open data api response when the plate is a medallion plate', async () => {
       jest.useFakeTimers()
 
-      const now = DateTime.now()
+      const now = DateTime.now().setZone('America/New_York')
       const plate = 'Y201965C'
       const rectifiedPlate = '2B91'
 
@@ -1455,10 +1475,10 @@ describe('getAndProcessApiLookup', () => {
   it('should get api response from open data and process the api response even when no violations', async () => {
     jest.useFakeTimers()
 
-    const now = DateTime.now()
+    const now = DateTime.now().setZone('America/New_York')
     const uniqueIdentifier = 'a1b2c3d4'
 
-    const lookupDate = new Date(2019, 0, 1)
+    const lookupDate = new Date(Date.UTC(2019, 0, 1, 5))
 
     const plate = 'ABC1234'
     const state = 'NY'
@@ -1622,10 +1642,14 @@ describe('getAndProcessApiLookup', () => {
           totalPaid: 0,
           totalReduced: 0,
         }),
-        lookupDate,
+        lookupDate: '2019-01-01T00:00:00.000-05:00',
+        lookupDateEastern: '2019-01-01T00:00:00.000-05:00',
+        lookupDateUtc: '2019-01-01T05:00:00.000Z',
         plate,
         plateTypes: undefined,
         previousLookupDate: undefined,
+        previousLookupDateEastern: undefined,
+        previousLookupDateUtc: undefined,
         previousViolationCount: undefined,
         rectifiedPlate: plate,
         state,

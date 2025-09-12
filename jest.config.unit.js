@@ -1,4 +1,3 @@
-
 export default {
   // bail: true,
   modulePaths: ['<rootDir>/src/'],

@@ -21,7 +21,7 @@ describe('twitter', () => {
       jest.useFakeTimers()
 
       const now = new Date()
-      const nowAsLuxonDate = DateTime.fromJSDate(now)
+      const nowAsLuxonDate = DateTime.fromJSDate(now).setZone('America/New_York')
       const timeString = nowAsLuxonDate.toFormat('hh:mm:ss a ZZZZ')
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
@@ -1169,7 +1169,7 @@ describe('twitter', () => {
       jest.useFakeTimers()
 
       const now = new Date()
-      const nowAsLuxonDate = DateTime.fromJSDate(now)
+      const nowAsLuxonDate = DateTime.fromJSDate(now).setZone('America/New_York')
       const timeString = nowAsLuxonDate.toFormat('hh:mm:ss a ZZZZ')
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 
@@ -1291,7 +1291,7 @@ describe('twitter', () => {
       jest.useFakeTimers()
 
       const now = new Date()
-      const nowAsLuxonDate = DateTime.fromJSDate(now)
+      const nowAsLuxonDate = DateTime.fromJSDate(now).setZone('America/New_York')
       const timeString = nowAsLuxonDate.toFormat('hh:mm:ss a ZZZZ')
       const dateString = nowAsLuxonDate.toFormat('LLLL dd, y')
 

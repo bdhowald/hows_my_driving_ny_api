@@ -50,6 +50,9 @@ describe('requestService', () => {
         const now = DateTime.now()
         const uniqueIdentifier = 'a1b2c3d4'
 
+        const lookupDate = DateTime.fromJSDate(new Date('2025-09-01 15:12:48'))
+        const lookupDateInEastern = lookupDate.setZone('America/New_York')
+
         const plate = 'ABC1234'
         const state = 'NY'
 
@@ -96,10 +99,14 @@ describe('requestService', () => {
               totalPaid: 1050,
               totalReduced: 0,
             }),
-            lookupDate: new Date('2025-09-01 15:12:48'),
+            lookupDate: lookupDateInEastern.toISO(),
+            lookupDateEastern: lookupDateInEastern.toISO(),
+            lookupDateUtc: lookupDate.toISO(),
             plate,
             plateTypes: undefined,
             previousLookupDate: undefined,
+            previousLookupDateEastern: undefined,
+            previousLookupDateUtc: undefined,
             previousViolationCount: undefined,
             rectifiedPlate: plate,
             state,
@@ -475,6 +482,9 @@ describe('requestService', () => {
         const now = DateTime.now()
         const uniqueIdentifier = 'a1b2c3d4'
 
+        const lookupDate = DateTime.fromJSDate(new Date('2025-09-01 15:12:48'))
+        const lookupDateInEastern = lookupDate.setZone('America/New_York')
+
         const plate = 'ABC1234'
         const state = 'NY'
 
@@ -521,10 +531,14 @@ describe('requestService', () => {
               totalPaid: 0,
               totalReduced: 0,
             }),
-            lookupDate: new Date('2025-09-01 15:12:48'),
+            lookupDate: lookupDateInEastern.toISO(),
+            lookupDateEastern: lookupDateInEastern.toISO(),
+            lookupDateUtc: lookupDate.toISO(),
             plate,
             plateTypes: undefined,
             previousLookupDate: undefined,
+            previousLookupDateEastern: undefined,
+            previousLookupDateUtc: undefined,
             previousViolationCount: undefined,
             rectifiedPlate: plate,
             state,
@@ -609,6 +623,9 @@ describe('requestService', () => {
         const plate = 'ABC1234'
         const state = 'NY'
 
+        const lookupDate = DateTime.fromJSDate(new Date('2025-09-01 15:12:48'))
+        const lookupDateInEastern = lookupDate.setZone('America/New_York')
+
         const validPlateQueryParam = `${plate}:${state}`
         const invalidPlateQueryParam = `${plate}:`
 
@@ -655,10 +672,14 @@ describe('requestService', () => {
               totalPaid: 0,
               totalReduced: 0,
             }),
-            lookupDate: new Date('2025-09-01 15:12:48'),
+            lookupDate: lookupDateInEastern.toISO(),
+            lookupDateEastern: lookupDateInEastern.toISO(),
+            lookupDateUtc: lookupDate.toISO(),
             plate,
             plateTypes: undefined,
             previousLookupDate: undefined,
+            previousLookupDateEastern: undefined,
+            previousLookupDateUtc: undefined,
             previousViolationCount: undefined,
             rectifiedPlate: plate,
             state,
@@ -803,6 +824,9 @@ describe('requestService', () => {
 
         const uniqueIdentifier = 'a1b2c3d4'
 
+        const lookupDate = DateTime.fromJSDate(new Date('2025-09-01 15:12:48'))
+        const lookupDateInEastern = lookupDate.setZone('America/New_York')
+
         const january12021 = new Date(2021, 0, 1)
         const january12021AsLuxonDate = DateTime.fromJSDate(january12021)
 
@@ -856,10 +880,14 @@ describe('requestService', () => {
               totalPaid: 875,
               totalReduced: 0,
             }),
-            lookupDate: new Date('2025-09-01 15:12:48'),
+            lookupDate: lookupDateInEastern.toISO(),
+            lookupDateEastern: lookupDateInEastern.toISO(),
+            lookupDateUtc: lookupDate.toISO(),
             plate,
             plateTypes: undefined,
             previousLookupDate: undefined,
+            previousLookupDateEastern: undefined,
+            previousLookupDateUtc: undefined,
             previousViolationCount: undefined,
             rectifiedPlate: plate,
             state,
