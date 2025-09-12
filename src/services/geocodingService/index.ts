@@ -30,21 +30,17 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
     return Borough.NoBoroughAvailable
   }
 
-  const streetWithoutDirections = streetAddress
-    .replace(/[ENSW]\/?B/i, '')
-    .trim()
-
   console.log(
     loggingKey,
     'Attempting to retrieve borough for lookup string',
-    `'${streetWithoutDirections}'`
+    `'${streetAddress}'`
   )
 
   let potentialBorough: string | Borough | undefined
 
   console.log(
     loggingKey,
-    `obtaining mutex for address search for ${streetWithoutDirections}`
+    `obtaining mutex for address search for ${streetAddress}`
   )
 
   // Request a lock guarding geocode search
@@ -52,34 +48,34 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
   console.log(
     loggingKey,
-    `obtained mutex for address search for ${streetWithoutDirections}`
+    `obtained mutex for address search for ${streetAddress}`
   )
 
   try {
     const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
-      streetWithoutDirections
+      streetAddress
     )
 
     if (result.length) {
       console.log(
         loggingKey,
         `Retrieved geocode from database: '${result[0].borough}' for lookup string`,
-        `'${streetWithoutDirections}' from original '${streetAddress}'`
+        `'${streetAddress}' from original '${streetAddress}'`
       )
       potentialBorough = result[0].borough
     } else {
       console.log(
         loggingKey,
         `No geocode found in database for lookup string`,
-        `'${streetWithoutDirections}' from original '${streetAddress}'`
+        `'${streetAddress}' from original '${streetAddress}'`
       )
       console.log(
         loggingKey,
         `Retrieving geocode from Google for lookup string`,
-        `'${streetWithoutDirections}' from original '${streetAddress}'`
+        `'${streetAddress}' from original '${streetAddress}'`
       )
       const geocodeFromGoogle: DatabaseGeocode | undefined =
-        await getGoogleGeocode(streetWithoutDirections, loggingKey)
+        await getGoogleGeocode(streetAddress, loggingKey)
 
       if (!geocodeFromGoogle) {
         return Borough.NoBoroughAvailable
@@ -98,7 +94,7 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
     console.log(
       loggingKey,
-      `released mutex for address search for ${streetWithoutDirections}`
+      `released mutex for address search for ${streetAddress}`
     )
   }
 

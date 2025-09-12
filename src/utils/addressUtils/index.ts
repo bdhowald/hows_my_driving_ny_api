@@ -24,6 +24,7 @@ export default (violation: RawViolation): string | undefined => {
 
   const normalizedCapitalizedAddress = fullAddress
     .split(' ')
+    .filter((strPart) => strPart.replace(/\(?[ENSW]\/?B\)?/i, "") !== "")
     .map((strPart) => strPart.toLowerCase())
     .map((strPart) => strPart.charAt(0).toUpperCase() + strPart.substr(1))
     .join(' ')
