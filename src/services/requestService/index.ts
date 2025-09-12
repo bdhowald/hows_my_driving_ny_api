@@ -63,7 +63,10 @@ export const handleApiLookup = async (
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
+    console.log('ETag matches, returning 304')
     return decamelizeKeysOneLevel({ statusCode: HttpStatusCode.NotModified}) as ExistingLookupResponse
+  } else {
+    console.log(`ETag does not match - eTagRequestHeader: ${eTagRequestHeader} / currentETag: ${currentETag}`)
   }
 
   const analyticsData = queryParser.getAnalyticsData()
