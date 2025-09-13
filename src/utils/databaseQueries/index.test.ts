@@ -861,10 +861,6 @@ describe('databaseQueries', () => {
       const geocode: DatabaseGeocode = {
         borough: 'Brooklyn',
         geocoder_id: 1,
-<<<<<<< Updated upstream
-=======
-        geocoding_service: 'google',
->>>>>>> Stashed changes
         lookup_string: address
       }
 
@@ -887,10 +883,6 @@ describe('databaseQueries', () => {
         {
           'borough': 'Brooklyn',
           'geocoder_id': 1,
-<<<<<<< Updated upstream
-=======
-          'geocoding_service': 'google',
->>>>>>> Stashed changes
           'lookup_string': '99 Schermerhorn Street New York NY'
         },
       )
@@ -902,10 +894,6 @@ describe('databaseQueries', () => {
       const geocode: DatabaseGeocode = {
         borough: 'Brooklyn',
         geocoder_id: 1,
-<<<<<<< Updated upstream
-=======
-        geocoding_service: 'google',
->>>>>>> Stashed changes
         lookup_string: address
       }
 
@@ -931,10 +919,6 @@ describe('databaseQueries', () => {
         {
           'borough': 'Brooklyn',
           'geocoder_id': 1,
-<<<<<<< Updated upstream
-=======
-          'geocoding_service': 'google',
->>>>>>> Stashed changes
           'lookup_string': '99 Schermerhorn Street New York NY'
         },
       )

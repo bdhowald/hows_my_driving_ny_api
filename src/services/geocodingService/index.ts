@@ -169,7 +169,6 @@ const getGoogleGeocode = async (
       return {
         lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
         borough: potentialBorough.long_name,
-        geocoding_service: 'google',
         geocoder_id: Geocoder.Google,
       }
     }
