@@ -168,23 +168,23 @@ const createServer = () =>
         const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleExistingLookup(request)
 
         returnResponse({
-          etag,
-          httpStatusCode: HttpStatusCode.Ok,
+          httpStatusCode: statusCode,
           receivedAtDate,
-          responseBody: body,
           responseObject: response,
           useGZip,
+          ...(body ? { responseBody: body } : undefined ),
+          ...(etag ? { etag } : undefined ),
         })
       } else if (request.url?.match(API_LOOKUP_PATH)) {
         const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleApiLookup(request)
 
         returnResponse({
-          etag,
-          httpStatusCode: HttpStatusCode.Ok,
+          httpStatusCode: statusCode,
           receivedAtDate,
-          responseBody: body,
           responseObject: response,
           useGZip,
+          ...(body ? { responseBody: body } : undefined ),
+          ...(etag ? { etag } : undefined ),
         })
       } else {
         console.log('Unknown request path')
