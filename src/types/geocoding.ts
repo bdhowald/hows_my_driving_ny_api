@@ -1,6 +1,7 @@
 export type DatabaseGeocode = {
   borough: string
-  geocoding_service: string
+  geocoder_id: number
+  geocoding_service: string,
   lookup_string: string
 }
 

@@ -6,6 +6,7 @@ import {
 } from '@googlemaps/google-maps-services-js'
 
 import { Borough } from 'constants/boroughs'
+import { Geocoder } from 'constants/geocoders'
 import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
 import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
 
@@ -169,6 +170,7 @@ const getGoogleGeocode = async (
         lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
         borough: potentialBorough.long_name,
         geocoding_service: 'google',
+        geocoder_id: Geocoder.Google,
       }
     }
     return
