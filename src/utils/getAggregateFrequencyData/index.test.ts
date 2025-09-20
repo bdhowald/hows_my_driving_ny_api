@@ -134,11 +134,11 @@ describe('getAggregateFineDataForVehicle', () => {
 
     const expected: FrequencyData = {
       boroughs: {
-        Bronx: 2,
-        Brooklyn: 8,
-        Manhattan: 4,
-        Queens: 3,
-        'Staten Island': 3,
+        theBronx: 2,
+        brooklyn: 8,
+        manhattan: 4,
+        queens: 3,
+        statenIsland: 3,
       },
       violationTypes: {
         'Blocking Bike Lane': 1,
@@ -169,7 +169,7 @@ describe('getAggregateFineDataForVehicle', () => {
     expect(frequencyData).toEqual(expected)
   })
 
-  it('shuold handle missing years, boroughs or violation types', () => {
+  it('should handle missing years, boroughs or violation types', () => {
     const numViolations = 20
     const violations: Violation[] = violationFactory.buildList(numViolations, {
       formattedTimeEastern: undefined,
@@ -180,7 +180,7 @@ describe('getAggregateFineDataForVehicle', () => {
     const frequencyData = getAggregateFrequencyData(violations)
 
     const expected: FrequencyData = {
-      boroughs: { 'No Borough Available': numViolations },
+      boroughs: { noBoroughAvailable: numViolations },
       violationTypes: { 'No Violation Description Available': numViolations },
       years: { 'No Year Available': numViolations },
     }

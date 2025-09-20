@@ -82,7 +82,7 @@ describe('requestService', () => {
             state,
             statistics: {
               boroughs: {
-                Bronx: 8,
+                theBronx: 8,
               },
               violationTypes: {
                 'Blocking Pedestrian Ramp': 8,
@@ -106,7 +106,7 @@ describe('requestService', () => {
                 '4 | 2019\n' +
                 '1 | 2021\n' +
                 '1 | 2022\n',
-              'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
+              'Violations by borough for #NY_ABC1234:\n\n' + '8 | The Bronx\n',
               'Known fines for #NY_ABC1234:\n\n' +
                 '$1,050.00 | Fined\n' +
                 '$0.00         | Reduced\n' +
@@ -770,7 +770,7 @@ describe('requestService', () => {
             state,
             statistics: {
               boroughs: {
-                Bronx: 8,
+                theBronx: 8,
               },
               violationTypes: {
                 'Blocking Pedestrian Ramp': 6,
@@ -793,7 +793,7 @@ describe('requestService', () => {
                 '4 | 2019\n' +
                 '1 | 2021\n' +
                 '1 | 2022\n',
-              'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
+              'Violations by borough for #NY_ABC1234:\n\n' + '8 | The Bronx\n',
               'Known fines for #NY_ABC1234:\n\n' +
                 '$1,050.00 | Fined\n' +
                 '$0.00         | Reduced\n' +

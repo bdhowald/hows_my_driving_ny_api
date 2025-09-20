@@ -26,7 +26,7 @@ import {
 import CameraData from 'types/cameraData'
 import FrequencyData from 'types/frequencyData'
 import { PreviousLookupAndFrequency } from 'types/query'
-import { camelizeKeys } from 'utils/camelize'
+import { camelizeKeys, decamelize } from 'utils/camelize'
 import {
   insertNewTwitterEventAndMediaObjects,
   updateNonFollowerReplies,
@@ -523,10 +523,15 @@ const handleResponsePartFormation = (
   // Grab item
   objectEntries.forEach(([key, violationCountForKey]) => {
     // Titleize for readability.
+    const isKeyCamelized = key.charAt(0) == key.charAt(0).toLowerCase()
+    const keyToUse = isKeyCamelized ? decamelize(key) : key
+
     const description =
-      key.replace(/\b[a-z]/g, (firstLetterOfWord) =>
-        firstLetterOfWord.toUpperCase()
-      )
+      keyToUse
+        .replace(/_/g, ' ')
+        .replace(/\b[a-z]/g, (firstLetterOfWord) =>
+          firstLetterOfWord.toUpperCase()
+        )
 
     const countLength = violationCountForKey.toString().length
 

@@ -10,6 +10,8 @@ import { Geocoder } from 'constants/geocoders'
 import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
 import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
 
+const BRONX_SHORT_NAME = 'Bronx'
+
 class Mutex {
   mutex = Promise.resolve()
 
@@ -84,7 +86,12 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
 
       potentialBorough = geocodeFromGoogle.borough
 
-      if (potentialBorough in Borough || potentialBorough === 'The Bronx') {
+      if (potentialBorough === BRONX_SHORT_NAME) {
+        // Sometimes Google returns 'The Bronx' othertimes, 'Bronx'
+        potentialBorough = Borough.Bronx
+      }
+
+      if (potentialBorough in Borough) {
         // Only insert geocode if it's for a borough.
         await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
       }

@@ -179,7 +179,7 @@ describe('getBoroughService', () => {
 
   it('should return the first borough queried from Google as long as New York as the city is detected', async () => {
     const brooklyn = 'Brooklyn'
-    const bronx = 'Bronx'
+    const bronx = 'The Bronx'
 
     const googleMapsGeocodeResponse = {
       data: {
@@ -233,9 +233,6 @@ describe('getBoroughService', () => {
   })
 
   it("should return 'No Borough Available' if the returned 'borough' is not a real borough", async () => {
-    const brooklyn = 'Brooklyn'
-    const bronx = 'Bronx'
-
     const googleMapsGeocodeResponse = {
       data: {
         results: [

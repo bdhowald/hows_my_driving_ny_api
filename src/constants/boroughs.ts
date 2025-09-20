@@ -1,5 +1,5 @@
 export enum Borough {
-  Bronx = 'Bronx',
+  Bronx = 'The Bronx',
   Brooklyn = 'Brooklyn',
   Manhattan = 'Manhattan',
   NoBoroughAvailable = 'No Borough Available',

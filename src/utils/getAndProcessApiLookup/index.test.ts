@@ -371,7 +371,7 @@ describe('getAndProcessApiLookup', () => {
         state,
         statistics: {
           boroughs: {
-            Bronx: 8,
+            theBronx: 8,
           },
           violationTypes: {
             'Blocking Pedestrian Ramp': 8,
@@ -726,7 +726,7 @@ describe('getAndProcessApiLookup', () => {
           '4 | 2019\n' +
           '1 | 2021\n' +
           '1 | 2022\n',
-        'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
+        'Violations by borough for #NY_ABC1234:\n\n' + '8 | The Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
           '$1,050.00 | Fined\n' +
           '$0.00         | Reduced\n' +
@@ -816,7 +816,7 @@ describe('getAndProcessApiLookup', () => {
           '4 | 2019\n' +
           '1 | 2021\n' +
           '1 | 2022\n',
-        'Violations by borough for #NY_ABC1234:\n\n' + '8 | Bronx\n',
+        'Violations by borough for #NY_ABC1234:\n\n' + '8 | The Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
           '$1,050.00 | Fined\n' +
           '$0.00         | Reduced\n' +
@@ -905,7 +905,7 @@ describe('getAndProcessApiLookup', () => {
         'Total parking and camera violation tickets for #NY_ABC1234: 6\n\n' +
           '6 | Blocking Pedestrian Ramp\n',
         'Violations by year for #NY_ABC1234:\n\n' + '2 | 2018\n' + '4 | 2019\n',
-        'Violations by borough for #NY_ABC1234:\n\n' + '6 | Bronx\n',
+        'Violations by borough for #NY_ABC1234:\n\n' + '6 | The Bronx\n',
         'Known fines for #NY_ABC1234:\n\n' +
           '$875.00 | Fined\n' +
           '$0.00     | Reduced\n' +
@@ -931,7 +931,7 @@ describe('getAndProcessApiLookup', () => {
           previousLookupAndFrequency.previousLookup?.numViolations,
         statistics: {
           boroughs: {
-            Bronx: 6,
+            theBronx: 6,
           },
           violationTypes: {
             'Blocking Pedestrian Ramp': 6,
@@ -1196,7 +1196,7 @@ describe('getAndProcessApiLookup', () => {
             '4 | 2019\n' +
             '1 | 2021\n' +
             '1 | 2022\n',
-          'Violations by borough for #NY_Y201965C:\n\n' + '8 | Bronx\n',
+          'Violations by borough for #NY_Y201965C:\n\n' + '8 | The Bronx\n',
           'Known fines for #NY_Y201965C:\n\n' +
             '$1,050.00 | Fined\n' +
             '$0.00         | Reduced\n' +

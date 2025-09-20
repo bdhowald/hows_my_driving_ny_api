@@ -146,7 +146,7 @@ export const violationFactory = Factory.define<Violation>(({ sequence }) => {
     vehicleMake: 'HONDA',
     vehicleYear: '2006',
     violationCode: '67',
-    violationCounty: 'Bronx' as Borough,
+    violationCounty: 'The Bronx' as Borough,
     violationInFrontOfOrOpposite: undefined,
     violationLegalCode: undefined,
     violationLocation: '0043',

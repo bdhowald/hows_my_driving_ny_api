@@ -94,10 +94,10 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Bronx: 5,
-            Brooklyn: 18,
-            Manhattan: 536,
-            Queens: 8,
+            theBronx: 5,
+            brooklyn: 18,
+            manhattan: 536,
+            queens: 8,
           },
           violationTypes: {
             'Bus Lane Violation': 138,
@@ -216,7 +216,7 @@ describe('twitter', () => {
         ],
         [
           'Violations by borough for #NY_ABC1234:\n\n' +
-            '5     | Bronx\n' +
+            '5     | The Bronx\n' +
             '18   | Brooklyn\n' +
             '536 | Manhattan\n' +
             '8     | Queens\n',
@@ -278,10 +278,10 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Bronx: 5,
-            Brooklyn: 18,
-            Manhattan: 536,
-            Queens: 8,
+            theBronx: 5,
+            brooklyn: 18,
+            manhattan: 536,
+            queens: 8,
           },
           violationTypes: {
             'Bus Lane Violation': 138,
@@ -400,7 +400,7 @@ describe('twitter', () => {
         ],
         [
           'Violations by borough for #NY_ABC1234:\n\n' +
-            '5     | Bronx\n' +
+            '5     | The Bronx\n' +
             '18   | Brooklyn\n' +
             '536 | Manhattan\n' +
             '8     | Queens\n',
@@ -459,8 +459,8 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 1,
-            Manhattan: 1,
+            brooklyn: 1,
+            manhattan: 1,
           },
           violationTypes: {
             'Double Parking': 2
@@ -548,8 +548,8 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 1,
-            Manhattan: 1,
+            brooklyn: 1,
+            manhattan: 1,
           },
           violationTypes: {
             'Double Parking': 2
@@ -628,8 +628,8 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 1,
-            'No Borough Available': 1,
+            brooklyn: 1,
+            noBoroughAvailable: 1,
           },
           violationTypes: {
             'Double Parking': 2
@@ -703,8 +703,8 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 1,
-            Manhattan: 1,
+            brooklyn: 1,
+            manhattan: 1,
           },
           violationTypes: {
             'Double Parking': 2
@@ -781,10 +781,10 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Bronx: 5,
-            Brooklyn: 18,
-            Manhattan: 536,
-            Queens: 8,
+            theBronx: 5,
+            brooklyn: 18,
+            manhattan: 536,
+            queens: 8,
           },
           violationTypes: {
             'Bus Lane Violation': 138,
@@ -901,7 +901,7 @@ describe('twitter', () => {
         ],
         [
           'Violations by borough for #NY_ABC1234:\n\n' +
-            '5     | Bronx\n' +
+            '5     | The Bronx\n' +
             '18   | Brooklyn\n' +
             '536 | Manhattan\n' +
             '8     | Queens\n',
@@ -945,7 +945,7 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 13999990,
+            brooklyn: 13999990,
           },
           violationTypes: {
             'Double Parking': 13999990,
@@ -1036,7 +1036,7 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            Brooklyn: 1500001,
+            brooklyn: 1500001,
           },
           violationTypes: {
             'Double Parking': 1500001,

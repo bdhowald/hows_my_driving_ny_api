@@ -1,7 +1,8 @@
 import { Borough } from 'constants/boroughs'
 import { HumanizedDescription } from 'constants/violationDescriptions'
-import FrequencyData from 'types/frequencyData'
+import FrequencyData, { CamelizedBoroughValues } from 'types/frequencyData'
 import { Violation } from 'types/violations'
+import { camelize } from 'utils/camelize'
 
 /**
  * Gets stats for a lookup on borough, year, violation type frequency
@@ -17,10 +18,12 @@ const getAggregateFrequencyData = (violations: Violation[]): FrequencyData => {
   violations.forEach((violation) => {
     const borough: Borough = violation.violationCounty
 
-    if (boroughs[borough]) {
-      ;(boroughs[borough] as number) += 1
+    const camelCasedBorough = camelize(borough) as CamelizedBoroughValues
+
+    if (boroughs[camelCasedBorough]) {
+      ;(boroughs[camelCasedBorough] as number) += 1
     } else {
-      boroughs[borough] = 1
+      boroughs[camelCasedBorough] = 1
     }
 
     const violationYear = violation.formattedTimeEastern
