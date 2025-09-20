@@ -82,7 +82,7 @@ describe('requestService', () => {
             state,
             statistics: {
               boroughs: {
-                theBronx: 8,
+                the_bronx: 8,
               },
               violationTypes: {
                 'Blocking Pedestrian Ramp': 8,
@@ -770,7 +770,7 @@ describe('requestService', () => {
             state,
             statistics: {
               boroughs: {
-                theBronx: 8,
+                the_bronx: 8,
               },
               violationTypes: {
                 'Blocking Pedestrian Ramp': 6,

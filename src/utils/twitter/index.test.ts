@@ -94,7 +94,7 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            theBronx: 5,
+            the_bronx: 5,
             brooklyn: 18,
             manhattan: 536,
             queens: 8,
@@ -278,7 +278,7 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            theBronx: 5,
+            the_bronx: 5,
             brooklyn: 18,
             manhattan: 536,
             queens: 8,
@@ -629,7 +629,7 @@ describe('twitter', () => {
         frequencyData: {
           boroughs: {
             brooklyn: 1,
-            noBoroughAvailable: 1,
+            no_borough_available: 1,
           },
           violationTypes: {
             'Double Parking': 2
@@ -781,7 +781,7 @@ describe('twitter', () => {
         }),
         frequencyData: {
           boroughs: {
-            theBronx: 5,
+            the_bronx: 5,
             brooklyn: 18,
             manhattan: 536,
             queens: 8,

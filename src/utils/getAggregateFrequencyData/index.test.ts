@@ -134,11 +134,11 @@ describe('getAggregateFineDataForVehicle', () => {
 
     const expected: FrequencyData = {
       boroughs: {
-        theBronx: 2,
+        the_bronx: 2,
         brooklyn: 8,
         manhattan: 4,
         queens: 3,
-        statenIsland: 3,
+        staten_island: 3,
       },
       violationTypes: {
         'Blocking Bike Lane': 1,
@@ -180,7 +180,7 @@ describe('getAggregateFineDataForVehicle', () => {
     const frequencyData = getAggregateFrequencyData(violations)
 
     const expected: FrequencyData = {
-      boroughs: { noBoroughAvailable: numViolations },
+      boroughs: { no_borough_available: numViolations },
       violationTypes: { 'No Violation Description Available': numViolations },
       years: { 'No Year Available': numViolations },
     }

@@ -371,7 +371,7 @@ describe('getAndProcessApiLookup', () => {
         state,
         statistics: {
           boroughs: {
-            theBronx: 8,
+            the_bronx: 8,
           },
           violationTypes: {
             'Blocking Pedestrian Ramp': 8,
@@ -791,8 +791,6 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-      console.log(january12021)
-
       // const previousLookupDateInUtc = DateTime.fromMillis(january12021.getTime(), { zone: 'utc' })
       const previousLookupDateInUtc = DateTime.fromJSDate(january12021, { zone: 'UTC' })
       const previousLookupDateInEastern = previousLookupDateInUtc.setZone('America/New_York')
@@ -825,8 +823,6 @@ describe('getAndProcessApiLookup', () => {
           '$0.00         | In Judgment\n',
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
-
-      console.log(previousLookupDateInUtc)
 
       const expectedVehicleResponse = {
         ...baseExpected.vehicle,
@@ -931,7 +927,7 @@ describe('getAndProcessApiLookup', () => {
           previousLookupAndFrequency.previousLookup?.numViolations,
         statistics: {
           boroughs: {
-            theBronx: 6,
+            the_bronx: 6,
           },
           violationTypes: {
             'Blocking Pedestrian Ramp': 6,
