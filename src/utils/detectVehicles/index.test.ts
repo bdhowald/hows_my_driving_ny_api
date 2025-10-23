@@ -189,6 +189,20 @@ describe('detectVehicles', () => {
       expect(result).toEqual(expected)
     })
 
+    it('should detect an invalid plate with two parts, a state and another value that could be a plate type', () => {
+      const potentialVehicle = 'nyc:ny'
+
+      const expected = [
+        {
+          originalString: potentialVehicle,
+          validPlate: false,
+        },
+      ]
+      const result = detectVehicles([potentialVehicle])
+
+      expect(result).toEqual(expected)
+    })
+
     it('should detect an invalid plate with nothing but colons', () => {
       const potentialVehicle = ':::'
 

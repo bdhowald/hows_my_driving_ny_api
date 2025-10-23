@@ -38,15 +38,16 @@ const detectVehicles = (potentialVehicles: string[]): PotentialVehicle[] => {
         .sort()
         .join()
 
+      const plateIndex = [...Array(parts.length).keys()].filter(
+        (part) => ![stateIndex, plateTypesIndex].includes(part)
+      )[0]
+
       const haveValidPlate =
+        plateIndex !== undefined &&
         (parts.length === 2 && stateIndex != -1) ||
         (parts.length === 3 && ![plateTypesIndex, stateIndex].includes(-1))
 
       if (haveValidPlate) {
-        const plateIndex = [...Array(parts.length).keys()].filter(
-          (part) => ![stateIndex, plateTypesIndex].includes(part)
-        )[0]
-
         return {
           originalString: plate,
           plate: parts[plateIndex],
