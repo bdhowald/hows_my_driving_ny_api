@@ -27,6 +27,7 @@ export enum HumanizedDescription {
   FeedingMeter = 'Feeding Meter',
   FieldReleaseAgreement = 'Field Release Agreement',
   FireHydrant = 'Fire Hydrant',
+  FraudulentUseOfAgencyParkingPermit = 'Fraudulent Use of Agency Parking Permit',
   FrontOrBackPlateMissing = 'Front or Back Plate Missing',
   Idling = 'Idling',
   ImproperDisplayOfRegistration = 'Improper Display of Registration',
@@ -270,6 +271,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '84': HumanizedDescription.CommercialVehiclePlatformLiftsInLoweredPosition,
   '85': HumanizedDescription.StreetStorageOfCommercialVehicleOverThreeHours,
   '86': HumanizedDescription.MidtownStandingOrParkingThreeHourLimit,
+  '87': HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
   '89': HumanizedDescription.NoStandingExceptTrucksInGarmentDistrict,
   '91': HumanizedDescription.NoParkingOnStreetToDisplayVehicleForSale,
   '92': HumanizedDescription.NoParkingOnStreetToWashOrRepairVehicle,
@@ -434,6 +436,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
     HumanizedDescription.StreetStorageOfCommercialVehicleOverThreeHours,
   '86-Midtown PKG or STD-3 hr lim':
     HumanizedDescription.MidtownStandingOrParkingThreeHourLimit,
+  '87-Fraudulent Permit Use': HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
   '89-No Stand Exc Com Plate':
     HumanizedDescription.NoStandingExceptTrucksInGarmentDistrict,
   '91-Veh for Sale (Dealer Only)':
@@ -496,6 +499,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   'FAILURE TO STOP AT RED LIGHT': HumanizedDescription.FailureToStopAtRedLight,
   'FEEDING METER': HumanizedDescription.FeedingMeter,
   'FIRE HYDRANT': HumanizedDescription.FireHydrant,
+  'FRAUDULENT USE PARKING PERMIT': HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
   'FRONT OR BACK PLATE MISSING': HumanizedDescription.FrontOrBackPlateMissing,
   IDLING: HumanizedDescription.Idling,
   'IMPROPER REGISTRATION': HumanizedDescription.ImproperRegistration,
@@ -716,6 +720,7 @@ export const violationsToCodes: Record<
   [HumanizedDescription.CommercialVehiclePlatformLiftsInLoweredPosition]: '84',
   [HumanizedDescription.StreetStorageOfCommercialVehicleOverThreeHours]: '85',
   [HumanizedDescription.MidtownStandingOrParkingThreeHourLimit]: '86',
+  [HumanizedDescription.FraudulentUseOfAgencyParkingPermit]: '87',
   [HumanizedDescription.NoStandingExceptTrucksInGarmentDistrict]: '89',
   [HumanizedDescription.NoParkingOnStreetToDisplayVehicleForSale]: '91',
   [HumanizedDescription.NoParkingOnStreetToWashOrRepairVehicle]: '92',

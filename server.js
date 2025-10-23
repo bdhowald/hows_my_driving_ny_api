@@ -154,6 +154,7 @@ const openParkingAndCameraViolationsReadableViolationDescriptions = {
   "FAILURE TO STOP AT RED LIGHT": FAILURE_TO_STOP_AT_RED_LIGHT,
   "FEEDING METER": "Feeding Meter",
   "FIRE HYDRANT": "Fire Hydrant",
+  "FRAUDULENT USE PARKING PERMIT": "Fraudulent Use of Agency Parking Permit",
   "FRONT OR BACK PLATE MISSING": "Front or Back Plate Missing",
   IDLING: "Idling",
   "IMPROPER REGISTRATION": "Improper Registration",
@@ -511,6 +512,7 @@ const fiscalYearReadableViolationDescriptions = {
     "Street Storage of Commercial Vehicle Over 3 Hours",
   "86-Midtown PKG or STD-3 hr lim":
     "Midtown Parking or Standing - 3 Hour Limit",
+  "87-Fraudulent Permit Use": "Fraudulent Use of Agency Parking Permit",
   "89-No Stand Exc Com Plate":
     "No Standing - Except Trucks in Garment District",
   "91-Veh for Sale (Dealer Only)":
