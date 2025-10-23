@@ -2055,6 +2055,68 @@ describe('normalizeViolations', () => {
     expect(normalizedViolations[0]).toEqual(undefined)
   })
 
+  it('should fix a known time format issue with stray periods', async () => {
+    const databasePathname = '/resource/869v-vr48.json'
+    const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
+
+    const formattedViolationTime = DateTime.fromISO('2023-06-09T17:03:00', {
+      zone: 'America/New_York',
+    })
+
+    const rawFiscalYearDatabaseViolation: RawViolation =
+      rawFiscalYearDatabaseViolationFactory.build({
+        violationTime: '05.3P'
+      })
+
+    const expectedViolation = {
+      ...rawFiscalYearDatabaseViolation,
+      amountDue: undefined,
+      fineAmount: undefined,
+      fined: undefined,
+      formattedTime: formattedViolationTime.toISO(),
+      formattedTimeEastern: formattedViolationTime.toISO(),
+      formattedTimeUtc: formattedViolationTime.toUTC().toISO(),
+      fromDatabases: [
+        {
+          dataUpdatedAt,
+          endpoint: `https://data.cityofnewyork.us${databasePathname}`,
+          name: 'Parking Violations Issued - Fiscal Year 2023',
+        },
+      ],
+      houseNumber: undefined,
+      humanizedDescription: 'Blocking Pedestrian Ramp',
+      interestAmount: undefined,
+      issuerPrecinct: 43,
+      issuingAgency: 'P',
+      judgmentEntryDate: undefined,
+      location: 'I/o Taylor Avenue Guerlain',
+      outstanding: undefined,
+      paid: undefined,
+      paymentAmount: undefined,
+      penaltyAmount: undefined,
+      reduced: undefined,
+      reductionAmount: undefined,
+      sanitized: {
+        issuingAgency: 'New York Police Department (NYPD)',
+        vehicleBodyType: 'Van',
+      },
+      summonsImage: undefined,
+      violationCounty: 'The Bronx',
+      violationInFrontOfOrOpposite: undefined,
+      violationLegalCode: undefined,
+      violationPostCode: undefined,
+      violationPrecinct: 43,
+    }
+
+    const normalizedViolations = await normalizeViolations(
+      [rawFiscalYearDatabaseViolation],
+      databasePathname,
+      dataUpdatedAt,
+    )
+
+    expect(normalizedViolations[0]).toEqual(expectedViolation)
+  })
+
   it('should throw an error for an unexpected time format', async () => {
     const databasePathname = '/resource/869v-vr48.json'
     const dataUpdatedAt = '2023-11-14T17:54:58.000Z'

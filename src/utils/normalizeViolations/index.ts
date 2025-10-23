@@ -218,11 +218,15 @@ const getFormattedTimes = (
   const date = dateMatch ? violationDate.split('T')[0] : violationDate
 
   if (violationTime) {
-    const isAM = violationTime.includes('A')
-    const isPM = violationTime.includes('P')
+    // some edge cases are: '0.05A', '075.A', '05.3P'
+    // No harm in just regexing all of them
+    let rectifiedViolationTime = violationTime.replace('.', '0')
 
-    const fourDigitTimeMatch = violationTime.match(FOUR_DIGIT_TIME_FORMAT)
-    const fourDigitWithColonTimeMatch = violationTime.match(
+    const isAM = rectifiedViolationTime.includes('A')
+    const isPM = rectifiedViolationTime.includes('P')
+
+    const fourDigitTimeMatch = rectifiedViolationTime.match(FOUR_DIGIT_TIME_FORMAT)
+    const fourDigitWithColonTimeMatch = rectifiedViolationTime.match(
       FOUR_DIGIT_WITH_COLON_TIME_FORMAT
     )
 
