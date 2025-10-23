@@ -347,7 +347,7 @@ describe('getAndProcessApiLookup', () => {
     const lookupDateInEastern = lookupDateInUtc.setZone('America/New_York')
 
     const baseExpected: VehicleResponse = {
-      statusCode: 200,
+      statusCode: 201,
       successfulLookup: true,
       vehicle: {
         cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),
@@ -1566,7 +1566,7 @@ describe('getAndProcessApiLookup', () => {
     )
 
     const expected: VehicleResponse = {
-      statusCode: 200,
+      statusCode: 201,
       successfulLookup: true,
       vehicle: {
         cameraStreakData: cameraDataWithNoCameraViolationsFactory.build(),

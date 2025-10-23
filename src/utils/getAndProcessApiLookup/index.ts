@@ -174,6 +174,7 @@ const getAndProcessApiLookup = async (
 
   let uniqueIdentifier: string | undefined
   let lookupDateInUtc: DateTime | undefined
+  let returnStatusCode: HttpStatusCode | undefined
 
   if (lookupSource === LookupSource.ExistingLookup) {
     // In this case, existingIdentifier is definitely defined.
@@ -183,6 +184,8 @@ const getAndProcessApiLookup = async (
       existingLookupCreatedAt as Date,
       { zone: UTC_TIME_ZONE },
     )
+
+    returnStatusCode = HttpStatusCode.Ok
   } else {
     const newLookupProps: CreateNewLookupArguments = {
       cameraData,
@@ -208,6 +211,8 @@ const getAndProcessApiLookup = async (
       newlyCreatedLookup.createdAt,
       { zone: UTC_TIME_ZONE },
     )
+
+    returnStatusCode = HttpStatusCode.Created
   }
 
   const plateLookupTweetArguments: PlateLookupTweetArguments = {
@@ -250,7 +255,7 @@ const getAndProcessApiLookup = async (
   }
 
   const result: VehicleResponse = {
-    statusCode: HttpStatusCode.Ok,
+    statusCode: returnStatusCode,
     successfulLookup: true,
     vehicle: apiLookupResult,
   }
