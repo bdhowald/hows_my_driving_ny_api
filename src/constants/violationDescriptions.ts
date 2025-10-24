@@ -95,6 +95,7 @@ export enum HumanizedDescription {
   OvertimeStandingCounsulOrDiplomatOverThirtyMinutes = 'Overtime Standing - Consul or Diplomat Over 30 Minutes',
   OvertimeStandingDiplomat = 'Overtime Standing - Diplomat',
   ParkedOnSidewalk = 'Parked on Sidewalk',
+  PickupOrDischargePassengersInProhibitedZone = 'Pickup or Discharge Passengers in Prohibited Zone',
   PlateAndStickerDoNotMatch = 'Plate and Sticker Do Not Match',
   RegistrationStickerExpiredOrMissing = 'Registration Sticker Expired or Missing',
   RegistrationStickerMutilatedOrCounterfeit = 'Registration Sticker Mutilated or Counterfeit',
@@ -223,6 +224,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '51': HumanizedDescription.ParkedOnSidewalk,
   '52': HumanizedDescription.NoStoppingIntersection,
   '53': HumanizedDescription.NoStandingSafetyZone,
+  '54': HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
   '55': HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway,
   '56': HumanizedDescription.NoStoppingDividedHighway,
   '57': [
@@ -322,6 +324,8 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
     HumanizedDescription.NoStandingCommuterVanStop,
   '26-No Stnd (for-hire veh only)':
     HumanizedDescription.NoStandingForHireVehicleStop,
+  '27-No Parking (exc disabled)':
+    HumanizedDescription.NoParkingExceptDisabilityPermit,
   '27-No Parking (exc handicap)':
     HumanizedDescription.NoParkingExceptDisabilityPermit,
   '28-O/T STD,PL/Con,0 Mn, Dec': HumanizedDescription.OvertimeStandingDiplomat,
@@ -369,6 +373,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '50-Crosswalk': HumanizedDescription.BlockingCrosswalk,
   '51-Sidewalk': HumanizedDescription.ParkedOnSidewalk,
   '52-Intersection': HumanizedDescription.NoStoppingIntersection,
+  '54-FHV Pickup/Discharge Pass': HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
   '53-Safety Zone': HumanizedDescription.NoStandingSafetyZone,
   '55-Tunnel/Elevated Roadway':
     HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway,
@@ -531,12 +536,15 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   'NO PARKING-DAY/TIME LIMITS': HumanizedDescription.NoParkingDayTimeLimits,
   'NO PARKING-EXC. AUTH. VEHICLE':
     HumanizedDescription.NoParkingExceptAuthorizedVehicles,
+  'NO PARKING-EXC. DSBLTY PERMIT':
+    HumanizedDescription.NoParkingExceptDisabilityPermit,
   'NO PARKING-EXC. HNDICAP PERMIT':
     HumanizedDescription.NoParkingExceptDisabilityPermit,
   'NO PARKING-EXC. HOTEL LOADING':
     HumanizedDescription.NoParkingExceptHotelLoading,
   'NO PARKING-STREET CLEANING': HumanizedDescription.NoParkingStreetCleaning,
   'NO PARKING-TAXI STAND': HumanizedDescription.NoParkingTaxiStand,
+  'NO STAND TAXI/FHV RELIEF STAND':HumanizedDescription.NoStandingTaxiOrForHireVehicleStand,
   'NO STANDING EXCP D/S': HumanizedDescription.NoStandingExceptDiplomat,
   'NO STANDING EXCP DP': HumanizedDescription.NoStandingExceptDiplomat,
   'NO STANDING-BUS LANE': HumanizedDescription.NoStandingBusLane,
@@ -550,6 +558,8 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.NoStandingExceptAuthorizedVehicles,
   'NO STANDING-EXC. TRUCK LOADING':
     HumanizedDescription.NoStandingExceptTruckLoadingUnloading,
+  'NO STANDING-FOR HIRE VEH STND':
+    HumanizedDescription.NoStandingForHireVehicleStop,
   'NO STANDING-FOR HIRE VEH STOP':
     HumanizedDescription.NoStandingForHireVehicleStop,
   'NO STANDING-HOTEL LOADING':
@@ -576,6 +586,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.OvertimeParkingTimeLimitPosted,
   'OVERTIME STANDING DP': HumanizedDescription.OvertimeStandingDiplomat,
   'OVERTIME STDG D/S': HumanizedDescription.OvertimeStandingDiplomat,
+  'PCKP DSCHRGE IN PRHBTD ZONE': HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
   'PARKED BUS-EXC. DESIG. AREA':
     HumanizedDescription.BusParkingOutsideOfDesignatedArea,
   'PEDESTRIAN RAMP': HumanizedDescription.BlockingPedestrianRamp,
@@ -690,6 +701,7 @@ export const violationsToCodes: Record<
   [HumanizedDescription.ParkedOnSidewalk]: '51',
   [HumanizedDescription.NoStoppingIntersection]: '52',
   [HumanizedDescription.NoStandingSafetyZone]: '53',
+  [HumanizedDescription.PickupOrDischargePassengersInProhibitedZone]: '54',
   [HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway]: '55',
   [HumanizedDescription.NoStoppingDividedHighway]: '56',
   [HumanizedDescription.NoParkingBlueZone]: '57',
