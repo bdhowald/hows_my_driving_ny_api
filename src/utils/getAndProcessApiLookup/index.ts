@@ -75,8 +75,9 @@ const getAndProcessApiLookup = async (
   let rectifiedPlate = plate
 
   let allOpenDataResponses: [AxiosResponse[], AxiosResponse[]] | undefined
+  let normalizedResponses: Array<(Violation | undefined)[]>
 
-  const openDataQueryErrorResponse = {
+  const openDataQueryErrorPartialResponse = {
     error:
       'Sorry, there was an error querying open data for ' +
       vehicle.originalString,
@@ -94,37 +95,51 @@ const getAndProcessApiLookup = async (
       OpenDataService.makeOpenDataMetadataRequest()
     ])
   } catch (error) {
-    return openDataQueryErrorResponse
+    return {
+      ...openDataQueryErrorPartialResponse,
+      error:
+        'Sorry, there was an error querying open data for ' +
+        vehicle.originalString,
+    }
   }
 
   const [vehicleDataResponses, metadataResponses] = allOpenDataResponses
 
-  const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
-    if (!response.config.url) {
-      throw Error('Missing response url')
-    }
-    const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
-    const databasePathname = `${dataUri}.json` as DatabasePathName
-    reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
-
-    return reducedObject
-  }, {} as Record<DatabasePathName, string>)
-
-  const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
-    vehicleDataResponses.map(async (response) => {
+  try {
+    const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
       if (!response.config.url) {
         throw Error('Missing response url')
       }
-      const requestUrlObject = new URL(response.config.url)
-      const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as DatabasePathName
-      const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
+      const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
+      const databasePathname = `${dataUri}.json` as DatabasePathName
+      reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
 
-      return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
-    })
+      return reducedObject
+    }, {} as Record<DatabasePathName, string>)
 
-  const normalizedResponses: Array<(Violation | undefined)[]> = await Promise.all(
-    normalizedResponsePromises
-  )
+    const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
+      vehicleDataResponses.map(async (response) => {
+        if (!response.config.url) {
+          throw Error('Missing response url')
+        }
+        const requestUrlObject = new URL(response.config.url)
+        const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as DatabasePathName
+        const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
+
+        return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
+      })
+
+    normalizedResponses = await Promise.all(
+      normalizedResponsePromises
+    )
+  } catch (error) {
+    return {
+      ...openDataQueryErrorPartialResponse,
+      error:
+        'Sorry, there was an error parsing open data for ' +
+        vehicle.originalString,
+    }
+  }
 
   // Filter out falsy violations, caused by things like violations in the future
   const flattenedViolations = normalizedResponses.flat()

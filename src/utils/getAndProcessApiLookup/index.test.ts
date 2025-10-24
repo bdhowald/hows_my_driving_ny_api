@@ -1237,14 +1237,13 @@ describe('getAndProcessApiLookup', () => {
       jest.useRealTimers()
     })
 
-    it('should throw an error if an open data violation response is missing the url it is from', async () => {
-      const plate = 'ABC1234'
-
-      const potentialVehicle: PotentialVehicle = {
-        originalString: `${plate}:${state}`,
-        plate,
-        state,
-        validPlate: true,
+    it('should return an error response if an open data violation response is missing the url it is from', async () => {
+      const expected = {
+        error:
+          'Sorry, there was an error parsing open data for ' +
+          potentialVehicle.originalString,
+        statusCode: 502,
+        successfulLookup: false,
       }
 
       const openDataServiceResponse = [
@@ -1267,19 +1266,16 @@ describe('getAndProcessApiLookup', () => {
           undefined,
           externalData
         )
-      ).rejects.toEqual(
-        new Error('Missing response url')
-      )
+      ).resolves.toEqual(expected)
     })
 
     it('should throw an error if an open data metadata response is missing the url it is from', async () => {
-      const plate = 'ABC1234'
-
-      const potentialVehicle: PotentialVehicle = {
-        originalString: `${plate}:${state}`,
-        plate,
-        state,
-        validPlate: true,
+      const expected = {
+        error:
+          'Sorry, there was an error parsing open data for ' +
+          potentialVehicle.originalString,
+        statusCode: 502,
+        successfulLookup: false,
       }
 
       const openDataTableMetadataResponseMissingUrl = [
@@ -1302,9 +1298,7 @@ describe('getAndProcessApiLookup', () => {
           undefined,
           externalData
         )
-      ).rejects.toEqual(
-        new Error('Missing response url')
-      )
+      ).resolves.toEqual(expected)
     })
 
     it('should throw an error response if one of the metadata requests returns an error', async () => {
