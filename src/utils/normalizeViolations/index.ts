@@ -14,6 +14,10 @@ import {
 } from 'constants/endpoints'
 import { NEW_YORK_TIME_ZONE } from 'constants/locale'
 import getBoroughService from 'services/geocodingService'
+import {
+  FiscalYearDatabaseViolationName,
+  OpenParkingAndCameraViolationName,
+} from 'types/humanizedDescriptions'
 import { RawViolation, Violation } from 'types/violations'
 import getFullAddress from 'utils/addressUtils'
 import { camelizeKeys } from 'utils/camelize'
@@ -297,16 +301,20 @@ const getFieldFromViolationIfPresent = (violation: RawViolation, fieldName: stri
   return fieldName in violation ? violation[fieldName as keyof typeof violation] : undefined
 }
 
+const getFiscalYearDescriptionKey = (
+  violation: RawViolation
+): FiscalYearDatabaseViolationName | undefined =>
+  'violationCode' in violation
+    ? violation.violationCode
+    : 'violationDescription' in violation
+    ? violation.violationDescription
+    : undefined
+
 const getHumanizedDescription = (
   violation: RawViolation
 ): HumanizedDescription => {
   // Fiscal year database uses one of two fields to describe the violation
-  const fiscalYearDescriptionKey =
-    'violationCode' in violation
-      ? violation.violationCode
-      : 'violationDescription' in violation
-      ? violation.violationDescription
-      : undefined
+  const fiscalYearDescriptionKey = getFiscalYearDescriptionKey(violation)
 
   if (fiscalYearDescriptionKey) {
     // The same violation codes or descriptions in the fiscal year
@@ -354,7 +362,7 @@ const getHumanizedDescription = (
 
   // Open Parking & Camera Violations uses another
   const openParkingAndCameraViolationsDescriptionKey =
-    'violation' in violation ? violation.violation : undefined
+    getOpenParkingAndCameraViolationsDescriptionKey(violation)
 
   if (openParkingAndCameraViolationsDescriptionKey) {
 
@@ -381,6 +389,11 @@ const getHumanizedDescription = (
 
   return HumanizedDescription.NoViolationDescriptionAvailable
 }
+
+const getOpenParkingAndCameraViolationsDescriptionKey = (
+  violation: RawViolation
+): OpenParkingAndCameraViolationName | undefined =>
+  'violation' in violation ? violation.violation : undefined
 
 const getPrecinct = (violation: RawViolation): number | undefined => {
   if ('violationPrecinct' in violation && violation.violationPrecinct) {
@@ -445,6 +458,13 @@ const normalizeViolation = async (
   if (!humanizedDescription) {
     const mixpanelInstance = getMixpanelInstance()
 
+    const fiscalYearDescriptionKey =
+      getFiscalYearDescriptionKey(violation)
+    const openParkingAndCameraViolationsDescriptionKey =
+      getOpenParkingAndCameraViolationsDescriptionKey(violation)
+
+    const violationDescription = fiscalYearDescriptionKey ?? openParkingAndCameraViolationsDescriptionKey
+
     mixpanelInstance?.track(
       'violation_missing_humanized_description', {
         databaseEndpoint,
@@ -452,7 +472,8 @@ const normalizeViolation = async (
         formattedTime: formattedTimes?.formattedTimeUtc,
         formattedTimeEastern: formattedTimes?.formattedTimeEastern,
         summonsNumber: violation.summonsNumber,
-        violationCounty: violationBorough
+        violationCounty: violationBorough,
+        violationDescription,
       }
     )
   }
