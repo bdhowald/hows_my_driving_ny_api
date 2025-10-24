@@ -86,6 +86,7 @@ export enum HumanizedDescription {
   NoStoppingTrafficLane = 'No Stopping - Traffic Lane',
   NoViolationDescriptionAvailable = 'No Violation Description Available',
   NonComplianceWithPostedSign = 'Non-Compliance with Posted Sign',
+  ObscuredVehicleIdentificationNumber = 'Obscured Vehicle Identification Number',
   ObstructingDriveway = 'Obstructing Driveway',
   ObstructingTrafficOrIntersection = 'Obstructing Traffic or Intersection',
   OvernightParkingOfTractorTrailer = 'Overnight Parking of Tractor Trailer',
@@ -263,6 +264,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '74A': HumanizedDescription.ImproperlyDisplayedPlate,
   '74B': HumanizedDescription.CoveredPlate,
   '75': HumanizedDescription.PlateAndStickerDoNotMatch,
+  '76': HumanizedDescription.ObscuredVehicleIdentificationNumber,
   '77': HumanizedDescription.BusParkingOutsideOfDesignatedArea,
   '78': HumanizedDescription.NighttimeParkingOnResidentialStreetCommercialVehicle,
   '79': HumanizedDescription.BusLayoverInUnauthorizedLocation,
@@ -424,6 +426,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '74B-Covered Plate': HumanizedDescription.CoveredPlate,
   '75-No Match-Plate/Reg. Sticker':
     HumanizedDescription.PlateAndStickerDoNotMatch,
+  '76-Covered VIN': HumanizedDescription.ObscuredVehicleIdentificationNumber,
   '77-Parked Bus (exc desig area)':
     HumanizedDescription.BusParkingOutsideOfDesignatedArea,
   '78-Nighttime PKG on Res Street':
@@ -625,7 +628,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.NoParkingOnStreetToWashOrRepairVehicle,
   'VEHICLE FOR SALE(DEALERS ONLY)':
     HumanizedDescription.NoParkingOnStreetToDisplayVehicleForSale,
-  'VIN OBSCURED': HumanizedDescription.ImproperDisplayOfRegistration,
+  'VIN OBSCURED': HumanizedDescription.ObscuredVehicleIdentificationNumber,
   'WASH/REPAIR VEHCL-REPAIR ONLY':
     HumanizedDescription.NoParkingOnStreetToWashOrRepairVehicle,
   'WEIGH IN MOTION VIOLATION': HumanizedDescription.WeighInMotionViolation,
@@ -727,6 +730,7 @@ export const violationsToCodes: Record<
   [HumanizedDescription.ImproperlyDisplayedPlate]: '74A',
   [HumanizedDescription.CoveredPlate]: '74B',
   [HumanizedDescription.PlateAndStickerDoNotMatch]: '75',
+  [HumanizedDescription.ObscuredVehicleIdentificationNumber]: '76',
   [HumanizedDescription.BusParkingOutsideOfDesignatedArea]: '77',
   [HumanizedDescription.NighttimeParkingOnResidentialStreetCommercialVehicle]:
     '78',
