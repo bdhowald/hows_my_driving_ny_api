@@ -437,10 +437,18 @@ const normalizeViolation = async (
     getFieldFromViolationIfPresent(violation, 'issuerPrecinct')
   )
 
+  const databaseEndpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`
+  const databaseName = FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP[
+    requestPathname as DatabasePathName
+  ]
+
   if (!humanizedDescription) {
     const mixpanelInstance = getMixpanelInstance()
+
     mixpanelInstance?.track(
       'violation_missing_humanized_description', {
+        databaseEndpoint,
+        databaseName,
         formattedTime: formattedTimes?.formattedTimeUtc,
         formattedTimeEastern: formattedTimes?.formattedTimeEastern,
         summonsNumber: violation.summonsNumber,
@@ -462,10 +470,8 @@ const normalizeViolation = async (
     fromDatabases: [
       {
         dataUpdatedAt,
-        endpoint: `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`,
-        name: FISCAL_YEAR_PATHS_TO_DATABASE_NAMES_MAP[
-          requestPathname as DatabasePathName
-        ],
+        endpoint: databaseEndpoint,
+        name: databaseName,
       },
     ],
     fromHoursInEffect: getFieldFromViolationIfPresent(violation, 'fromHoursInEffect'),
