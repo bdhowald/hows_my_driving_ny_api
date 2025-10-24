@@ -450,6 +450,7 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   'BUS LANE VIOLATION': HumanizedDescription.BusLaneViolation,
   'FAILURE TO STOP AT RED LIGHT': HumanizedDescription.FailureToStopAtRedLight,
   'Field Release Agreement': HumanizedDescription.FieldReleaseAgreement,
+  'MOBILE BUS LANE VIOLATION': HumanizedDescription.MobileBusLaneViolation,
   'MTA CAMERA BUS STOP': HumanizedDescription.MobileMtaBusStopViolation,
   'MTA CAMERA DOUBLE PARKING': HumanizedDescription.MobileMtaDoubleParkingViolation,
   'PHTO SCHOOL ZN SPEED VIOLATION':
@@ -517,6 +518,7 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   MISCELLANEOUS: HumanizedDescription.Miscellaneous,
   'MISSING EQUIPMENT': HumanizedDescription.MissingRequiredEquipment,
   'MISUSE PARKING PERMIT': HumanizedDescription.MisuseOfParkingPermit,
+  'MOBILE BUS LANE VIOLATION': HumanizedDescription.MobileBusLaneViolation,
   'MTA CAMERA VIOLATION - DOUBLE PARKING': HumanizedDescription.MobileMtaDoubleParkingViolation,
   'MTA CAMERA VIOLATION - PARKING IN A BUS STOP': HumanizedDescription.MobileMtaBusStopViolation,
   'NGHT PKG ON RESID STR-COMM VEH':
