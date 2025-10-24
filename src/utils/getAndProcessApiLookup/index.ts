@@ -22,6 +22,7 @@ import getAggregateFrequencyData from 'utils/getAggregateFrequencyData'
 import getCameraData from 'utils/getCameraData'
 import mergeDuplicateViolations from 'utils/mergeDuplicateViolations'
 import normalizeViolations from 'utils/normalizeViolations'
+import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 import formPlateLookupTweets, { PlateLookupTweetArguments } from 'utils/twitter'
 
 /**
@@ -78,11 +79,18 @@ const getAndProcessApiLookup = async (
   let normalizedResponses: Array<(Violation | undefined)[]>
 
   const openDataQueryErrorPartialResponse = {
-    error:
-      'Sorry, there was an error querying open data for ' +
-      vehicle.originalString,
     statusCode: HttpStatusCode.BadGateway,
     successfulLookup: false,
+  }
+
+  const mixpanelPartialPayload = {
+    fingerprintId,
+    mixpanelId,
+    ...(existingIdentifier ? { existingIdentifier } : undefined),
+    ...(plate ? { plate } : undefined ),
+    ...(plateTypes ? { plateTypes } : undefined ),
+    ...(rectifiedPlate ? { rectifiedPlate } : undefined ),
+    ...(state ? { state } : undefined ),
   }
 
   try {
@@ -94,7 +102,20 @@ const getAndProcessApiLookup = async (
       ),
       OpenDataService.makeOpenDataMetadataRequest()
     ])
-  } catch (error) {
+  } catch (error: unknown) {
+    const wrappedError =
+      error instanceof Error
+        ? error
+        : new Error(
+            typeof error === 'string' ? error : JSON.stringify(error),
+          )
+
+    const mixpanelInstance = getMixpanelInstance()
+    mixpanelInstance?.track('open_data_query_error', {
+      ...mixpanelPartialPayload,
+      ...getMixpanelErrorPayload(error)
+    })
+
     return {
       ...openDataQueryErrorPartialResponse,
       error:
@@ -132,7 +153,20 @@ const getAndProcessApiLookup = async (
     normalizedResponses = await Promise.all(
       normalizedResponsePromises
     )
-  } catch (error) {
+  } catch (error: unknown) {
+    const wrappedError =
+      error instanceof Error
+        ? error
+        : new Error(
+            typeof error === 'string' ? error : JSON.stringify(error),
+          )
+
+    const mixpanelInstance = getMixpanelInstance()
+    mixpanelInstance?.track('open_data_parsing_error', {
+      ...mixpanelPartialPayload,
+      ...getMixpanelErrorPayload(error)
+    })
+
     return {
       ...openDataQueryErrorPartialResponse,
       error:
@@ -276,6 +310,21 @@ const getAndProcessApiLookup = async (
   }
 
   return result
+}
+
+const getMixpanelErrorPayload = (error: unknown): Record<string, any> => {
+  const wrappedError =
+    error instanceof Error
+      ? error
+      : new Error(
+          typeof error === 'string' ? error : JSON.stringify(error),
+        )
+
+  return {
+    message: wrappedError.message,
+    raw: String(error),
+    stack: wrappedError.stack,
+  }
 }
 
 export default getAndProcessApiLookup
