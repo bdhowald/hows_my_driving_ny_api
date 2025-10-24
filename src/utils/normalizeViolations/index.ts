@@ -20,6 +20,7 @@ import { camelizeKeys } from 'utils/camelize'
 import getIssuingAgency from 'utils/parseViolationFields/getIssuingAgency/getIssuingAgency'
 import getVehicleBodyType from 'utils/parseViolationFields/getVehicleBodyType/getVehicleBodyType'
 import getViolationStatus from 'utils/parseViolationFields/getViolationStatus/getViolationStatus'
+import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 import { isNumber, objectHasKey } from 'utils/typePredicates'
 
 const DATE_FORMAT = /^\d{2}\/\d{2}\/\d{4}$/
@@ -242,6 +243,13 @@ const getFormattedTimes = (
       hour = fourDigitWithColonTimeMatch[0].split(':')[0]
       minute = fourDigitWithColonTimeMatch[0].split(':')[1]
     } else {
+      const mixpanelInstance = getMixpanelInstance()
+      mixpanelInstance?.track(
+        'unexpected_time_format', {
+          violationTime: rectifiedViolationTime
+        }
+      )
+
       throw Error('Unexpected time format')
     }
 
@@ -428,6 +436,18 @@ const normalizeViolation = async (
   const issuerPrecinct = Number(
     getFieldFromViolationIfPresent(violation, 'issuerPrecinct')
   )
+
+  if (!humanizedDescription) {
+    const mixpanelInstance = getMixpanelInstance()
+    mixpanelInstance?.track(
+      'violation_missing_humanized_description', {
+        formattedTime: formattedTimes?.formattedTimeUtc,
+        formattedTimeEastern: formattedTimes?.formattedTimeEastern,
+        summonsNumber: violation.summonsNumber,
+        violationCounty: violationBorough
+      }
+    )
+  }
 
   const normalizedViolation: Violation = {
     amountDue: fineData.amountDue,
