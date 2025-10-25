@@ -262,7 +262,10 @@ const makeOpenDataVehicleRequest = async (
 
       const mixpanelInstance = getMixpanelInstance()
       mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
-        endpoint: stringifiedOpenParkingAndCameraViolationsUrl,
+        endpoint: openParkingAndCameraViolationsEndpoint,
+        plate: rectifiedPlate,
+        state,
+        plateTypes,
       })
     }
   })
@@ -391,7 +394,8 @@ const retrievePossibleMedallionVehiclePlate = async (
 
       const mixpanelInstance = getMixpanelInstance()
       mixpanelInstance?.track('open_data_medallion_database_request_error_before_retry', {
-        endpoint: stringifiedMedallionRequestUrl,
+        endpoint: MEDALLION_DATABASE_ENDPOINT,
+        plate,
       })
     }
   })
