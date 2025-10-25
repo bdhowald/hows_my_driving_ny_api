@@ -11,6 +11,7 @@ import {
 } from 'constants/endpoints'
 import { BASE_DELAY } from 'constants/requests'
 import { camelizeKeys } from 'utils/camelize'
+import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 
 const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
 const TEST_ENVIRONMENT = 'test'
@@ -100,7 +101,7 @@ const makeOpenDataViolationDataRequest = (
   plate: string,
   state: string,
   plateTypes: string[] | undefined
-) => {
+): URL => {
   const plateField = isFiscalYearRequest ? 'plate_id' : 'plate'
   const plateTypeField = isFiscalYearRequest ? 'plate_type' : 'license_type'
   const stateField = isFiscalYearRequest ? 'registration_state' : 'state'
@@ -154,6 +155,11 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
         console.log(
           `Request to ${stringifiedMetadataUrl} failed, possibly retrying`
         )
+
+        const mixpanelInstance = getMixpanelInstance()
+        mixpanelInstance?.track('open_data_metadata_request_error_before_retry', {
+          endpoint: stringifiedMetadataUrl,
+        })
       }
     })
 
@@ -224,6 +230,11 @@ const makeOpenDataVehicleRequest = async (
         asyncRequestFn: () => axios.get(stringifiedUrl),
         onRetry: () => {
           console.log(`Request to ${stringifiedUrl} failed, possibly retrying`)
+
+          const mixpanelInstance = getMixpanelInstance()
+          mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
+            endpoint: stringifiedUrl,
+          })
         }
       })
 
@@ -248,6 +259,11 @@ const makeOpenDataVehicleRequest = async (
       console.log(
         `Request to ${stringifiedOpenParkingAndCameraViolationsUrl} failed, possibly retrying`
       )
+
+      const mixpanelInstance = getMixpanelInstance()
+      mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
+        endpoint: stringifiedOpenParkingAndCameraViolationsUrl,
+      })
     }
   })
 
@@ -372,6 +388,11 @@ const retrievePossibleMedallionVehiclePlate = async (
       console.log(
         `Request to ${stringifiedMedallionRequestUrl} failed, possibly retrying`
       )
+
+      const mixpanelInstance = getMixpanelInstance()
+      mixpanelInstance?.track('open_data_medallion_database_request_error_before_retry', {
+        endpoint: stringifiedMedallionRequestUrl,
+      })
     }
   })
 
