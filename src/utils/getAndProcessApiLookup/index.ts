@@ -103,13 +103,6 @@ const getAndProcessApiLookup = async (
       OpenDataService.makeOpenDataMetadataRequest()
     ])
   } catch (error: unknown) {
-    const wrappedError =
-      error instanceof Error
-        ? error
-        : new Error(
-            typeof error === 'string' ? error : JSON.stringify(error),
-          )
-
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_query_error', {
       ...mixpanelPartialPayload,
@@ -154,13 +147,6 @@ const getAndProcessApiLookup = async (
       normalizedResponsePromises
     )
   } catch (error: unknown) {
-    const wrappedError =
-      error instanceof Error
-        ? error
-        : new Error(
-            typeof error === 'string' ? error : JSON.stringify(error),
-          )
-
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_parsing_error', {
       ...mixpanelPartialPayload,
