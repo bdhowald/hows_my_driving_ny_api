@@ -233,7 +233,10 @@ const makeOpenDataVehicleRequest = async (
 
           const mixpanelInstance = getMixpanelInstance()
           mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
-            endpoint: stringifiedUrl,
+            endpoint,
+            plate: rectifiedPlate,
+            plateTypes,
+            state,
           })
         }
       })
@@ -264,8 +267,8 @@ const makeOpenDataVehicleRequest = async (
       mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
         endpoint: openParkingAndCameraViolationsEndpoint,
         plate: rectifiedPlate,
-        state,
         plateTypes,
+        state,
       })
     }
   })
