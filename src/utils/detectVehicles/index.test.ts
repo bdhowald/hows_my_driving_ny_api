@@ -164,6 +164,40 @@ describe('detectVehicles', () => {
       expect(result).toEqual(expected)
     })
 
+    it('should detect a valid plate with two parts, a state and another value that could be a plate type, but will be treated as the plate', () => {
+      const potentialVehicle = 'nyc:ny'
+
+      const expected = [
+        {
+          originalString: potentialVehicle,
+          plate: 'NYC',
+          state: 'NY',
+          types: undefined,
+          validPlate: true,
+        },
+      ]
+      const result = detectVehicles([potentialVehicle])
+
+      expect(result).toEqual(expected)
+    })
+
+    it('should detect a valid plate with three parts, a state and two values that could each be a plate type', () => {
+      const potentialVehicle = 'nyc:ny:agr'
+
+      const expected = [
+        {
+          originalString: potentialVehicle,
+          plate: 'AGR',
+          state: 'NY',
+          types: 'NYC',
+          validPlate: true,
+        },
+      ]
+      const result = detectVehicles([potentialVehicle])
+
+      expect(result).toEqual(expected)
+    })
+
     describe('plate types', () => {
       const plate = 'abc1234'
       const state = 'ny'
@@ -225,20 +259,6 @@ describe('detectVehicles', () => {
 
     it('should detect an invalid plate with fewer than two parts', () => {
       const potentialVehicle = 'abc1234'
-
-      const expected = [
-        {
-          originalString: potentialVehicle,
-          validPlate: false,
-        },
-      ]
-      const result = detectVehicles([potentialVehicle])
-
-      expect(result).toEqual(expected)
-    })
-
-    it('should detect an invalid plate with two parts, a state and another value that could be a plate type', () => {
-      const potentialVehicle = 'nyc:ny'
 
       const expected = [
         {

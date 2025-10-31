@@ -49,19 +49,33 @@ const detectVehicles = (potentialVehicles: string[]): PotentialVehicle[] => {
       .filter((part) => !!part)
 
     if (VALID_PLATE_PART_LENGTHS.includes(parts.length)) {
+      let plateTypesIndex: number | undefined
+      let plateIndex: number
+
+      let plateTypes: string | undefined
+
       const stateBools = parts.map((part) => detectState(part))
       const stateIndex = stateBools.indexOf(true)
-      const plateTypesIndex = detectPlateTypesIndex(parts)
 
-      const plateTypes = parts[plateTypesIndex]
-        ?.split(',')
-        .filter((possiblePlateType) => detectPlateTypes(possiblePlateType))
-        .sort()
-        .join()
+      if (parts.length === 2) {
+        // plate index will be the index that is not the state index
+        plateIndex = stateIndex === 0 ? 1 : 0
 
-      const plateIndex = [...Array(parts.length).keys()].filter(
-        (part) => ![stateIndex, plateTypesIndex].includes(part)
-      )[0]
+        plateTypes = undefined
+        plateTypesIndex = undefined
+      } else {
+        plateTypesIndex = detectPlateTypesIndex(parts)
+
+        plateTypes = parts[plateTypesIndex]
+          ?.split(',')
+          .filter((possiblePlateType) => detectPlateTypes(possiblePlateType))
+          .sort()
+          .join()
+
+        plateIndex = [...Array(parts.length).keys()].filter(
+          (part) => ![stateIndex, plateTypesIndex].includes(part)
+        )[0]
+      }
 
       const haveValidPlate =
         plateIndex !== undefined &&
