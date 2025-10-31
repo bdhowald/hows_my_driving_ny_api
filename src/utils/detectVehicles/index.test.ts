@@ -1,3 +1,5 @@
+import plateTypesRegex from 'constants/plateTypes'
+
 import detectVehicles from '.'
 
 describe('detectVehicles', () => {
@@ -160,6 +162,35 @@ describe('detectVehicles', () => {
       const result = detectVehicles(potentialVehicles)
 
       expect(result).toEqual(expected)
+    })
+
+    describe('plate types', () => {
+      const plate = 'abc1234'
+      const state = 'ny'
+      const cases = plateTypesRegex.source
+        .toLowerCase().split(/[\^\$\(\)\|]/)
+        .filter((stringPart) => !!stringPart)
+      console.log(cases)
+
+      test.each(cases)(
+        `given ${plate}:${state}:%s as input, successfully detects a plate with plate types`,
+        (plateType) => {
+          const potentialVehicle = `${plate}:${state}:${plateType}`
+
+          const expected = [
+            {
+              originalString: potentialVehicle,
+              plate: 'ABC1234',
+              state: 'NY',
+              types: plateType.toUpperCase(),
+              validPlate: true,
+            },
+          ]
+          const result = detectVehicles([potentialVehicle])
+
+          expect(result).toEqual(expected)
+        }
+      )
     })
   })
 
