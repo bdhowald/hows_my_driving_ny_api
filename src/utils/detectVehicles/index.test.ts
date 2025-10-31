@@ -87,6 +87,23 @@ describe('detectVehicles', () => {
       expect(result).toEqual(expected)
     })
 
+    it('should detect a valid plate when multiple parts of the plate match plate type codes', () => {
+      const potentialVehicle = 'cbs:cbs:ny'
+
+      const expected = [
+        {
+          originalString: potentialVehicle,
+          plate: 'CBS',
+          state: 'NY',
+          types: 'CBS',
+          validPlate: true,
+        },
+      ]
+      const result = detectVehicles([potentialVehicle])
+
+      expect(result).toEqual(expected)
+    })
+
     it('should detect a valid plate with a trailing colon', () => {
       const potentialVehicle = 'abc1234:ny:'
 
