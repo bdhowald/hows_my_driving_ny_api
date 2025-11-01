@@ -93,19 +93,84 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
     ]
 
     it('return a response even when no violations found querying without plate types', async () => {
-      const medallionEndpointResponse = { data: [] }
-      const fiscalYear2014EndpointResponse = { data: [] }
-      const fiscalYear2015EndpointResponse = { data: [] }
-      const fiscalYear2016EndpointResponse = { data: [] }
-      const fiscalYear2017EndpointResponse = { data: [] }
-      const fiscalYear2018EndpointResponse = { data: [] }
-      const fiscalYear2019EndpointResponse = { data: [] }
-      const fiscalYear2020EndpointResponse = { data: [] }
-      const fiscalYear2021EndpointResponse = { data: [] }
-      const fiscalYear2022EndpointResponse = { data: [] }
-      const fiscalYear2023EndpointResponse = { data: [] }
-      const fiscalYear2024EndpointResponse = { data: [] }
-      const openParkingAndCameraViolationsEndpointResponse = { data: [] }
+      const medallionEndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/rhe8-mgbb.json?${medallionDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2014EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/jt7v-77mi.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2015EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/c284-tqph.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2016EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kiv2-tbus.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2017EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/2bnn-yakx.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2018EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/a5td-mswe.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2019EndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/faiq-9dfq.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2020EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/p7t3-5i9s.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2021EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2022EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2023EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2024EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const openParkingAndCameraViolationsEndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
 
       ;(axios.get as jest.Mock)
         .mockResolvedValueOnce(medallionEndpointResponse)
@@ -127,18 +192,18 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       expect(await result).toEqual(
         // There should be one for every request except the first.
         [
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
+          fiscalYear2014EndpointResponse,
+          fiscalYear2015EndpointResponse,
+          fiscalYear2016EndpointResponse,
+          fiscalYear2017EndpointResponse,
+          fiscalYear2018EndpointResponse,
+          fiscalYear2019EndpointResponse,
+          fiscalYear2020EndpointResponse,
+          fiscalYear2021EndpointResponse,
+          fiscalYear2022EndpointResponse,
+          fiscalYear2023EndpointResponse,
+          fiscalYear2024EndpointResponse,
+          openParkingAndCameraViolationsEndpointResponse,
         ]
       )
 
@@ -154,21 +219,82 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       const rawFiscalYearDatabaseViolation: RawViolation =
         rawFiscalYearDatabaseViolationFactory.build()
 
-      const medallionEndpointResponse = { data: [] }
-      const fiscalYear2014EndpointResponse = { data: [] }
-      const fiscalYear2015EndpointResponse = { data: [] }
-      const fiscalYear2016EndpointResponse = { data: [] }
-      const fiscalYear2017EndpointResponse = { data: [] }
-      const fiscalYear2018EndpointResponse = { data: [] }
+      const medallionEndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/rhe8-mgbb.json?${medallionDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2014EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/jt7v-77mi.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2015EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/c284-tqph.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2016EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kiv2-tbus.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2017EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/2bnn-yakx.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2018EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/a5td-mswe.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
       const fiscalYear2019EndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/faiq-9dfq.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
         data: [rawFiscalYearDatabaseViolation],
       }
-      const fiscalYear2020EndpointResponse = { data: [] }
-      const fiscalYear2021EndpointResponse = { data: [] }
-      const fiscalYear2022EndpointResponse = { data: [] }
-      const fiscalYear2023EndpointResponse = { data: [] }
-      const fiscalYear2024EndpointResponse = { data: [] }
+      const fiscalYear2020EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/p7t3-5i9s.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2021EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2022EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2023EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2024EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
       const openParkingAndCameraViolationsEndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParams.toString()}`,
+        },
         data: [rawOpenParkingAndCameraViolation],
       }
 
@@ -192,18 +318,18 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
         [
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawFiscalYearDatabaseViolation] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawOpenParkingAndCameraViolation] },
+          fiscalYear2014EndpointResponse,
+          fiscalYear2015EndpointResponse,
+          fiscalYear2016EndpointResponse,
+          fiscalYear2017EndpointResponse,
+          fiscalYear2018EndpointResponse,
+          fiscalYear2019EndpointResponse,
+          fiscalYear2020EndpointResponse,
+          fiscalYear2021EndpointResponse,
+          fiscalYear2022EndpointResponse,
+          fiscalYear2023EndpointResponse,
+          fiscalYear2024EndpointResponse,
+          openParkingAndCameraViolationsEndpointResponse,
         ]
       )
 
@@ -253,6 +379,9 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       ]
 
       const medallionEndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/rhe8-mgbb.json?${medallionDatabaseQueryParams.toString()}`,
+        },
         data: [
           {
             dmv_license_plate_number: "1E65F",
@@ -268,20 +397,76 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
           },
         ]
       }
-      const fiscalYear2014EndpointResponse = { data: [] }
-      const fiscalYear2015EndpointResponse = { data: [] }
-      const fiscalYear2016EndpointResponse = { data: [] }
-      const fiscalYear2017EndpointResponse = { data: [] }
-      const fiscalYear2018EndpointResponse = { data: [] }
+      const fiscalYear2014EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/jt7v-77mi.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2015EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/c284-tqph.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2016EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kiv2-tbus.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2017EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/2bnn-yakx.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2018EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/a5td-mswe.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
       const fiscalYear2019EndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/faiq-9dfq.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
         data: [rawFiscalYearDatabaseViolation],
       }
-      const fiscalYear2020EndpointResponse = { data: [] }
-      const fiscalYear2021EndpointResponse = { data: [] }
-      const fiscalYear2022EndpointResponse = { data: [] }
-      const fiscalYear2023EndpointResponse = { data: [] }
-      const fiscalYear2024EndpointResponse = { data: [] }
+      const fiscalYear2020EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/p7t3-5i9s.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2021EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2022EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2023EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2024EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
+        data: [],
+      }
       const openParkingAndCameraViolationsEndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+        },
         data: [rawOpenParkingAndCameraViolation],
       }
 
@@ -305,18 +490,18 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
         [
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawFiscalYearDatabaseViolation] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawOpenParkingAndCameraViolation] },
+          fiscalYear2014EndpointResponse,
+          fiscalYear2015EndpointResponse,
+          fiscalYear2016EndpointResponse,
+          fiscalYear2017EndpointResponse,
+          fiscalYear2018EndpointResponse,
+          fiscalYear2019EndpointResponse,
+          fiscalYear2020EndpointResponse,
+          fiscalYear2021EndpointResponse,
+          fiscalYear2022EndpointResponse,
+          fiscalYear2023EndpointResponse,
+          fiscalYear2024EndpointResponse,
+          openParkingAndCameraViolationsEndpointResponse,
         ]
       )
 
@@ -369,21 +554,82 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithPlateTypes.toString()}`,
       ]
 
-      const medallionEndpointResponse = { data: [] }
-      const fiscalYear2014EndpointResponse = { data: [] }
-      const fiscalYear2015EndpointResponse = { data: [] }
-      const fiscalYear2016EndpointResponse = { data: [] }
-      const fiscalYear2017EndpointResponse = { data: [] }
-      const fiscalYear2018EndpointResponse = { data: [] }
+      const medallionEndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/rhe8-mgbb.json?${medallionDatabaseQueryParams.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2014EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/jt7v-77mi.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2015EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/c284-tqph.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2016EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kiv2-tbus.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2017EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/2bnn-yakx.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2018EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/a5td-mswe.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
       const fiscalYear2019EndpointResponse = {
+        config: {
+          url: `${openDataHost}/resource/faiq-9dfq.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
         data: [rawFiscalYearDatabaseViolation],
       }
-      const fiscalYear2020EndpointResponse = { data: [] }
-      const fiscalYear2021EndpointResponse = { data: [] }
-      const fiscalYear2022EndpointResponse = { data: [] }
-      const fiscalYear2023EndpointResponse = { data: [] }
-      const fiscalYear2024EndpointResponse = { data: [] }
+      const fiscalYear2020EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/p7t3-5i9s.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2021EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2022EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2023EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
+      const fiscalYear2024EndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
+        data: [],
+      }
       const openParkingAndCameraViolationsEndpointResponse = {
+        config:{
+          url: `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithPlateTypes.toString()}`,
+        },
         data: [rawOpenParkingAndCameraViolation],
       }
 
@@ -407,18 +653,18 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
         [
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawFiscalYearDatabaseViolation] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [] },
-          { data: [rawOpenParkingAndCameraViolation] },
+          fiscalYear2014EndpointResponse,
+          fiscalYear2015EndpointResponse,
+          fiscalYear2016EndpointResponse,
+          fiscalYear2017EndpointResponse,
+          fiscalYear2018EndpointResponse,
+          fiscalYear2019EndpointResponse,
+          fiscalYear2020EndpointResponse,
+          fiscalYear2021EndpointResponse,
+          fiscalYear2022EndpointResponse,
+          fiscalYear2023EndpointResponse,
+          fiscalYear2024EndpointResponse,
+          openParkingAndCameraViolationsEndpointResponse,
         ]
       )
 
@@ -531,6 +777,9 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
 describe('determineOpenDataLastUpdatedTime', () => {
   it('should return the latest updated at time among the databases', async () => {
     const violationTableMetadataResponse = {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json'
+      },
       data: {
         "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
@@ -538,6 +787,9 @@ describe('determineOpenDataLastUpdatedTime', () => {
       }
     }
     const violationTableMetadataResponseWithLatestUpdatedAtTimestamp = {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json'
+      },
       data: {
         "dataUpdatedAt": "2024-12-01T12:34:56.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
@@ -568,6 +820,9 @@ describe('determineOpenDataLastUpdatedTime', () => {
 describe('makeOpenDataMetadataRequest', () => {
   it('should request the metadata for all violation databases', async () => {
     const violationTableMetadataResponse = {
+      config: {
+        url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json'
+      },
       data: {
         "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
         "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",

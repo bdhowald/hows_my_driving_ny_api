@@ -1,0 +1,3 @@
+export const MILLISECONDS_IN_ONE_SECOND = 1000
+export const SECONDS_IN_ONE_MINUTE = 60
+export const MINUTES_IN_ONE_HOUR = 60

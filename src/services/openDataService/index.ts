@@ -10,6 +10,11 @@ import {
   openParkingAndCameraViolationsEndpoint,
 } from 'constants/endpoints'
 import { BASE_DELAY } from 'constants/requests'
+import {
+  MILLISECONDS_IN_ONE_SECOND,
+  SECONDS_IN_ONE_MINUTE,
+  MINUTES_IN_ONE_HOUR,
+} from 'constants/time'
 import { camelizeKeys } from 'utils/camelize'
 import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 
@@ -29,73 +34,16 @@ type RetryOptions = {
   maxRetries?: number
   onRetry?: (attempt: number, error: any, delay: number) => void
   shouldRetry?: (error: any) => boolean
+  shouldTrackRequestTiming?: boolean
 }
 
 let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
 
 /**
- * Determine the most recent datetime that open data databases were updated.
- * In practice, this will likely be Open Parking and Camera Violations, but
- * could be any of them in practice.
+ * Takes arguments for an open data request and turns them into the
+ * URL object to be fetched.
  */
-const determineOpenDataLastUpdatedTime = async () => {
-  try {
-    const openDataMetadata = await makeOpenDataMetadataRequest()
-    const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt).getTime())
-    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
-    return latestDatabaseUpdatedTime
-  } catch(error) {
-    console.error
-  }
-
-  return new Date()
-}
-
-const cacheOptions = {
-  max: 100,
-  ttl: 1000 * 60 * 60 * 6, // one hour
-}
-
-/**
- *
- * Initialize the cache if it is not yet ready.
- */
-const initializeCache = () => {
-  if (process.env.NODE_ENV === TEST_ENVIRONMENT) {
-    return new LRUCache(cacheOptions)
-  }
-
-  if (!lruCache) {
-    lruCache = new LRUCache(cacheOptions)
-  }
-  return lruCache
-}
-
-const handleAxiosErrors = (error: AxiosError) => {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    console.log('Non-2xx response')
-    console.log(error.response.data)
-    console.log(error.response.status)
-    console.log(error.response.headers)
-  } else if (error.request) {
-    // The request was made but no response was received
-    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-    // http.ClientRequest in node.js
-    console.log(
-      `No response received for ${error.config?.method} request to ${error.config?.url}`
-    )
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    console.error('Error', error.message)
-  }
-  console.log(error.config)
-
-  return new Error(error.message)
-}
-
-const makeOpenDataViolationDataRequest = (
+const createOpenDataViolationRequestUrl = (
   endpoint: string,
   isFiscalYearRequest: boolean,
   plate: string,
@@ -135,6 +83,69 @@ const makeOpenDataViolationDataRequest = (
    * return `${endpoint}?${queryParams}`
    */
 }
+
+/**
+ * Determine the most recent datetime that open data databases were updated.
+ * In practice, this will likely be Open Parking and Camera Violations, but
+ * could be any of them in practice.
+ */
+const determineOpenDataLastUpdatedTime = async (): Promise<Date> => {
+  try {
+    const openDataMetadata = await makeOpenDataMetadataRequest()
+    const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt).getTime())
+    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
+    return latestDatabaseUpdatedTime
+  } catch(error) {
+    console.error
+  }
+
+  return new Date()
+}
+
+const cacheOptions = {
+  max: 100,
+  ttl: MILLISECONDS_IN_ONE_SECOND * SECONDS_IN_ONE_MINUTE * MINUTES_IN_ONE_HOUR * 6, // six hours
+}
+
+/**
+ *
+ * Initialize the cache if it is not yet ready.
+ */
+const initializeCache = () => {
+  if (process.env.NODE_ENV === TEST_ENVIRONMENT) {
+    return new LRUCache(cacheOptions)
+  }
+
+  if (!lruCache) {
+    lruCache = new LRUCache(cacheOptions)
+  }
+  return lruCache
+}
+
+const handleAxiosErrors = (error: AxiosError): Error => {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    console.log('Non-2xx response')
+    console.log(error.response.data)
+    console.log(error.response.status)
+    console.log(error.response.headers)
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+    // http.ClientRequest in node.js
+    console.log(
+      `No response received for ${error.config?.method} request to ${error.config?.url}`
+    )
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    console.error('Error', error.message)
+  }
+  console.log(error.config)
+
+  return new Error(error.message)
+}
+
 
 /**
  * Request the metadata for all the violation databases
@@ -216,7 +227,9 @@ const makeOpenDataVehicleRequest = async (
   // Fiscal Year Databases
   const promises = fiscalYearEndpoints.map(
     async (endpoint: string): Promise<AxiosResponse> => {
-      const fiscalYearUrl = makeOpenDataViolationDataRequest(
+
+      // Construct URL object.
+      const fiscalYearUrl = createOpenDataViolationRequestUrl(
         endpoint,
         true,
         rectifiedPlate,
@@ -226,7 +239,8 @@ const makeOpenDataVehicleRequest = async (
 
       const stringifiedUrl = fiscalYearUrl.toString()
 
-      const response = makeRequestWithRetries({
+      // Construct promise with retry capability
+      const requestPromise = makeRequestWithRetries({
         asyncRequestFn: () => axios.get(stringifiedUrl),
         onRetry: () => {
           console.log(`Request to ${stringifiedUrl} failed, possibly retrying`)
@@ -241,12 +255,12 @@ const makeOpenDataVehicleRequest = async (
         }
       })
 
-      return response
+      return requestPromise
     }
   )
 
   // Open Parking & Camera Violations Database
-  const openParkingAndCameraViolationsUrl = makeOpenDataViolationDataRequest(
+  const openParkingAndCameraViolationsUrl = createOpenDataViolationRequestUrl(
     openParkingAndCameraViolationsEndpoint,
     false,
     rectifiedPlate,
@@ -333,16 +347,34 @@ const makeRequestWithRetries = async (
     asyncRequestFn,
     maxRetries = 5,
     baseDelay = BASE_DELAY,
-    shouldRetry = (args: any) => true,
-    onRetry = (args: any) => {},
     jitter = true,
+    onRetry = (args: any) => {},
+    shouldRetry = (args: any) => true,
+    shouldTrackRequestTiming = true,
   }: RetryOptions
 ): Promise<AxiosResponse> => {
   let attempt = 0
 
   while (attempt <= maxRetries) {
     try {
-      return await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
+      const requestStart = Date.now()
+      const result = await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
+
+      if (shouldTrackRequestTiming) {
+        const externalUrl = result.config.url
+
+        if (externalUrl) {
+          const urlObject = new URL(externalUrl)
+          const mixpanelInstance = getMixpanelInstance()
+          const requestFinish = Date.now()
+
+          mixpanelInstance?.track('open_data_database_request_completed', {
+            endpoint: urlObject.origin + urlObject.pathname,
+            timeToCompleteInSeconds: (requestFinish - requestStart) / MILLISECONDS_IN_ONE_SECOND
+          })
+        }
+      }
+      return result
     } catch (error: unknown) {
       if (attempt === maxRetries) {
         console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)
@@ -370,6 +402,10 @@ const makeRequestWithRetries = async (
   throw new Error('Unexpected exit from makeRequestWithRetries')
 }
 
+/**
+ * Returns a promise of the license plate number of a vehicle with an
+ * input medallion number.
+ */
 const retrievePossibleMedallionVehiclePlate = async (
   plate: string
 ): Promise<string | undefined> => {
