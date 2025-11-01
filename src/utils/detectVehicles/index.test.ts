@@ -204,7 +204,6 @@ describe('detectVehicles', () => {
       const cases = plateTypesRegex.source
         .toLowerCase().split(/[\^\$\(\)\|]/)
         .filter((stringPart) => !!stringPart)
-      console.log(cases)
 
       test.each(cases)(
         `given ${plate}:${state}:%s as input, successfully detects a plate with plate types`,
