@@ -350,7 +350,7 @@ const makeRequestWithRetries = async (
     jitter = true,
     onRetry = (args: any) => {},
     shouldRetry = (args: any) => true,
-    shouldTrackRequestTiming = true,
+    shouldTrackRequestTiming = false,
   }: RetryOptions
 ): Promise<AxiosResponse> => {
   let attempt = 0
