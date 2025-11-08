@@ -187,7 +187,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest({ plate, state })
 
       expect(await result).toEqual(
         // There should be one for every request except the first.
@@ -313,7 +313,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest({ plate, state })
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -485,7 +485,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state)
+      const result = OpenDataService.makeOpenDataVehicleRequest({ plate, state })
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -648,7 +648,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
         .mockResolvedValueOnce(openParkingAndCameraViolationsEndpointResponse)
 
-      const result = OpenDataService.makeOpenDataVehicleRequest(plate, state, plateTypes)
+      const result = OpenDataService.makeOpenDataVehicleRequest({ plate, state, plateTypes})
 
       expect(await result).toEqual(
         // There should be one for every request except the first (medallion database).
@@ -681,7 +681,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         // delete value from process.env
         delete process.env['NYC_OPEN_DATA_APP_TOKEN']
   
-        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(
+        await expect(OpenDataService.makeOpenDataVehicleRequest({ plate, state })).rejects.toEqual(
           new Error('NYC Open Data app token is missing.')
         )
   
@@ -695,7 +695,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         // Mock the value permanently since the retry behavior will engage
         ;(axios.get as jest.Mock).mockRejectedValue(nonAxiosError)
 
-        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(nonAxiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest({ plate, state })).rejects.toEqual(new Error(nonAxiosError.message))
       })
 
       it('should log and rethrow an axios error with no request or response object', async () => {
@@ -707,7 +707,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         // Mock the value permanently since the retry behavior will engage
         ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
-        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest({ plate, state })).rejects.toEqual(new Error(axiosError.message))
       })
 
       it('should log and rethrow an axios error with a response object', async () => {
@@ -734,7 +734,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         // Mock the value permanently since the retry behavior will engage
         ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
-        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(new Error(axiosError.message))
+        await expect(OpenDataService.makeOpenDataVehicleRequest({ plate, state })).rejects.toEqual(new Error(axiosError.message))
       })
 
       it('should log and rethrow an axios error with a request object', async () => {
@@ -768,7 +768,7 @@ describe('OpenDataService.makeOpenDataVehicleRequest', () => {
         // Mock the value permanently since the retry behavior will engage
         ;(axios.get as jest.Mock).mockRejectedValue(axiosError)
 
-        await expect(OpenDataService.makeOpenDataVehicleRequest(plate, state)).rejects.toEqual(simpleError)
+        await expect(OpenDataService.makeOpenDataVehicleRequest({ plate, state })).rejects.toEqual(simpleError)
       })
     })
   })

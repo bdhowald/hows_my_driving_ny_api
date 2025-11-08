@@ -1,6 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { LRUCache } from 'lru-cache'
-import pLimit from 'p-limit'
 
 import {
   fiscalYearEndpoints,
@@ -9,6 +8,7 @@ import {
   NYC_OPEN_DATA_PORTAL_METADATA_PREFIX,
   openParkingAndCameraViolationsEndpoint,
 } from 'constants/endpoints'
+import LookupType from 'constants/lookupTypes'
 import { BASE_DELAY } from 'constants/requests'
 import {
   MILLISECONDS_IN_ONE_SECOND,
@@ -16,15 +16,23 @@ import {
   MINUTES_IN_ONE_HOUR,
 } from 'constants/time'
 import { camelizeKeys } from 'utils/camelize'
+import PriorityQueue from 'utils/priorityQueue/priorityQueue'
 import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 
 const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
 const TEST_ENVIRONMENT = 'test'
-const CONCURRENCY_LIMIT = pLimit(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
+const priorityQueue = new PriorityQueue(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
 type MedallionReponse = {
   dmvLicensePlateNumber: string
   maxLastUpdatedDate: string
+}
+
+type OpenDataVehicleRequestProps = {
+  plate: string,
+  state: string,
+  plateTypes?: string[] | undefined
+  lookupType?: LookupType | undefined
 }
 
 type RetryOptions = {
@@ -33,6 +41,7 @@ type RetryOptions = {
   jitter?: boolean
   maxRetries?: number
   onRetry?: (attempt: number, error: any, delay: number) => void
+  priority?: number
   shouldRetry?: (error: any) => boolean
   shouldTrackRequestTiming?: boolean
 }
@@ -89,9 +98,11 @@ const createOpenDataViolationRequestUrl = (
  * In practice, this will likely be Open Parking and Camera Violations, but
  * could be any of them in practice.
  */
-const determineOpenDataLastUpdatedTime = async (): Promise<Date> => {
+const determineOpenDataLastUpdatedTime = async (
+  lookupType?: LookupType | undefined
+): Promise<Date> => {
   try {
-    const openDataMetadata = await makeOpenDataMetadataRequest()
+    const openDataMetadata = await makeOpenDataMetadataRequest(lookupType)
     const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt).getTime())
     const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
     return latestDatabaseUpdatedTime
@@ -150,7 +161,9 @@ const handleAxiosErrors = (error: AxiosError): Error => {
 /**
  * Request the metadata for all the violation databases
  */
-const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
+const makeOpenDataMetadataRequest = async (
+  lookupType?: LookupType | undefined
+): Promise<AxiosResponse[]> => {
   const allEndpoints = fiscalYearEndpoints.concat(openParkingAndCameraViolationsEndpoint)
 
   const promises = allEndpoints.map(async (endpoint: string) => {
@@ -171,7 +184,8 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
         mixpanelInstance?.track('open_data_metadata_request_error_before_retry', {
           endpoint: stringifiedMetadataUrl,
         })
-      }
+      },
+      priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
     })
 
     return metadataRequest
@@ -188,9 +202,12 @@ const makeOpenDataMetadataRequest = async (): Promise<AxiosResponse[]> => {
 }
 
 const makeOpenDataVehicleRequest = async (
-  plate: string,
-  state: string,
-  plateTypes?: string[] | undefined
+  {
+    plate,
+    state,
+    plateTypes,
+    lookupType,
+  }: OpenDataVehicleRequestProps
 ): Promise<AxiosResponse[]> => {
   // Checking for selected fields for violations
   /**
@@ -252,7 +269,8 @@ const makeOpenDataVehicleRequest = async (
             plateTypes,
             state,
           })
-        }
+        },
+        priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
       })
 
       return requestPromise
@@ -349,6 +367,7 @@ const makeRequestWithRetries = async (
     baseDelay = BASE_DELAY,
     jitter = true,
     onRetry = (args: any) => {},
+    priority = 0,
     shouldRetry = (args: any) => true,
     shouldTrackRequestTiming = false,
   }: RetryOptions
@@ -358,7 +377,7 @@ const makeRequestWithRetries = async (
   while (attempt <= maxRetries) {
     try {
       const requestStart = Date.now()
-      const result = await CONCURRENCY_LIMIT(async () => await asyncRequestFn())
+      const result = await priorityQueue.add(() => asyncRequestFn(), priority)
 
       if (shouldTrackRequestTiming) {
         const externalUrl = result.config.url

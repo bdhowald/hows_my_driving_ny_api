@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import { DatabasePathName } from 'constants/endpoints'
 import { NEW_YORK_TIME_ZONE, UTC_TIME_ZONE } from 'constants/locale'
 import LookupSource from 'constants/lookupSources'
+import LookupType from 'constants/lookupTypes'
 import OpenDataService from 'services/openDataService'
 import ApiLookupResult from 'types/apiLookup'
 import CameraData from 'types/cameraData'
@@ -55,6 +56,7 @@ const getAndProcessApiLookup = async (
     : undefined
 
   const lookupSource: LookupSource = externalData.lookupSource
+  const lookupType: LookupType = externalData.lookupType
   const fingerprintId = externalData.fingerprintId
   const mixpanelId = externalData.mixpanelId
   const existingIdentifier =
@@ -95,12 +97,13 @@ const getAndProcessApiLookup = async (
 
   try {
     allOpenDataResponses = await Promise.all([
-      OpenDataService.makeOpenDataVehicleRequest(
+      OpenDataService.makeOpenDataVehicleRequest({
         plate,
         state,
-        plateTypes
-      ),
-      OpenDataService.makeOpenDataMetadataRequest()
+        plateTypes,
+        lookupType,
+      }),
+      OpenDataService.makeOpenDataMetadataRequest(lookupType)
     ])
   } catch (error: unknown) {
     const mixpanelInstance = getMixpanelInstance()

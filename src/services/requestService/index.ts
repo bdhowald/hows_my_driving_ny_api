@@ -7,6 +7,7 @@ import {
   LOCAL_SERVER_LOCATION,
 } from 'constants/endpoints'
 import LookupSource from 'constants/lookupSources'
+import LookupType from 'constants/lookupTypes'
 import QueryParser from 'models/queryParser'
 import OpenDataService from 'services/openDataService'
 import {
@@ -32,8 +33,9 @@ export const handleApiLookup = async (
   request: http.IncomingMessage
 ): Promise<ExistingLookupResponse> => {
   const requestUrl = request.url as string
+  const lookupType = LookupType.NEW_LOOKUP
 
-  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime()
+  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime(lookupType)
   const eTagRequestHeader = request.headers['if-none-match']
 
   const host = request.headers.host
@@ -74,6 +76,7 @@ export const handleApiLookup = async (
   const externalData: ExternalData = {
     ...analyticsData,
     ...{ lookupSource: analyticsData.lookupSource ?? LookupSource.Api },
+    lookupType,
   }
 
   // const pathname: string | null = parser.pathname
@@ -170,8 +173,9 @@ export const handleExistingLookup = async (
   request: http.IncomingMessage
 ): Promise<ExistingLookupResponse> => {
   const requestUrl = request.url as string
+  const lookupType = LookupType.EXISTING_LOOKUP
 
-  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime()
+  const openDataLastUpdatedTime = await OpenDataService.determineOpenDataLastUpdatedTime(lookupType)
   const eTagRequestHeader = request.headers['if-none-match']
 
   const host = request.headers.host
@@ -226,6 +230,7 @@ export const handleExistingLookup = async (
   const externalData: ExternalData = {
     ...queryParser.getAnalyticsData(),
     lookupSource: LookupSource.ExistingLookup,
+    lookupType,
     uniqueIdentifier: identifier,
     existingLookupCreatedAt: previousLookupResult.createdAt,
   }

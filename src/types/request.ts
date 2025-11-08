@@ -1,12 +1,15 @@
 import { HttpStatusCode } from 'axios'
 
 import LookupSource from 'constants/lookupSources'
+import LookupType from 'constants/lookupTypes'
 import ApiLookupResult from 'types/apiLookup'
+
 
 export type ExternalData = {
   existingLookupCreatedAt?: Date
-  lookupSource: LookupSource
   fingerprintId?: string | undefined
+  lookupSource: LookupSource
+  lookupType: LookupType
   mixpanelId?: string | undefined
   uniqueIdentifier?: string
 }
