@@ -302,7 +302,8 @@ const makeOpenDataVehicleRequest = async (
         plateTypes,
         state,
       })
-    }
+    },
+    priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
   })
 
   promises.push(openParkingAndCameraViolationsRequest)
