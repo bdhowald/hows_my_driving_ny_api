@@ -55,7 +55,6 @@ type RetryOptions = {
   onRetry?: (attempt: number, error: any, delay: number) => void
   priority?: number
   shouldRetry?: (error: any) => boolean
-  shouldTrackRequestTiming?: boolean
 }
 
 let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
@@ -541,9 +540,12 @@ const makeRequestWithRetries = async ({
   onRetry = (args: any) => {},
   priority = 0,
   shouldRetry = (args: any) => true,
-  shouldTrackRequestTiming = false,
 }: RetryOptions): Promise<AxiosResponse> => {
   let attempt = 0
+
+  const shouldTrackRequestTiming = FeatureFlags.getFeatureFlagValue(
+    FeatureFlags.featureFlags.trackOpenDataRequestTime
+  )
 
   while (attempt <= maxRetries) {
     try {

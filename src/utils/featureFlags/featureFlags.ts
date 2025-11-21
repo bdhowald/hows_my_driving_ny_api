@@ -41,7 +41,24 @@ const useSocrataSodaV3Api = {
   ],
 }
 
+const trackOpenDataRequestTime = {
+  name: 'trackOpenDataRequestTime',
+  variations: [
+    {
+      name: 'on',
+      percentage: 100,
+      value: true,
+    },
+    {
+      name: 'off',
+      percentage: 0,
+      value: false,
+    },
+  ],
+}
+
 const featureFlags = {
+  trackOpenDataRequestTime,
   useSocrataSodaV3Api,
 }
 
