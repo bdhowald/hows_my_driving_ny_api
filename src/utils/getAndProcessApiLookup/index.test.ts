@@ -8,6 +8,7 @@ import {
 } from '__fixtures__/violations'
 import { Borough } from 'constants/boroughs'
 import LookupSource from 'constants/lookupSources'
+import LookupType from 'constants/lookupTypes'
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import AggregateFineData from 'models/aggregateFineData'
 import OpenDataService from 'services/openDataService'
@@ -31,121 +32,121 @@ describe('getAndProcessApiLookup', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
       },
       data: {
-        "dataUpdatedAt": "2017-11-15T17:04:39.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
-        "id": "jt7v-77mi",
-      }
+        dataUpdatedAt: '2017-11-15T17:04:39.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/jt7v-77mi',
+        id: 'jt7v-77mi',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:47:45.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
-        "id": "c284-tqph",
-      }
+        dataUpdatedAt: '2017-09-14T17:47:45.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/c284-tqph',
+        id: 'c284-tqph',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:49:20.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
-        "id": "kiv2-tbus",
-      }
+        dataUpdatedAt: '2017-09-14T17:49:20.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/kiv2-tbus',
+        id: 'kiv2-tbus',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
       },
       data: {
-        "dataUpdatedAt": "2017-08-10T01:43:31.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
-        "id": "2bnn-yakx",
-      }
+        dataUpdatedAt: '2017-08-10T01:43:31.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/2bnn-yakx',
+        id: '2bnn-yakx',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
       },
       data: {
-        "dataUpdatedAt": "2018-07-31T18:38:30.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
-        "id": "a5td-mswe",
-      }
+        dataUpdatedAt: '2018-07-31T18:38:30.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/a5td-mswe',
+        id: 'a5td-mswe',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
       },
       data: {
-        "dataUpdatedAt": "2019-07-17T15:21:47.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
-        "id": "faiq-9dfq",
-      }
+        dataUpdatedAt: '2019-07-17T15:21:47.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/faiq-9dfq',
+        id: 'faiq-9dfq',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
       },
       data: {
-        "dataUpdatedAt": "2020-08-06T13:30:36.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
-        "id": "p7t3-5i9s",
-      }
+        dataUpdatedAt: '2020-08-06T13:30:36.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/p7t3-5i9s',
+        id: 'p7t3-5i9s',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
       },
       data: {
-          "dataUpdatedAt": "2021-08-04T19:29:37.000Z",
-          "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
-          "id": "kvfd-bves",
-        }
+        dataUpdatedAt: '2021-08-04T19:29:37.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/kvfd-bves',
+        id: 'kvfd-bves',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
       },
       data: {
-        "dataUpdatedAt": "2022-08-09T18:44:55.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
-        "id": "7mxj-7a6y",
-      }
+        dataUpdatedAt: '2022-08-09T18:44:55.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/7mxj-7a6y',
+        id: '7mxj-7a6y',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
       },
       data: {
-        "dataUpdatedAt": "2023-11-14T17:54:58.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
-        "id": "869v-vr48",
-      }
+        dataUpdatedAt: '2023-11-14T17:54:58.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/869v-vr48',
+        id: '869v-vr48',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-16T19:36:56.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
-        "id": "pvqr-7yc4",
-      }
+        dataUpdatedAt: '2025-03-16T19:36:56.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/pvqr-7yc4',
+        id: 'pvqr-7yc4',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-29T09:21:18.000Z",
-        "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
-        "id": "nc67-uf89",
-      }
-    }
+        dataUpdatedAt: '2025-03-29T09:21:18.000Z',
+        dataUri: 'https://data.cityofnewyork.us/resource/nc67-uf89',
+        id: 'nc67-uf89',
+      },
+    },
   ]
 
   describe('when there are violations', () => {
@@ -335,15 +336,8 @@ describe('getAndProcessApiLookup', () => {
       validPlate: true,
     }
 
-    const externalData: ExternalData = {
-      lookupSource: LookupSource.Api,
-    }
-
     const lookupDate = new Date(Date.UTC(2019, 0, 1, 5))
-    const lookupDateInUtc = DateTime.fromJSDate(
-      lookupDate,
-      { zone: 'UTC' },
-    )
+    const lookupDateInUtc = DateTime.fromJSDate(lookupDate, { zone: 'UTC' })
     const lookupDateInEastern = lookupDateInUtc.setZone('America/New_York')
 
     const baseExpected: VehicleResponse = {
@@ -749,15 +743,16 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -765,11 +760,10 @@ describe('getAndProcessApiLookup', () => {
         previousLookup: undefined,
       })
 
-      const result = await getAndProcessApiLookup(
-        potentialVehicle,
-        undefined,
-        externalData
-      )
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
 
       expect(result).toEqual(expected)
 
@@ -790,10 +784,6 @@ describe('getAndProcessApiLookup', () => {
           numViolations: 4,
         },
       }
-
-      // const previousLookupDateInUtc = DateTime.fromMillis(january12021.getTime(), { zone: 'utc' })
-      const previousLookupDateInUtc = DateTime.fromJSDate(january12021, { zone: 'UTC' })
-      const previousLookupDateInEastern = previousLookupDateInUtc.setZone('America/New_York')
 
       const luxonDate = DateTime.fromJSDate(january12021, {
         zone: 'America/New_York',
@@ -842,24 +832,24 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce(previousLookupAndFrequency)
 
-      const result = await getAndProcessApiLookup(
-        potentialVehicle,
-        undefined,
-        externalData
-      )
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
 
       expect(result).toEqual(expected)
 
@@ -872,13 +862,12 @@ describe('getAndProcessApiLookup', () => {
       const january12021 = new Date(2021, 0, 1)
       const january12021AsLuxonDate = DateTime.fromJSDate(january12021).setZone(
         'America/New_York',
-        { keepLocalTime: true },
+        { keepLocalTime: true }
       )
 
       const december12020 = new Date(Date.UTC(2020, 11, 1, 5))
-      const december12020AsLuxonDateInEastern = DateTime.fromJSDate(december12020).setZone(
-        'America/New_York',
-      )
+      const december12020AsLuxonDateInEastern =
+        DateTime.fromJSDate(december12020).setZone('America/New_York')
 
       const frequency = 2
       const previousLookupAndFrequency: PreviousLookupAndFrequency = {
@@ -946,7 +935,10 @@ describe('getAndProcessApiLookup', () => {
       }
 
       const externalDataWithPreviousLookupCreatedDate = {
-        ...externalData,
+        ...{
+          lookupSource: LookupSource.Api,
+          lookupType: LookupType.NewLookup,
+        },
         ...(previousLookupAndFrequency.previousLookup?.createdAt && {
           existingLookupCreatedAt: january12021,
         }),
@@ -959,15 +951,16 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce(previousLookupAndFrequency)
@@ -1210,15 +1203,16 @@ describe('getAndProcessApiLookup', () => {
         },
       }
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1226,11 +1220,10 @@ describe('getAndProcessApiLookup', () => {
         previousLookup: undefined,
       })
 
-      const result = await getAndProcessApiLookup(
-        potentialVehicle,
-        undefined,
-        externalData
-      )
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
 
       expect(result).toEqual(expected)
 
@@ -1253,19 +1246,18 @@ describe('getAndProcessApiLookup', () => {
         },
       ]
 
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
 
       await expect(
-        getAndProcessApiLookup(
-          potentialVehicle,
-          undefined,
-          externalData
-        )
+        getAndProcessApiLookup(potentialVehicle, undefined, {
+          lookupSource: LookupSource.Api,
+          lookupType: LookupType.NewLookup,
+        })
       ).resolves.toEqual(expected)
     })
 
@@ -1285,19 +1277,18 @@ describe('getAndProcessApiLookup', () => {
         },
       ]
 
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponseMissingUrl
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce(
-        openDataServiceResponse
-      )
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponseMissingUrl)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataServiceResponse)
 
       await expect(
-        getAndProcessApiLookup(
-          potentialVehicle,
-          undefined,
-          externalData
-        )
+        getAndProcessApiLookup(potentialVehicle, undefined, {
+          lookupSource: LookupSource.Api,
+          lookupType: LookupType.NewLookup,
+        })
       ).resolves.toEqual(expected)
     })
 
@@ -1327,15 +1318,16 @@ describe('getAndProcessApiLookup', () => {
         ...openDataTableMetadataResponses,
       ]
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponsesWithError
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponsesWithError)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockRejectedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1343,11 +1335,10 @@ describe('getAndProcessApiLookup', () => {
         previousLookup: undefined,
       })
 
-      const result = await getAndProcessApiLookup(
-        potentialVehicle,
-        undefined,
-        externalData
-      )
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
 
       expect(result).toEqual(expected)
 
@@ -1373,15 +1364,16 @@ describe('getAndProcessApiLookup', () => {
         ...openParkingAndCameraDatabaseResponse,
       ]
 
-      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-        { createdAt: lookupDate, uniqueIdentifier }
-      )
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockRejectedValueOnce(
-        openDataServiceResponse
-      )
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockRejectedValueOnce(openDataServiceResponse)
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1389,11 +1381,10 @@ describe('getAndProcessApiLookup', () => {
         previousLookup: undefined,
       })
 
-      const result = await getAndProcessApiLookup(
-        potentialVehicle,
-        undefined,
-        externalData
-      )
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
 
       expect(result).toEqual(expected)
 
@@ -1419,6 +1410,7 @@ describe('getAndProcessApiLookup', () => {
 
     const externalData: ExternalData = {
       lookupSource: LookupSource.Api,
+      lookupType: LookupType.NewLookup,
     }
 
     const result = await getAndProcessApiLookup(
@@ -1458,6 +1450,7 @@ describe('getAndProcessApiLookup', () => {
 
     const externalData: ExternalData = {
       lookupSource: LookupSource.Api,
+      lookupType: LookupType.NewLookup,
     }
 
     ;(
@@ -1466,10 +1459,12 @@ describe('getAndProcessApiLookup', () => {
       frequency: 0,
       previousLookup: undefined,
     })
-    ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValueOnce(
-      openDataTableMetadataResponses
-    )
-    ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock).mockResolvedValueOnce([
+    ;(
+      OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+    ).mockResolvedValueOnce(openDataTableMetadataResponses)
+    ;(
+      OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+    ).mockResolvedValueOnce([
       {
         config: {
           url: `https://data.cityofnewyork.us/resource/rhe8-mgbb.json${medallionQueryString}`,
@@ -1549,9 +1544,10 @@ describe('getAndProcessApiLookup', () => {
         data: [],
       },
     ])
-    ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce(
-      { createdAt: lookupDate, uniqueIdentifier }
-    )
+    ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+      createdAt: lookupDate,
+      uniqueIdentifier,
+    })
 
     const result = await getAndProcessApiLookup(
       potentialVehicle,

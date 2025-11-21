@@ -1,4 +1,7 @@
-import { openParkingAndCameraViolationsEndpoint } from 'constants/endpoints'
+import {
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+} from 'constants/endpoints'
 import { Violation } from 'types/violations'
 import { isPresent } from 'utils/typePredicates'
 
@@ -41,9 +44,10 @@ const mergeMultipleRecordsOfSameViolation = (
   baseViolation: Violation,
   duplicateViolation: Violation
 ): Violation => {
-  const violationIsFromOpenParkingAndCameraViolationDatabase =
-    baseViolation.fromDatabases[0].endpoint ==
-    openParkingAndCameraViolationsEndpoint
+  const violationIsFromOpenParkingAndCameraViolationDatabase = [
+    NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+    NYC_OPEN_DATA_SOCRATA_SODA_V3_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+  ].includes(baseViolation.fromDatabases[0].endpoint)
 
   if (violationIsFromOpenParkingAndCameraViolationDatabase) {
     // We want to prefer the fiscal year database properties
@@ -64,12 +68,15 @@ const mergeMultipleRecordsOfSameViolation = (
         ],
         sanitized: {
           issuingAgency:
-            duplicateViolation.sanitized.issuingAgency ?? baseViolation.sanitized.issuingAgency,
+            duplicateViolation.sanitized.issuingAgency ??
+            baseViolation.sanitized.issuingAgency,
           vehicleBodyType:
-            duplicateViolation.sanitized.vehicleBodyType ?? baseViolation.sanitized.vehicleBodyType,
+            duplicateViolation.sanitized.vehicleBodyType ??
+            baseViolation.sanitized.vehicleBodyType,
           violationStatus:
-            duplicateViolation.sanitized.violationStatus ?? baseViolation.sanitized.violationStatus,
-        }
+            duplicateViolation.sanitized.violationStatus ??
+            baseViolation.sanitized.violationStatus,
+        },
       },
     }
 
@@ -89,12 +96,15 @@ const mergeMultipleRecordsOfSameViolation = (
         ],
         sanitized: {
           issuingAgency:
-            baseViolation.sanitized.issuingAgency ?? duplicateViolation.sanitized.issuingAgency,
+            baseViolation.sanitized.issuingAgency ??
+            duplicateViolation.sanitized.issuingAgency,
           vehicleBodyType:
-            baseViolation.sanitized.vehicleBodyType ?? duplicateViolation.sanitized.vehicleBodyType,
+            baseViolation.sanitized.vehicleBodyType ??
+            duplicateViolation.sanitized.vehicleBodyType,
           violationStatus:
-            baseViolation.sanitized.violationStatus ?? duplicateViolation.sanitized.violationStatus,
-        }
+            baseViolation.sanitized.violationStatus ??
+            duplicateViolation.sanitized.violationStatus,
+        },
       },
     }
 

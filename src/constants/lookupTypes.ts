@@ -1,6 +1,6 @@
 export enum LookupType {
-  EXISTING_LOOKUP = 'existing_lookup',
-  NEW_LOOKUP = 'new_lookup',
+  ExistingLookup = 'EXISTING_LOOKUP',
+  NewLookup = 'NEW_LOOKUP',
 }
 
 export default LookupType

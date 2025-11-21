@@ -8,7 +8,10 @@ import {
 import { Borough } from 'constants/boroughs'
 import { Geocoder } from 'constants/geocoders'
 import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
-import { getBoroughFromDatabaseGeocode, insertGeocodeIntoDatabase } from 'utils/databaseQueries'
+import {
+  getBoroughFromDatabaseGeocode,
+  insertGeocodeIntoDatabase,
+} from 'utils/databaseQueries'
 
 const BRONX_SHORT_NAME = 'Bronx'
 
@@ -17,7 +20,7 @@ class Mutex {
 
   lock = () =>
     new Promise((resolve) => {
-      this.mutex = this.mutex.then(() => new Promise(resolve));
+      this.mutex = this.mutex.then(() => new Promise(resolve))
     })
 }
 
@@ -28,7 +31,10 @@ const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
 
 const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
-const getBoroughService = async (streetAddress: string | undefined, loggingKey: string): Promise<Borough> => {
+const getBoroughService = async (
+  streetAddress: string | undefined,
+  loggingKey: string
+): Promise<Borough> => {
   if (!streetAddress) {
     return Borough.NoBoroughAvailable
   }
@@ -47,7 +53,7 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
   )
 
   // Request a lock guarding geocode search
-  const unlock = await GEOCODE_MUTEX.lock() as () => Promise<unknown>
+  const unlock = (await GEOCODE_MUTEX.lock()) as () => Promise<unknown>
 
   console.log(
     loggingKey,
@@ -69,18 +75,23 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
     } else {
       console.log(
         loggingKey,
-        `No geocode found in database for lookup string`,
+        'No geocode found in database for lookup string',
         `'${streetAddress}' from original '${streetAddress}'`
       )
       console.log(
         loggingKey,
-        `Retrieving geocode from Google for lookup string`,
+        'Retrieving geocode from Google for lookup string',
         `'${streetAddress}' from original '${streetAddress}'`
       )
       const geocodeFromGoogle: DatabaseGeocode | undefined =
         await getGoogleGeocode(streetAddress, loggingKey)
 
       if (!geocodeFromGoogle) {
+        console.log(
+          loggingKey,
+          'No borough detected from geocode for lookup string',
+          `'${streetAddress}' from original '${streetAddress}'`
+        )
         return Borough.NoBoroughAvailable
       }
 
@@ -91,9 +102,23 @@ const getBoroughService = async (streetAddress: string | undefined, loggingKey: 
         potentialBorough = Borough.Bronx
       }
 
-      if (potentialBorough in Borough) {
+      const boroughValues: string[] = Object.values(Borough)
+
+      if (boroughValues.includes(potentialBorough)) {
         // Only insert geocode if it's for a borough.
+        console.log(
+          loggingKey,
+          `${potentialBorough} detected from from geocode for lookup string`,
+          `'${streetAddress}' from original '${streetAddress}'`
+        )
         await insertGeocodeIntoDatabase(geocodeFromGoogle, loggingKey)
+      } else {
+        console.log(
+          loggingKey,
+          `${potentialBorough} detected form geocode for lookup string`,
+          `'${streetAddress}' from original '${streetAddress}'`,
+          `${potentialBorough} is not a borough, so skipping`
+        )
       }
     }
   } finally {
@@ -148,7 +173,9 @@ const getGoogleGeocode = async (
 
       const potentiallyNewYorkCity = bestResponse.address_components.find(
         (addressComponent: AddressComponent) =>
-          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+          addressComponent.types.indexOf(
+            AddressType.administrative_area_level_1
+          ) !== -1
       )
 
       if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {

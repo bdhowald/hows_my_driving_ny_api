@@ -2,11 +2,15 @@ import axios, { AxiosError, AxiosResponse } from 'axios'
 import { LRUCache } from 'lru-cache'
 
 import {
-  fiscalYearEndpoints,
-  MEDALLION_DATABASE_ENDPOINT,
   NYC_OPEN_DATA_PORTAL_HOST,
   NYC_OPEN_DATA_PORTAL_METADATA_PREFIX,
-  openParkingAndCameraViolationsEndpoint,
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS,
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_MEDALLION_DATABASE_ENDPOINT,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_MEDALLION_DATABASE_ENDPOINT,
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
+  NYC_OPEN_DATA_VIOLATION_DATABASE_METADATA_ENDPOINTS,
 } from 'constants/endpoints'
 import LookupType from 'constants/lookupTypes'
 import { BASE_DELAY } from 'constants/requests'
@@ -16,6 +20,7 @@ import {
   MINUTES_IN_ONE_HOUR,
 } from 'constants/time'
 import { camelizeKeys } from 'utils/camelize'
+import FeatureFlags from 'utils/featureFlags/featureFlags'
 import PriorityQueue from 'utils/priorityQueue/priorityQueue'
 import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 
@@ -29,10 +34,17 @@ type MedallionReponse = {
 }
 
 type OpenDataVehicleRequestProps = {
-  plate: string,
-  state: string,
+  plate: string
+  state: string
   plateTypes?: string[] | undefined
   lookupType?: LookupType | undefined
+  useV3Api?: boolean
+}
+
+type SodaV3Headers = {
+  'Content-Type': 'application/json'
+  Accept: 'application/json'
+  'X-App-Token': string | undefined
 }
 
 type RetryOptions = {
@@ -47,6 +59,203 @@ type RetryOptions = {
 }
 
 let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
+
+/**
+ * Construct the promises for the requests to the fiscal year databases.
+ */
+const constructFiscalYearPromises = ({
+  plate,
+  state,
+  plateTypes,
+  lookupType,
+  useV3Api,
+}: OpenDataVehicleRequestProps): Promise<AxiosResponse<any, any>>[] => {
+  const fiscalYearEndpoints = useV3Api
+    ? NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS
+    : NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS
+
+  // Fiscal Year Databases
+  return fiscalYearEndpoints.map(
+    async (endpoint: string): Promise<AxiosResponse> => {
+      let asyncFunction: () => Promise<AxiosResponse<any, any>>
+
+      if (useV3Api) {
+        asyncFunction = () => {
+          // Construct POST body
+          const queryBody = constructSodaV3BodyForViolationDatabase({
+            plate,
+            state,
+            plateTypes,
+            isFiscalYearRequest: true,
+          })
+
+          return axios.post(endpoint, queryBody, {
+            headers: constructSodaV3Headers(),
+          })
+        }
+      } else {
+        asyncFunction = () => {
+          // Construct URL object.
+          const fiscalYearUrl = createOpenDataViolationRequestUrl(
+            endpoint,
+            true,
+            plate,
+            state,
+            plateTypes
+          )
+
+          const stringifiedUrl = fiscalYearUrl.toString()
+
+          return axios.get(stringifiedUrl)
+        }
+      }
+
+      // Construct promise with retry capability
+      const requestPromise = makeRequestWithRetries({
+        asyncRequestFn: asyncFunction,
+        onRetry: () => {
+          console.log(`Request to ${endpoint} failed, possibly retrying`)
+
+          const mixpanelInstance = getMixpanelInstance()
+          mixpanelInstance?.track(
+            'open_data_violation_database_request_error_before_retry',
+            {
+              endpoint,
+              plate: plate,
+              plateTypes,
+              state,
+            }
+          )
+        },
+        priority: lookupType === LookupType.NewLookup ? 1 : 0,
+      })
+
+      return requestPromise
+    }
+  )
+}
+
+/**
+ * Construct the promises for the requests to the fiscal year databases.
+ */
+const constructOpenParkingAndCameraViolationsPromise = ({
+  plate,
+  state,
+  plateTypes,
+  lookupType,
+  useV3Api,
+}: OpenDataVehicleRequestProps): Promise<AxiosResponse<any, any>> => {
+  const openParkingAndCameraViolationsEndpoint = useV3Api
+    ? NYC_OPEN_DATA_SOCRATA_SODA_V3_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT
+    : NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT
+
+  let asyncFunction: () => Promise<AxiosResponse<any, any>>
+
+  if (useV3Api) {
+    asyncFunction = () => {
+      // Construct POST body
+      const queryBody = constructSodaV3BodyForViolationDatabase({
+        plate,
+        state,
+        plateTypes,
+        isFiscalYearRequest: false,
+      })
+
+      return axios.post(openParkingAndCameraViolationsEndpoint, queryBody, {
+        headers: constructSodaV3Headers(),
+      })
+    }
+  } else {
+    asyncFunction = () => {
+      // Construct URL object.
+      const openParkingAndCameraViolationsUrl =
+        createOpenDataViolationRequestUrl(
+          openParkingAndCameraViolationsEndpoint,
+          false,
+          plate,
+          state,
+          plateTypes
+        )
+
+      const stringifiedOpenParkingAndCameraViolationsUrl =
+        openParkingAndCameraViolationsUrl.toString()
+
+      return axios.get(stringifiedOpenParkingAndCameraViolationsUrl)
+    }
+  }
+
+  return makeRequestWithRetries({
+    asyncRequestFn: asyncFunction,
+    onRetry: () => {
+      console.log(
+        `Request to ${openParkingAndCameraViolationsEndpoint} failed, possibly retrying`
+      )
+
+      const mixpanelInstance = getMixpanelInstance()
+      mixpanelInstance?.track(
+        'open_data_violation_database_request_error_before_retry',
+        {
+          endpoint: openParkingAndCameraViolationsEndpoint,
+          plate,
+          plateTypes,
+          state,
+        }
+      )
+    },
+    priority: lookupType === LookupType.NewLookup ? 1 : 0,
+  })
+}
+
+/**
+ * Construct the body for a Socrata SODA v3 query
+ */
+const constructSodaV3BodyForViolationDatabase = ({
+  plate,
+  state,
+  plateTypes,
+  isFiscalYearRequest,
+}: {
+  plate: string
+  state: string
+  plateTypes: string[] | undefined
+  isFiscalYearRequest: boolean
+}): { query: string } => {
+  const plateField = isFiscalYearRequest ? 'plate_id' : 'plate'
+  const plateTypeField = isFiscalYearRequest ? 'plate_type' : 'license_type'
+  const stateField = isFiscalYearRequest ? 'registration_state' : 'state'
+
+  const plateQuery = `\`${plateField}\` = '${plate}'`
+  const plateTypesQuery = plateTypes
+    ? `\`${plateTypeField}\` IN (${plateTypes
+        .map((item) => `'${item.toUpperCase().trim()}'`)
+        .join(',')})`
+    : ''
+  const stateQuery = `\`${stateField}\` = '${state}'`
+
+  const whereClause =
+    plateTypesQuery === ''
+      ? [plateQuery, stateQuery].join(' AND ')
+      : [plateQuery, stateQuery, plateTypesQuery].join(' AND ')
+
+  const query = `SELECT * WHERE ${whereClause} LIMIT 10000`
+
+  const body = {
+    query,
+  }
+
+  return body
+}
+
+/**
+ * Construct the headers object for a Socrata SODA v3 query
+ */
+const constructSodaV3Headers = (): SodaV3Headers => {
+  return {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'X-App-Token': process.env.NYC_OPEN_DATA_APP_TOKEN,
+  }
+}
 
 /**
  * Takes arguments for an open data request and turns them into the
@@ -103,10 +312,14 @@ const determineOpenDataLastUpdatedTime = async (
 ): Promise<Date> => {
   try {
     const openDataMetadata = await makeOpenDataMetadataRequest(lookupType)
-    const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) => new Date(response.data.dataUpdatedAt).getTime())
-    const latestDatabaseUpdatedTime = new Date(Math.max(...databaseUpdatedAtTimes))
+    const databaseUpdatedAtTimes: number[] = openDataMetadata.map((response) =>
+      new Date(response.data.dataUpdatedAt).getTime()
+    )
+    const latestDatabaseUpdatedTime = new Date(
+      Math.max(...databaseUpdatedAtTimes)
+    )
     return latestDatabaseUpdatedTime
-  } catch(error) {
+  } catch (error) {
     console.error
   }
 
@@ -115,7 +328,11 @@ const determineOpenDataLastUpdatedTime = async (
 
 const cacheOptions = {
   max: 100,
-  ttl: MILLISECONDS_IN_ONE_SECOND * SECONDS_IN_ONE_MINUTE * MINUTES_IN_ONE_HOUR * 6, // six hours
+  ttl:
+    MILLISECONDS_IN_ONE_SECOND *
+    SECONDS_IN_ONE_MINUTE *
+    MINUTES_IN_ONE_HOUR *
+    6, // six hours
 }
 
 /**
@@ -134,6 +351,7 @@ const initializeCache = () => {
 }
 
 const handleAxiosErrors = (error: AxiosError): Error => {
+  console.log(error)
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
@@ -157,58 +375,68 @@ const handleAxiosErrors = (error: AxiosError): Error => {
   return new Error(error.message)
 }
 
-
 /**
  * Request the metadata for all the violation databases
  */
 const makeOpenDataMetadataRequest = async (
   lookupType?: LookupType | undefined
 ): Promise<AxiosResponse[]> => {
-  const allEndpoints = fiscalYearEndpoints.concat(openParkingAndCameraViolationsEndpoint)
+  const promises = NYC_OPEN_DATA_VIOLATION_DATABASE_METADATA_ENDPOINTS.map(
+    async (endpoint: string) => {
+      const resourceIdentifier = endpoint.replace(
+        `${NYC_OPEN_DATA_PORTAL_HOST}/resource/`,
+        ''
+      )
+      const metadataUrl = new URL(
+        resourceIdentifier,
+        NYC_OPEN_DATA_PORTAL_METADATA_PREFIX
+      )
 
-  const promises = allEndpoints.map(async (endpoint: string) => {
-    const resourceIdentifier = endpoint.replace(`${NYC_OPEN_DATA_PORTAL_HOST}/resource/`, '')
-    const metadataUrl = new URL(resourceIdentifier, NYC_OPEN_DATA_PORTAL_METADATA_PREFIX)
+      const stringifiedMetadataUrl = metadataUrl.toString()
 
-    const stringifiedMetadataUrl = metadataUrl.toString()
+      const metadataRequest = makeRequestWithCache({
+        asyncRequestFn: () => axios.get(stringifiedMetadataUrl),
+        cacheKey: stringifiedMetadataUrl,
+        onRetry: () => {
+          console.log(
+            `Request to ${stringifiedMetadataUrl} failed, possibly retrying`
+          )
 
-    const metadataRequest = makeRequestWithCache({
-      asyncRequestFn: () => axios.get(stringifiedMetadataUrl),
-      cacheKey: stringifiedMetadataUrl,
-      onRetry: () => {
-        console.log(
-          `Request to ${stringifiedMetadataUrl} failed, possibly retrying`
-        )
+          const mixpanelInstance = getMixpanelInstance()
+          mixpanelInstance?.track(
+            'open_data_metadata_request_error_before_retry',
+            {
+              endpoint: stringifiedMetadataUrl,
+            }
+          )
+        },
+        priority: lookupType === LookupType.NewLookup ? 1 : 0,
+      })
 
-        const mixpanelInstance = getMixpanelInstance()
-        mixpanelInstance?.track('open_data_metadata_request_error_before_retry', {
-          endpoint: stringifiedMetadataUrl,
-        })
-      },
-      priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
-    })
-
-    return metadataRequest
-  })
+      return metadataRequest
+    }
+  )
 
   const settledPromises = await Promise.allSettled(promises)
 
-  const rejected = settledPromises.filter(result => result.status === 'rejected')
+  const rejected = settledPromises.filter(
+    (result) => result.status === 'rejected'
+  )
   if (rejected.length > 0) {
     throw (rejected[0] as PromiseRejectedResult).reason
   }
 
-  return settledPromises.map(result => (result as PromiseFulfilledResult<any>).value)
+  return settledPromises.map(
+    (result) => (result as PromiseFulfilledResult<any>).value
+  )
 }
 
-const makeOpenDataVehicleRequest = async (
-  {
-    plate,
-    state,
-    plateTypes,
-    lookupType,
-  }: OpenDataVehicleRequestProps
-): Promise<AxiosResponse[]> => {
+const makeOpenDataVehicleRequest = async ({
+  plate,
+  state,
+  plateTypes,
+  lookupType,
+}: OpenDataVehicleRequestProps): Promise<AxiosResponse[]> => {
   // Checking for selected fields for violations
   /**
    * const fieldsForExternalRequests = 'violations' in selectedFields
@@ -222,93 +450,37 @@ const makeOpenDataVehicleRequest = async (
     throw Error('NYC Open Data app token is missing.')
   }
 
-  let rectifiedPlate = plate
+  const useV3Api = FeatureFlags.getFeatureFlagValue(
+    FeatureFlags.featureFlags.useSocrataSodaV3Api
+  ) as boolean
 
-  try {
-    const possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(
-      plate
-    )
-    if (possibleMedallionPlate) {
-      rectifiedPlate = possibleMedallionPlate
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const nonAxiosError = handleAxiosErrors(error)
-      throw nonAxiosError
-    } else {
-      console.error(error)
-      throw error
-    }
-  }
+  const possibleMedallionPlate = await retrievePossibleMedallionVehiclePlate(
+    plate,
+    useV3Api
+  )
+  const rectifiedPlate = possibleMedallionPlate ?? plate
 
   // Fiscal Year Databases
-  const promises = fiscalYearEndpoints.map(
-    async (endpoint: string): Promise<AxiosResponse> => {
-
-      // Construct URL object.
-      const fiscalYearUrl = createOpenDataViolationRequestUrl(
-        endpoint,
-        true,
-        rectifiedPlate,
-        state,
-        plateTypes
-      )
-
-      const stringifiedUrl = fiscalYearUrl.toString()
-
-      // Construct promise with retry capability
-      const requestPromise = makeRequestWithRetries({
-        asyncRequestFn: () => axios.get(stringifiedUrl),
-        onRetry: () => {
-          console.log(`Request to ${stringifiedUrl} failed, possibly retrying`)
-
-          const mixpanelInstance = getMixpanelInstance()
-          mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
-            endpoint,
-            plate: rectifiedPlate,
-            plateTypes,
-            state,
-          })
-        },
-        priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
-      })
-
-      return requestPromise
-    }
-  )
-
-  // Open Parking & Camera Violations Database
-  const openParkingAndCameraViolationsUrl = createOpenDataViolationRequestUrl(
-    openParkingAndCameraViolationsEndpoint,
-    false,
-    rectifiedPlate,
+  const openDataPromises = constructFiscalYearPromises({
+    plate: rectifiedPlate,
     state,
-    plateTypes
-  )
-
-  const stringifiedOpenParkingAndCameraViolationsUrl = openParkingAndCameraViolationsUrl.toString()
-
-  const openParkingAndCameraViolationsRequest = makeRequestWithRetries({
-    asyncRequestFn: () => axios.get(stringifiedOpenParkingAndCameraViolationsUrl),
-    onRetry: () => {
-      console.log(
-        `Request to ${stringifiedOpenParkingAndCameraViolationsUrl} failed, possibly retrying`
-      )
-
-      const mixpanelInstance = getMixpanelInstance()
-      mixpanelInstance?.track('open_data_violation_database_request_error_before_retry', {
-        endpoint: openParkingAndCameraViolationsEndpoint,
-        plate: rectifiedPlate,
-        plateTypes,
-        state,
-      })
-    },
-    priority: lookupType === LookupType.NEW_LOOKUP ? 1 : 0,
+    plateTypes,
+    lookupType,
+    useV3Api,
   })
 
-  promises.push(openParkingAndCameraViolationsRequest)
+  const openParkingAndCameraViolationsPromise =
+    constructOpenParkingAndCameraViolationsPromise({
+      plate: rectifiedPlate,
+      state,
+      plateTypes,
+      lookupType,
+      useV3Api,
+    })
 
-  return await Promise.all(promises)
+  openDataPromises.push(openParkingAndCameraViolationsPromise)
+
+  return await Promise.all(openDataPromises)
 }
 
 /**
@@ -332,14 +504,14 @@ const makeRequestWithCache = async (
 
   // Start retrying with backoff
   const requestPromise = makeRequestWithRetries(retryOptions)
-    .then(response => {
+    .then((response) => {
       if (cacheKey) {
         // Cache the resolved response wrapped in a resolved Promise
         localLruCache.set(cacheKey, Promise.resolve(response))
       }
       return response
     })
-    .catch(error => {
+    .catch((error) => {
       if (cacheKey && localLruCache.has(cacheKey)) {
         // On failure, remove from cache so next call retries fresh
         localLruCache.delete(cacheKey)
@@ -361,18 +533,16 @@ const makeRequestWithCache = async (
  * a base delay amount, a jitter amount, and functions to determine if a retry
  * should happen and what to do when a retry is needed.
  */
-const makeRequestWithRetries = async (
-  {
-    asyncRequestFn,
-    maxRetries = 5,
-    baseDelay = BASE_DELAY,
-    jitter = true,
-    onRetry = (args: any) => {},
-    priority = 0,
-    shouldRetry = (args: any) => true,
-    shouldTrackRequestTiming = false,
-  }: RetryOptions
-): Promise<AxiosResponse> => {
+const makeRequestWithRetries = async ({
+  asyncRequestFn,
+  maxRetries = 5,
+  baseDelay = BASE_DELAY,
+  jitter = true,
+  onRetry = (args: any) => {},
+  priority = 0,
+  shouldRetry = (args: any) => true,
+  shouldTrackRequestTiming = false,
+}: RetryOptions): Promise<AxiosResponse> => {
   let attempt = 0
 
   while (attempt <= maxRetries) {
@@ -390,14 +560,17 @@ const makeRequestWithRetries = async (
 
           mixpanelInstance?.track('open_data_database_request_completed', {
             endpoint: urlObject.origin + urlObject.pathname,
-            timeToCompleteInSeconds: (requestFinish - requestStart) / MILLISECONDS_IN_ONE_SECOND
+            timeToCompleteInSeconds:
+              (requestFinish - requestStart) / MILLISECONDS_IN_ONE_SECOND,
           })
         }
       }
       return result
     } catch (error: unknown) {
       if (attempt === maxRetries) {
-        console.log(`Requests failed after ${maxRetries+1} attempts, throwing error`)
+        console.log(
+          `Requests failed after ${maxRetries + 1} attempts, throwing error`
+        )
         throw error
       }
 
@@ -427,59 +600,105 @@ const makeRequestWithRetries = async (
  * input medallion number.
  */
 const retrievePossibleMedallionVehiclePlate = async (
-  plate: string
+  plate: string,
+  useV3Api: boolean
 ): Promise<string | undefined> => {
-  const medallionEndpointSearchParams = new URLSearchParams({
-    $$app_token: process.env.NYC_OPEN_DATA_APP_TOKEN as string,
-    $group: 'dmv_license_plate_number',
-    $limit: '10000',
-    $select: 'dmv_license_plate_number, max(last_updated_date)',
-    $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`,
-  })
+  const medallionEndpoint = useV3Api
+    ? NYC_OPEN_DATA_SOCRATA_SODA_V3_MEDALLION_DATABASE_ENDPOINT
+    : NYC_OPEN_DATA_SOCRATA_SODA_V2_MEDALLION_DATABASE_ENDPOINT
 
-  const medallionUrlObject = new URL(
-    `?${medallionEndpointSearchParams}`,
-    MEDALLION_DATABASE_ENDPOINT
-  )
+  let asyncFunction: () => Promise<AxiosResponse<any, any>>
 
-  const stringifiedMedallionRequestUrl = medallionUrlObject.toString()
+  if (useV3Api) {
+    asyncFunction = () => {
+      const selectClause =
+        'SELECT `dmv_license_plate_number`, max(`last_updated_date`)'
+      const whereClause = `WHERE \`license_number\` = '${plate.toUpperCase()}'`
+      const groupByClause = 'GROUP BY `dmv_license_plate_number`'
+      const limitClause = 'LIMIT 10000'
 
-  const medallionDatabaseRequest = makeRequestWithRetries({
-    asyncRequestFn: () => axios.get(stringifiedMedallionRequestUrl),
-    onRetry: () => {
-      console.log(
-        `Request to ${stringifiedMedallionRequestUrl} failed, possibly retrying`
+      const query = [
+        selectClause,
+        whereClause,
+        groupByClause,
+        limitClause,
+      ].join(' ')
+
+      return axios.post(
+        medallionEndpoint,
+        { query },
+        { headers: constructSodaV3Headers() }
+      )
+    }
+  } else {
+    asyncFunction = () => {
+      // Construct URL object.
+      const medallionEndpointSearchParams = new URLSearchParams({
+        $$app_token: process.env.NYC_OPEN_DATA_APP_TOKEN as string,
+        $group: 'dmv_license_plate_number',
+        $limit: '10000',
+        $select: 'dmv_license_plate_number, max(last_updated_date)',
+        $where: `license_number='${encodeURIComponent(plate.toUpperCase())}'`,
+      })
+
+      const medallionUrlObject = new URL(
+        `?${medallionEndpointSearchParams}`,
+        medallionEndpoint
       )
 
-      const mixpanelInstance = getMixpanelInstance()
-      mixpanelInstance?.track('open_data_medallion_database_request_error_before_retry', {
-        endpoint: MEDALLION_DATABASE_ENDPOINT,
-        plate,
-      })
+      const stringifiedMedallionRequestUrl = medallionUrlObject.toString()
+
+      return axios.get(stringifiedMedallionRequestUrl)
     }
-  })
-
-  const medallionEndpointResponse = await medallionDatabaseRequest
-
-  const medallionResults = camelizeKeys(
-    medallionEndpointResponse.data
-  ) as MedallionReponse[]
-
-  if (!medallionResults.length) {
-    return undefined
   }
 
-  const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
-    const previousDate = new Date(prev.maxLastUpdatedDate)
-    const currentDate = new Date(cur.maxLastUpdatedDate)
-    return currentDate > previousDate ? cur : prev
+  const medallionDatabaseRequest = makeRequestWithRetries({
+    asyncRequestFn: asyncFunction,
+    onRetry: () => {
+      console.log(`Request to ${medallionEndpoint} failed, possibly retrying`)
+
+      const mixpanelInstance = getMixpanelInstance()
+      mixpanelInstance?.track(
+        'open_data_medallion_database_request_error_before_retry',
+        {
+          endpoint: medallionEndpoint,
+          plate,
+        }
+      )
+    },
   })
 
-  return currentMedallionHolder.dmvLicensePlateNumber
+  try {
+    const medallionEndpointResponse = await medallionDatabaseRequest
+
+    const medallionResults = camelizeKeys(
+      medallionEndpointResponse.data
+    ) as MedallionReponse[]
+
+    if (!medallionResults.length) {
+      return undefined
+    }
+
+    const currentMedallionHolder = medallionResults.reduce((prev, cur) => {
+      const previousDate = new Date(prev.maxLastUpdatedDate)
+      const currentDate = new Date(cur.maxLastUpdatedDate)
+      return currentDate > previousDate ? cur : prev
+    })
+
+    return currentMedallionHolder.dmvLicensePlateNumber
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const nonAxiosError = handleAxiosErrors(error)
+      throw nonAxiosError
+    } else {
+      console.error(error)
+      throw error
+    }
+  }
 }
 
 export default {
   determineOpenDataLastUpdatedTime,
   makeOpenDataMetadataRequest,
-  makeOpenDataVehicleRequest
+  makeOpenDataVehicleRequest,
 }

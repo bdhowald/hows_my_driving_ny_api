@@ -1,7 +1,7 @@
 import { AxiosResponse, HttpStatusCode } from 'axios'
 import { DateTime } from 'luxon'
 
-import { DatabasePathName } from 'constants/endpoints'
+import { ViolationDatabasePathname } from 'constants/endpoints'
 import { NEW_YORK_TIME_ZONE, UTC_TIME_ZONE } from 'constants/locale'
 import LookupSource from 'constants/lookupSources'
 import LookupType from 'constants/lookupTypes'
@@ -128,11 +128,11 @@ const getAndProcessApiLookup = async (
         throw Error('Missing response url')
       }
       const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
-      const databasePathname = `${dataUri}.json` as DatabasePathName
+      const databasePathname = `${dataUri}.json` as ViolationDatabasePathname
       reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
 
       return reducedObject
-    }, {} as Record<DatabasePathName, string>)
+    }, {} as Record<ViolationDatabasePathname, string>)
 
     const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
       vehicleDataResponses.map(async (response) => {
@@ -140,7 +140,7 @@ const getAndProcessApiLookup = async (
           throw Error('Missing response url')
         }
         const requestUrlObject = new URL(response.config.url)
-        const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as DatabasePathName
+        const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as ViolationDatabasePathname
         const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
 
         return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
