@@ -18,7 +18,7 @@ const getFeatureFlagValue = (featureFlag: FeatureFlagConfig) => {
   const selectedVariation = variations.find((variation: FeatureFlagVariation) => {
     cumulative += variation.percentage
     if (randomIntegerValue < cumulative) {
-      return variation.value
+      return true
     }
   }) as FeatureFlagVariation
 
