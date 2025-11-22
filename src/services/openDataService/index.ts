@@ -6,6 +6,10 @@ import {
   NYC_OPEN_DATA_PORTAL_METADATA_PREFIX,
   NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS,
   NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS,
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX,
+  NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX,
+  NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX,
   NYC_OPEN_DATA_SOCRATA_SODA_V2_MEDALLION_DATABASE_ENDPOINT,
   NYC_OPEN_DATA_SOCRATA_SODA_V3_MEDALLION_DATABASE_ENDPOINT,
   NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT,
@@ -332,6 +336,30 @@ const cacheOptions = {
     SECONDS_IN_ONE_MINUTE *
     MINUTES_IN_ONE_HOUR *
     6, // six hours
+}
+
+const getV2EndpointForDatabaseFromV3Endpoint = (
+  potentialV3Endpoint: string
+): string => {
+  if (
+    !potentialV3Endpoint.includes(
+      NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX
+    ) ||
+    !potentialV3Endpoint.includes(NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX)
+  ) {
+    // If input string isn't a v3 endpoint, return unmodified
+    return potentialV3Endpoint
+  }
+  // Otherwise, convert to v2 endpoint
+  return potentialV3Endpoint
+    .replace(
+      NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX,
+      NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX
+    )
+    .replace(
+      NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX,
+      NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX
+    )
 }
 
 /**
@@ -701,6 +729,7 @@ const retrievePossibleMedallionVehiclePlate = async (
 
 export default {
   determineOpenDataLastUpdatedTime,
+  getV2EndpointForDatabaseFromV3Endpoint,
   makeOpenDataMetadataRequest,
   makeOpenDataVehicleRequest,
 }

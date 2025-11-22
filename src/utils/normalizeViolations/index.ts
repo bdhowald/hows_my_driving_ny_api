@@ -463,7 +463,9 @@ const normalizeViolation = async (
 
   const databaseEndpoint = `${NYC_OPEN_DATA_PORTAL_HOST}${requestPathname}`
   const databaseName =
-    API_PATHNAMES_TO_DATABASE_NAMES_MAP[requestPathname as ViolationDatabasePathname]
+    API_PATHNAMES_TO_DATABASE_NAMES_MAP[
+      requestPathname as ViolationDatabasePathname
+    ]
 
   if (!humanizedDescription) {
     const mixpanelInstance = getMixpanelInstance()

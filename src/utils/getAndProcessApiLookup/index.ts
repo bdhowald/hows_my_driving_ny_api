@@ -141,7 +141,11 @@ const getAndProcessApiLookup = async (
         }
         const requestUrlObject = new URL(response.config.url)
         const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as ViolationDatabasePathname
-        const dataUpdatedAt = metadataUpdatedAtValues[databasePathname]
+
+        // We need the v2 endpoints because the v3 endpoints require auth, which clients won't be able to offer automatically.
+        const v2DatabasePathname = OpenDataService.getV2EndpointForDatabaseFromV3Endpoint(databasePathname) as ViolationDatabasePathname
+
+        const dataUpdatedAt = metadataUpdatedAtValues[v2DatabasePathname]
 
         return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
       })

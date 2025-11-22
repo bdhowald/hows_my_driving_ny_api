@@ -1,3 +1,4 @@
+import { AxiosHeaders } from 'axios'
 import { DateTime } from 'luxon'
 
 import { cameraDataWithNoCameraViolationsFactory } from '__fixtures__/cameraData'
@@ -22,13 +23,16 @@ import { PotentialVehicle } from 'types/vehicles'
 
 import getAndProcessApiLookup from '.'
 
-jest.mock('services/openDataService')
 jest.mock('utils/databaseQueries')
 
+
 describe('getAndProcessApiLookup', () => {
+  const axiosHeaders = new AxiosHeaders()
+
   const openDataTableMetadataResponses = [
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
       },
       data: {
@@ -36,9 +40,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/jt7v-77mi',
         id: 'jt7v-77mi',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
       },
       data: {
@@ -46,9 +54,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/c284-tqph',
         id: 'c284-tqph',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
       },
       data: {
@@ -56,9 +68,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/kiv2-tbus',
         id: 'kiv2-tbus',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
       },
       data: {
@@ -66,9 +82,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/2bnn-yakx',
         id: '2bnn-yakx',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
       },
       data: {
@@ -76,9 +96,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/a5td-mswe',
         id: 'a5td-mswe',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
       },
       data: {
@@ -86,9 +110,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/faiq-9dfq',
         id: 'faiq-9dfq',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
       },
       data: {
@@ -96,9 +124,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/p7t3-5i9s',
         id: 'p7t3-5i9s',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
       },
       data: {
@@ -106,9 +138,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/kvfd-bves',
         id: 'kvfd-bves',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
       },
       data: {
@@ -116,9 +152,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/7mxj-7a6y',
         id: '7mxj-7a6y',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
       },
       data: {
@@ -126,9 +166,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/869v-vr48',
         id: '869v-vr48',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
       },
       data: {
@@ -136,9 +180,13 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/pvqr-7yc4',
         id: 'pvqr-7yc4',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
     {
       config: {
+        headers: axiosHeaders,
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
       },
       data: {
@@ -146,6 +194,9 @@ describe('getAndProcessApiLookup', () => {
         dataUri: 'https://data.cityofnewyork.us/resource/nc67-uf89',
         id: 'nc67-uf89',
       },
+      headers: axiosHeaders,
+      status: 200,
+      statusText: 'OK',
     },
   ]
 
@@ -160,36 +211,57 @@ describe('getAndProcessApiLookup', () => {
     const fiscalYearDatabaseResponses = [
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/jt7v-77mi.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/c284-tqph.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/kiv2-tbus.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/2bnn-yakx.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/a5td-mswe.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/faiq-9dfq.json${queryString}`,
         },
         data: [
@@ -218,9 +290,13 @@ describe('getAndProcessApiLookup', () => {
             summonsNumber: '4',
           }),
         ],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/p7t3-5i9s.json${queryString}`,
         },
         data: [
@@ -237,15 +313,23 @@ describe('getAndProcessApiLookup', () => {
             summonsNumber: '6',
           }),
         ],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/kvfd-bves.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/7mxj-7a6y.json${queryString}`,
         },
         data: [
@@ -262,23 +346,35 @@ describe('getAndProcessApiLookup', () => {
             summonsNumber: '8',
           }),
         ],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/869v-vr48.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/pvqr-7yc4.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
     ]
     const openParkingAndCameraDatabaseResponse = [
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
         },
         data: [
@@ -321,6 +417,9 @@ describe('getAndProcessApiLookup', () => {
             violationStatus: 'HEARING HELD-GUILTY',
           }),
         ],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
     ]
 
@@ -747,12 +846,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -836,12 +945,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce(previousLookupAndFrequency)
@@ -955,12 +1074,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce(previousLookupAndFrequency)
@@ -993,36 +1122,57 @@ describe('getAndProcessApiLookup', () => {
       const fiscalYearDatabaseResponses = [
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/jt7v-77mi.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/c284-tqph.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/kiv2-tbus.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/2bnn-yakx.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/a5td-mswe.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/faiq-9dfq.json${queryString}`,
           },
           data: [
@@ -1051,9 +1201,13 @@ describe('getAndProcessApiLookup', () => {
               summonsNumber: '4',
             }),
           ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/p7t3-5i9s.json${queryString}`,
           },
           data: [
@@ -1070,15 +1224,23 @@ describe('getAndProcessApiLookup', () => {
               summonsNumber: '6',
             }),
           ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/kvfd-bves.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/7mxj-7a6y.json${queryString}`,
           },
           data: [
@@ -1095,23 +1257,35 @@ describe('getAndProcessApiLookup', () => {
               summonsNumber: '8',
             }),
           ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/869v-vr48.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/pvqr-7yc4.json${queryString}`,
           },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
       ]
       const openParkingAndCameraDatabaseResponse = [
         {
           config: {
+            headers: axiosHeaders,
             url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
           },
           data: [
@@ -1154,6 +1328,9 @@ describe('getAndProcessApiLookup', () => {
               violationStatus: 'HEARING HELD-GUILTY',
             }),
           ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
       ]
 
@@ -1207,12 +1384,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1241,17 +1428,31 @@ describe('getAndProcessApiLookup', () => {
 
       const openDataServiceResponse = [
         {
-          config: {},
+          config: {
+            headers: axiosHeaders,
+          },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
       ]
 
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
 
       await expect(
         getAndProcessApiLookup(potentialVehicle, undefined, {
@@ -1272,17 +1473,31 @@ describe('getAndProcessApiLookup', () => {
 
       const openDataTableMetadataResponseMissingUrl = [
         {
-          config: {},
+          config: {
+            headers: axiosHeaders,
+          },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
       ]
 
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponseMissingUrl)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataServiceResponse)
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponseMissingUrl
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        openDataServiceResponse
+      )
 
       await expect(
         getAndProcessApiLookup(potentialVehicle, undefined, {
@@ -1307,14 +1522,21 @@ describe('getAndProcessApiLookup', () => {
 
       const openDataServiceResponse = [
         {
-          config: {},
+          config: {
+            headers: axiosHeaders,
+          },
           data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
         },
       ]
 
+      const erroredOpenDataTableMetadataResponse = new Error('Network Error')
+
       const openDataTableMetadataResponsesWithError = [
         ...openDataTableMetadataResponses.slice(0, 11),
-        new Error('Network Error'),
+        erroredOpenDataTableMetadataResponse,
         ...openDataTableMetadataResponses,
       ]
 
@@ -1322,12 +1544,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponsesWithError)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockRejectedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockRejectedValueOnce(
+        erroredOpenDataTableMetadataResponse
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockRejectedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1368,12 +1600,22 @@ describe('getAndProcessApiLookup', () => {
         createdAt: lookupDate,
         uniqueIdentifier,
       })
-      ;(
-        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-      ).mockResolvedValueOnce(openDataTableMetadataResponses)
-      ;(
-        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-      ).mockRejectedValueOnce(openDataServiceResponse)
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockRejectedValueOnce(
+        openDataServiceResponse
+      )
       ;(
         getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
       ).mockResolvedValueOnce({
@@ -1459,89 +1701,149 @@ describe('getAndProcessApiLookup', () => {
       frequency: 0,
       previousLookup: undefined,
     })
-    ;(
-      OpenDataService.makeOpenDataMetadataRequest as jest.Mock
-    ).mockResolvedValueOnce(openDataTableMetadataResponses)
-    ;(
-      OpenDataService.makeOpenDataVehicleRequest as jest.Mock
-    ).mockResolvedValueOnce([
+
+    const makeOpenDataMetadataRequestSpy = jest.spyOn(
+      OpenDataService,
+      'makeOpenDataMetadataRequest'
+    )
+    makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+      openDataTableMetadataResponses
+    )
+
+    const makeOpenDataVehicleRequestSpy = jest.spyOn(
+      OpenDataService,
+      'makeOpenDataVehicleRequest'
+    )
+    makeOpenDataVehicleRequestSpy.mockResolvedValueOnce([
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/rhe8-mgbb.json${medallionQueryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/jt7v-77mi.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/c284-tqph.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/kiv2-tbus.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/2bnn-yakx.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/a5td-mswe.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/faiq-9dfq.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/p7t3-5i9s.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/kvfd-bves.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/7mxj-7a6y.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/869v-vr48.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/pvqr-7yc4.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
       {
         config: {
+          headers: axiosHeaders,
           url: `https://data.cityofnewyork.us/resource/nc67-uf89.json${queryString}`,
         },
         data: [],
+        headers: axiosHeaders,
+        status: 200,
+        statusText: 'OK',
       },
     ])
     ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
