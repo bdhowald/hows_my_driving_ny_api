@@ -69,7 +69,7 @@ export const handleApiLookup = async (
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
-    console.log('ETag matches, returning 304')
+    console.log(`ETag matches (${currentETag}), returning 304`)
     return decamelizeKeysOneLevel({
       statusCode: HttpStatusCode.NotModified,
     }) as ExistingLookupResponse
