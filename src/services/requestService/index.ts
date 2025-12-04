@@ -69,13 +69,13 @@ export const handleApiLookup = async (
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
-    console.log(`ETag matches (${currentETag}), returning 304`)
+    console.log(`ETag matches (${currentETag}) for new lookup, returning 304`)
     return decamelizeKeysOneLevel({
       statusCode: HttpStatusCode.NotModified,
     }) as ExistingLookupResponse
   } else {
     console.log(
-      `ETag does not match - eTagRequestHeader: ${eTagRequestHeader} / currentETag: ${currentETag}`
+      `ETag does not match for new lookup - eTagRequestHeader: ${eTagRequestHeader} / currentETag: ${currentETag}`
     )
   }
 
@@ -212,9 +212,14 @@ export const handleExistingLookup = async (
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
+    console.log(`ETag matches (${currentETag}) for existing lookup, returning 304`)
     return decamelizeKeys({
       statusCode: HttpStatusCode.NotModified,
     }) as ExistingLookupResponse
+  } else {
+    console.log(
+      `ETag does not match for existing lookup - eTagRequestHeader: ${eTagRequestHeader} / currentETag: ${currentETag}`
+    )
   }
 
   const previousLookupResult = await getExistingLookupResult(identifier)
