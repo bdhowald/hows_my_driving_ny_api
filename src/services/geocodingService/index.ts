@@ -60,6 +60,8 @@ const getBoroughService = async (
     `obtained mutex for address search for ${streetAddress}`
   )
 
+  const boroughValues: string[] = Object.values(Borough)
+
   try {
     const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
       streetAddress
@@ -102,8 +104,6 @@ const getBoroughService = async (
         potentialBorough = Borough.Bronx
       }
 
-      const boroughValues: string[] = Object.values(Borough)
-
       if (boroughValues.includes(potentialBorough)) {
         // Only insert geocode if it's for a borough.
         console.log(
@@ -131,7 +131,7 @@ const getBoroughService = async (
     )
   }
 
-  if (potentialBorough in Borough || potentialBorough === 'The Bronx') {
+  if (boroughValues.includes(potentialBorough)) {
     return potentialBorough as Borough
   }
 

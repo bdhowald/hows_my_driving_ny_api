@@ -232,6 +232,18 @@ describe('getBoroughService', () => {
     expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
   })
 
+  it("should return 'Staten Island' if the retrieved geocode from the database is for Staten Island", async () => {
+    const boroughFromDatabase = {
+      borough: 'Staten Island',
+    }
+
+    ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([boroughFromDatabase])
+
+    expect(await getBoroughService(address, loggingKey)).toBe(boroughFromDatabase.borough)
+
+    expect(getBoroughFromDatabaseGeocode as jest.Mock).toHaveBeenCalledTimes(1)
+  })
+
   it("should return 'No Borough Available' if the returned 'borough' is not a real borough", async () => {
     const googleMapsGeocodeResponse = {
       data: {
