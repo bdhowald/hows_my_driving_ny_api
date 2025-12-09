@@ -1632,6 +1632,303 @@ describe('getAndProcessApiLookup', () => {
 
       jest.useRealTimers()
     })
+
+    it('should process the open data API response for v3 endpoints', async () => {
+      jest.useFakeTimers()
+
+      const now = DateTime.now().setZone('America/New_York')
+
+      const tweetParts = [
+        `As of ${now.toFormat('hh:mm:ss a ZZZZ')} on ${now.toFormat(
+          'LLLL dd, y'
+        )}: #NY_ABC1234 has been queried 0 times.\n\n`,
+        'Total parking and camera violation tickets for #NY_ABC1234: 8\n\n' +
+          '8 | Blocking Pedestrian Ramp\n',
+        'Violations by year for #NY_ABC1234:\n\n' +
+          '2 | 2018\n' +
+          '4 | 2019\n' +
+          '1 | 2021\n' +
+          '1 | 2022\n',
+        'Violations by borough for #NY_ABC1234:\n\n' + '8 | The Bronx\n',
+        'Known fines for #NY_ABC1234:\n\n' +
+          '$1,050.00 | Fined\n' +
+          '$0.00         | Reduced\n' +
+          '$1,050.00 | Paid\n' +
+          '$0.00         | Outstanding\n' +
+          '$0.00         | In Judgment\n',
+        `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
+      ]
+
+
+      const v3FiscalYearDatabaseResponses = [
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/jt7v-77mi/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/c284-tqph/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/kiv2-tbus/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/2bnn-yakx/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/a5td-mswe/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/faiq-9dfq/query.json${queryString}`,
+          },
+          data: [
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2018-09-09T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '1',
+            }),
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2018-12-17T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '2',
+            }),
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2019-03-06T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '3',
+            }),
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2019-05-28T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '4',
+            }),
+          ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/p7t3-5i9s/query.json${queryString}`,
+          },
+          data: [
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2019-10-07T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '5',
+            }),
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2019-11-17T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '6',
+            }),
+          ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/kvfd-bves/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/7mxj-7a6y/query.json${queryString}`,
+          },
+          data: [
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2021-12-18T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '7',
+            }),
+            rawFiscalYearDatabaseViolationFactory.build({
+              issueDate: '2022-02-03T00:00:00.000',
+              plateId: plate,
+              registrationState: state,
+              summonsNumber: '8',
+            }),
+          ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/869v-vr48/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/pvqr-7yc4/query.json${queryString}`,
+          },
+          data: [],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+      ]
+      const v3OpenParkingAndCameraDatabaseResponse = [
+        {
+          config: {
+            headers: axiosHeaders,
+            url: `https://data.cityofnewyork.us/api/v3/views/nc67-uf89/query.json${queryString}`,
+          },
+          data: [
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '09/09/2018',
+              plate: plate,
+              state: state,
+              summonsNumber: '1',
+            }),
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '12/17/2018',
+              plate: plate,
+              state: state,
+              summonsNumber: '2',
+            }),
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '03/06/2019',
+              plate: plate,
+              state: state,
+              summonsNumber: '3',
+            }),
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '05/28/2019',
+              plate: plate,
+              state: state,
+              summonsNumber: '4',
+              violationStatus: 'HEARING HELD-GUILTY',
+            }),
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '11/17/2019',
+              plate: plate,
+              state: state,
+              summonsNumber: '6',
+            }),
+            rawOpenParkingAndCameraViolationFactory.build({
+              issueDate: '12/18/2021',
+              plate: plate,
+              state: state,
+              summonsNumber: '7',
+              violationStatus: 'HEARING HELD-GUILTY',
+            }),
+          ],
+          headers: axiosHeaders,
+          status: 200,
+          statusText: 'OK',
+        },
+      ]
+
+      const v3OpenDataServiceResponse = [
+        ...v3FiscalYearDatabaseResponses,
+        ...v3OpenParkingAndCameraDatabaseResponse,
+      ]
+
+      const expectedVehicleResponse = {
+        ...baseExpected.vehicle,
+        timesQueried: 0,
+        tweetParts,
+      }
+
+      const expected = {
+        ...baseExpected,
+        ...{
+          vehicle: expectedVehicleResponse,
+        },
+      }
+
+      ;(createAndInsertNewLookup as jest.Mock).mockResolvedValueOnce({
+        createdAt: lookupDate,
+        uniqueIdentifier,
+      })
+
+      const makeOpenDataMetadataRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataMetadataRequest'
+      )
+      makeOpenDataMetadataRequestSpy.mockResolvedValueOnce(
+        openDataTableMetadataResponses
+      )
+
+      const makeOpenDataVehicleRequestSpy = jest.spyOn(
+        OpenDataService,
+        'makeOpenDataVehicleRequest'
+      )
+      makeOpenDataVehicleRequestSpy.mockResolvedValueOnce(
+        v3OpenDataServiceResponse
+      )
+      ;(
+        getPreviousLookupAndLookupFrequencyForVehicle as jest.Mock
+      ).mockResolvedValueOnce({
+        frequency: 0,
+        previousLookup: undefined,
+      })
+
+      const result = await getAndProcessApiLookup(potentialVehicle, undefined, {
+        lookupSource: LookupSource.Api,
+        lookupType: LookupType.NewLookup,
+      })
+
+      expect(result).toEqual(expected)
+
+      jest.useRealTimers()
+    })
   })
 
   it('should return an error if not both plate and state available', async () => {

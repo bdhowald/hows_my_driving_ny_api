@@ -140,14 +140,14 @@ const getAndProcessApiLookup = async (
           throw Error('Missing response url')
         }
         const requestUrlObject = new URL(response.config.url)
-        const databasePathname = `${requestUrlObject.origin}${requestUrlObject.pathname}` as ViolationDatabasePathname
 
         // We need the v2 endpoints because the v3 endpoints require auth, which clients won't be able to offer automatically.
-        const v2DatabasePathname = OpenDataService.getV2EndpointForDatabaseFromV3Endpoint(databasePathname) as ViolationDatabasePathname
+        const v2DatabasePathname = OpenDataService.getV2EndpointForDatabaseFromV3Endpoint(requestUrlObject.pathname) as ViolationDatabasePathname
+        const v2DatabaseEndpoint = `${requestUrlObject.origin}${v2DatabasePathname}` as ViolationDatabasePathname
 
-        const dataUpdatedAt = metadataUpdatedAtValues[v2DatabasePathname]
+        const dataUpdatedAt = metadataUpdatedAtValues[v2DatabaseEndpoint]
 
-        return normalizeViolations(response.data, requestUrlObject.pathname, dataUpdatedAt)
+        return normalizeViolations(response.data, v2DatabasePathname, dataUpdatedAt)
       })
 
     normalizedResponses = await Promise.all(
