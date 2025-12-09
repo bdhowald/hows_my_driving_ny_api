@@ -176,11 +176,6 @@ const getGoogleGeocode = async (
         return
       }
 
-      console.log(firstStreetAddressOrIntersection)
-      firstStreetAddressOrIntersection.address_components.forEach((component) =>
-        console.log(component)
-      )
-
       const potentiallyNewYorkCity =
         firstStreetAddressOrIntersection.address_components.find(
           (addressComponent: AddressComponent) =>
