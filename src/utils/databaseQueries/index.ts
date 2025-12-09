@@ -40,6 +40,12 @@ type FrequencyResult = {
   frequency: number
 }
 
+type GeocoderLocationTypeQueryResult = {
+  id: number
+  geocoderId: number
+  name: string
+}
+
 type LookupQueryResults = [
   [FrequencyResult],
   [{ created_at: Date; num_violations: number }] | []
@@ -77,7 +83,7 @@ export type VehicleQueryProps = {
  */
 export const createAndInsertNewLookup = async (
   newLookupArguments: CreateNewLookupArguments
-): Promise<{ createdAt: Date, uniqueIdentifier: string }> => {
+): Promise<{ createdAt: Date; uniqueIdentifier: string }> => {
   const {
     cameraData,
     existingIdentifier,
@@ -141,7 +147,6 @@ export const createAndInsertNewLookup = async (
 const formatQueryString = (queryString: string): string =>
   queryString.replace(/\s{2,},/g, ',').replace(/\s{2,}/g, ' ')
 
-
 /**
  * Query the database for a previously-saved geocode
  *
@@ -157,18 +162,20 @@ export const getBoroughFromDatabaseGeocode = async (
     'select borough from geocodes WHERE lookup_string = ?'
 
   try {
-    const result = await databaseConnection.query(geocodeSQLString, valuesString)
+    const result = await databaseConnection.query(
+      geocodeSQLString,
+      valuesString
+    )
     const rows = result[0] as GeocodeQueryResult[]
 
     return rows
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     throw error
   } finally {
     databaseConnection.release()
   }
 }
-
 
 /**
  * Get arguments to query the database for previous lookups for this vehicle
@@ -210,7 +217,7 @@ const getPreviousLookupAndFrequencyQueryArguments = (
     numViolationsForMostRecentLookupQueryString += ' and plate_types = ?'
     numViolationsForMostRecentLookupQueryArgs = [
       ...numViolationsForMostRecentLookupQueryArgs,
-      plateTypes.join()
+      plateTypes.join(),
     ]
   } else {
     frequencyQueryString += ' and plate_types is null'
@@ -238,7 +245,8 @@ const getPreviousLookupAndFrequencyQueryArguments = (
     ]
   }
 
-  numViolationsForMostRecentLookupQueryString += ' ORDER BY created_at DESC LIMIT 1'
+  numViolationsForMostRecentLookupQueryString +=
+    ' ORDER BY created_at DESC LIMIT 1'
 
   const searchQueryArgs = [
     ...frequencyQueryArgs,
@@ -271,7 +279,7 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
   try {
     const result = await databaseConnection.query(
       previousLookupAndFrequencyArguments.queryString,
-      previousLookupAndFrequencyArguments.queryArgs,
+      previousLookupAndFrequencyArguments.queryArgs
     )
 
     const rows = result[0] as LookupQueryResults
@@ -289,7 +297,7 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
       frequency: frequencyResult.frequency + frequency,
       previousLookup: previousLookupResult,
     }
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     throw error
   } finally {
@@ -306,36 +314,72 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
 export const getExistingLookupResult = async (
   identifier: string
 ): Promise<ExistingIdentifierQueryResult | null> => {
-    const databaseConnection = await instantiateConnection()
+  const databaseConnection = await instantiateConnection()
 
-    const queryString = formatQueryString(
-      'select plate' +
-        '     , state' +
-        '     , plate_types' +
-        '     , created_at' +
-        '  from plate_lookups' +
-        ' where unique_identifier = ?'
-    )
+  const queryString = formatQueryString(
+    'select plate' +
+      '     , state' +
+      '     , plate_types' +
+      '     , created_at' +
+      '  from plate_lookups' +
+      ' where unique_identifier = ?'
+  )
 
-    const queryArgs = [identifier]
+  const queryArgs = [identifier]
 
-    try {
-      const result = await databaseConnection.query(queryString, queryArgs)
-      const rows = result[0] as ExistingIdentifierQueryResult[]
+  try {
+    const result = await databaseConnection.query(queryString, queryArgs)
+    const rows = result[0] as ExistingIdentifierQueryResult[]
 
-      const previousQueryResult = rows.length
-        ? (camelizeKeys(rows[0]) as ExistingIdentifierQueryResult)
-        : null
+    const previousQueryResult = rows.length
+      ? (camelizeKeys(rows[0]) as ExistingIdentifierQueryResult)
+      : null
 
-      return previousQueryResult
-    } catch(error) {
-      console.log(error)
-      throw error
-    } finally {
-      databaseConnection.release()
-    }
+    return previousQueryResult
+  } catch (error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.release()
   }
+}
 
+/**
+ * Query database for geocoder location type
+ */
+const getGeocoderLocationType = async (
+  geocoderId: number,
+  locationType: string
+): Promise<GeocoderLocationTypeQueryResult | null> => {
+  const databaseConnection = await instantiateConnection()
+
+  const queryString = formatQueryString(
+    'select *' +
+      '  from geocoder_location_types' +
+      ' where geocoder_id = ?' +
+      '   and name = ?'
+  )
+
+  const queryArgs = [geocoderId, locationType]
+
+  try {
+    const locationTypeResult = await databaseConnection.query(
+      queryString,
+      queryArgs
+    )
+    const locationTypeResultRows =
+      locationTypeResult[0] as GeocoderLocationTypeQueryResult[]
+
+    return camelizeKeys(
+      locationTypeResultRows[0]
+    ) as GeocoderLocationTypeQueryResult
+  } catch (error) {
+    console.log(error)
+    throw error
+  } finally {
+    databaseConnection.release()
+  }
+}
 
 /**
  * Insert a geocode into the database after querying for it
@@ -344,7 +388,7 @@ export const getExistingLookupResult = async (
  */
 export const insertGeocodeIntoDatabase = async (
   geocode: DatabaseGeocode,
-  loggingKey: string,
+  loggingKey: string
 ) => {
   const databaseConnection = await instantiateConnection()
 
@@ -353,16 +397,35 @@ export const insertGeocodeIntoDatabase = async (
       loggingKey,
       `About to insert a geocode (${JSON.stringify(geocode)}) in the database`
     )
-    const results = await databaseConnection.query('insert into geocodes set ?', geocode)
-    const result = results[0] as mysql.ResultSetHeader
+
+    const { locationType, ...geocodeWithoutLocationType } = geocode
+
+    const geocoderLocationType = locationType
+      ? await getGeocoderLocationType(geocode.geocoderId, locationType)
+      : null
+
+    const geocodeToInsert = {
+      ...decamelizeKeys(geocodeWithoutLocationType),
+      ...(geocoderLocationType && {
+        geocoder_location_type_id: geocoderLocationType.id,
+      }),
+    }
+
+    const insertResults = await databaseConnection.query(
+      'insert into geocodes set ?',
+      geocodeToInsert
+    )
+    const insertResult = insertResults[0] as mysql.ResultSetHeader
 
     console.log(
       loggingKey,
-      `Geocode (${JSON.stringify(geocode)}) successfully inserted at ${result.insertId}`
+      `Geocode (${JSON.stringify(geocode)}) successfully inserted at ${
+        insertResult.insertId
+      }`
     )
 
     return true
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     throw error
   } finally {
@@ -382,17 +445,20 @@ const insertNewLookup = async (newLookup: PlateLookup) => {
   const decamelizedLookup = decamelizeKeys(newLookup)
 
   try {
-    const insertResult = await databaseConnection.query(queryString, decamelizedLookup)
+    const insertResult = await databaseConnection.query(
+      queryString,
+      decamelizedLookup
+    )
     const insertResultSetHeader = insertResult[0] as mysql.ResultSetHeader
 
     const [selectResult, _] = await databaseConnection.query(
-      "select created_at from plate_lookups where id = ?",
-      [insertResultSetHeader.insertId],
+      'select created_at from plate_lookups where id = ?',
+      [insertResultSetHeader.insertId]
     )
 
     const selectResultRow = (selectResult as mysql.RowDataPacket[])[0]
     return selectResultRow
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     throw error
   } finally {
@@ -419,9 +485,10 @@ export const insertNewTwitterEventAndMediaObjects = async (
   try {
     const insertTwitterEventResponse = await databaseConnection.query(
       twitterEventQueryString,
-      decamelizedTwitterEvent,
+      decamelizedTwitterEvent
     )
-    const insertTwitterEventResult = insertTwitterEventResponse[0] as mysql.ResultSetHeader
+    const insertTwitterEventResult =
+      insertTwitterEventResponse[0] as mysql.ResultSetHeader
 
     if (!mediaObjects?.length) {
       return !!insertTwitterEventResult
@@ -430,7 +497,7 @@ export const insertNewTwitterEventAndMediaObjects = async (
     const insertId = insertTwitterEventResult.insertId
 
     const twitterMediaObjectQueryString =
-        'insert into twitter_media_objects set ?'
+      'insert into twitter_media_objects set ?'
 
     console.log(insertTwitterEventResult)
 
@@ -444,17 +511,18 @@ export const insertNewTwitterEventAndMediaObjects = async (
 
     const insertTwitterMediaObjectsResponse = await databaseConnection.query(
       twitterMediaObjectQueryString,
-      decamelizedTwitterMediaObjects,
+      decamelizedTwitterMediaObjects
     )
     console.log(twitterMediaObjectQueryString)
     console.log(decamelizedTwitterMediaObjects)
 
-    const insertTwitterMediaObjectsResult = insertTwitterMediaObjectsResponse[0] as mysql.ResultSetHeader
+    const insertTwitterMediaObjectsResult =
+      insertTwitterMediaObjectsResponse[0] as mysql.ResultSetHeader
 
     databaseConnection.release()
 
-    return (!!insertTwitterMediaObjectsResult)
-  } catch(error) {
+    return !!insertTwitterMediaObjectsResult
+  } catch (error) {
     console.log(error)
     throw error
   } finally {
@@ -479,10 +547,10 @@ const obtainUniqueIdentifier = async (): Promise<string> => {
 
     try {
       const result = await databaseConnection.query(queryString, queryArgs)
-      const rows = result[0] as [{ count: number}]
+      const rows = result[0] as [{ count: number }]
 
       return rows[0].count !== 0
-    } catch(error) {
+    } catch (error) {
       console.log(error)
       throw error
     } finally {
@@ -535,7 +603,10 @@ export const updateNonFollowerReplies = async (
     : [userId]
 
   try {
-    const result = await databaseConnection.query(selectQueryString, selectQueryArgs)
+    const result = await databaseConnection.query(
+      selectQueryString,
+      selectQueryArgs
+    )
 
     const rows = result[0] as { in_reply_to_message_id: BigInt }[]
 
@@ -544,8 +615,8 @@ export const updateNonFollowerReplies = async (
 
       const baseUpdateNonFollowerRepliesQueryString = formatQueryString(
         'update non_follower_replies' +
-        '   set favorited = true' +
-        ' where user_id = ?'
+          '   set favorited = true' +
+          ' where user_id = ?'
       )
 
       const updateNonFollowerRepliesQueryString = favoritedStatusId
@@ -554,10 +625,10 @@ export const updateNonFollowerReplies = async (
 
       const updateTwitterEventsQueryString = formatQueryString(
         'update twitter_events' +
-        '   set user_favorited_non_follower_reply = true' +
-        '     , responded_to = false' +
-        ' where is_duplicate = false' +
-        '   and event_id = ?;'
+          '   set user_favorited_non_follower_reply = true' +
+          '     , responded_to = false' +
+          ' where is_duplicate = false' +
+          '   and event_id = ?;'
       )
 
       const updateQueryString = `${updateNonFollowerRepliesQueryString} ${updateTwitterEventsQueryString}`
@@ -570,7 +641,7 @@ export const updateNonFollowerReplies = async (
     })
 
     return true
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     throw error
   } finally {

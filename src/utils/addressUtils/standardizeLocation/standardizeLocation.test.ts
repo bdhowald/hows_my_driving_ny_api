@@ -205,13 +205,17 @@ describe('standardizeLocation', () => {
         inputLocation: '4th Ave.(n/b)@ 18th St.-kz-4',
         standardizedLocation: '4th Avenue and 18th Street',
       },
+      {
+        inputLocation: 'Webster Avenue and East 174th Street',
+        standardizedLocation: 'Webster Avenue and East 174th Street',
+      },
     ])(
       'renders the search-friendly query text $standardizedLocation when called with $inputLocation',
       ({ inputLocation, standardizedLocation }) => {
-        expect(
-          standardizeDisplayedLocation(inputLocation),
-        ).toBe(standardizedLocation)
-      },
+        expect(standardizeDisplayedLocation(inputLocation)).toBe(
+          standardizedLocation
+        )
+      }
     )
   })
 })

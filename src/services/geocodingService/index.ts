@@ -161,9 +161,14 @@ const getGoogleGeocode = async (
     )
 
     if (geocodeResponse.data.results?.length) {
-      const bestResponse = geocodeResponse.data.results[0]
+      const firstStreetAddressOrIntersection =
+        geocodeResponse.data.results.find(
+          (result) =>
+            result.types.includes(AddressType.street_address) ||
+            result.types.includes(AddressType.intersection)
+        )
 
-      if (!bestResponse?.address_components?.length) {
+      if (!firstStreetAddressOrIntersection?.address_components?.length) {
         console.log(
           loggingKey,
           'No geocode result or result has insufficient data'
@@ -171,12 +176,18 @@ const getGoogleGeocode = async (
         return
       }
 
-      const potentiallyNewYorkCity = bestResponse.address_components.find(
-        (addressComponent: AddressComponent) =>
-          addressComponent.types.indexOf(
-            AddressType.administrative_area_level_1
-          ) !== -1
+      console.log(firstStreetAddressOrIntersection)
+      firstStreetAddressOrIntersection.address_components.forEach((component) =>
+        console.log(component)
       )
+
+      const potentiallyNewYorkCity =
+        firstStreetAddressOrIntersection.address_components.find(
+          (addressComponent: AddressComponent) =>
+            addressComponent.types.indexOf(
+              AddressType.administrative_area_level_1
+            ) !== -1
+        )
 
       if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
         console.log(
@@ -187,10 +198,11 @@ const getGoogleGeocode = async (
         return
       }
 
-      const potentialBorough = bestResponse.address_components.find(
-        (addressComponent: AddressComponent) =>
-          addressComponent.types.indexOf(AddressType.sublocality) !== -1
-      )
+      const potentialBorough =
+        firstStreetAddressOrIntersection.address_components.find(
+          (addressComponent: AddressComponent) =>
+            addressComponent.types.indexOf(AddressType.sublocality) !== -1
+        )
 
       if (!potentialBorough?.long_name) {
         console.log(
@@ -200,10 +212,60 @@ const getGoogleGeocode = async (
         return
       }
 
+      const resultGeometry = firstStreetAddressOrIntersection.geometry
+
+      const latitude = resultGeometry.location.lat
+      const longitude = resultGeometry.location.lng
+      const locationType = resultGeometry.location_type
+
+      let shortName: string | undefined
+      let fullName: string | undefined
+
+      if (
+        firstStreetAddressOrIntersection.types.includes(
+          AddressType.street_address
+        )
+      ) {
+        // If street address, piece together from number and street name
+        const streetNumber =
+          firstStreetAddressOrIntersection.address_components.find(
+            (component) => component.types.includes(AddressType.street_number)
+          )
+        const streetName =
+          firstStreetAddressOrIntersection.address_components.find(
+            (component) => component.types.includes(AddressType.route)
+          )
+
+        if (streetName && streetNumber) {
+          shortName = `${streetNumber.short_name} ${streetName.short_name}`
+          fullName = `${streetNumber.long_name} ${streetName.long_name}`
+        }
+      } else if (
+        firstStreetAddressOrIntersection.types.includes(
+          AddressType.intersection
+        )
+      ) {
+        // If intersection, take straight from component
+        const intersection =
+          firstStreetAddressOrIntersection.address_components.find(
+            (component) => component.types.includes(AddressType.intersection)
+          )
+
+        if (intersection) {
+          shortName = intersection.short_name
+          fullName = intersection.long_name
+        }
+      }
+
       return {
-        lookup_string: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
         borough: potentialBorough.long_name,
-        geocoder_id: Geocoder.Google,
+        fullName,
+        geocoderId: Geocoder.Google,
+        latitude,
+        locationType: locationType,
+        longitude,
+        lookupString: `${streetAddress.trim()} ${NEW_YORK_GOOGLE_PARAMS}`,
+        shortName,
       }
     }
     return
