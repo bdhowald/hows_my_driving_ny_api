@@ -1,3 +1,5 @@
+export const GOOGLE_APIS_ENDPOINT = 'https://googleapis.com'
+
 export const NYC_OPEN_DATA_PORTAL_HOST = 'https://data.cityofnewyork.us'
 
 export const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`

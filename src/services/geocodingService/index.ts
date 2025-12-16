@@ -1,13 +1,15 @@
-import {
-  AddressComponent,
-  AddressType,
-  Client as GoogleMapsClient,
-  GeocodeResponse,
-} from '@googlemaps/google-maps-services-js'
+import axios from 'axios'
 
 import { Borough } from 'constants/boroughs'
 import { Geocoder } from 'constants/geocoders'
-import { DatabaseGeocode, GeocodeQueryResult } from 'types/geocoding'
+import { GoogleApisAddressType } from 'constants/googleGeocoder'
+import { GOOGLE_APIS_ENDPOINT } from 'constants/endpoints'
+import {
+  DatabaseGeocode,
+  GeocodeQueryResult,
+  GoogleApisAddressComponent,
+  GoogleApisGeocodeResponse,
+} from 'types/geocoding'
 import {
   getBoroughFromDatabaseGeocode,
   insertGeocodeIntoDatabase,
@@ -28,8 +30,6 @@ const GEOCODE_MUTEX = new Mutex()
 
 const NEW_YORK = 'New York'
 const NEW_YORK_GOOGLE_PARAMS = `${NEW_YORK} NY`
-
-const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
 const getBoroughService = async (
   streetAddress: string | undefined,
@@ -142,8 +142,6 @@ const getGoogleGeocode = async (
   streetAddress: string,
   loggingKey: string
 ): Promise<DatabaseGeocode | undefined> => {
-  const googleMapsClient = instantiateGoogleMapsClient()
-
   const geocodingArguments = {
     params: {
       key: process.env.GOOGLE_PLACES_API_KEY ?? '',
@@ -156,7 +154,8 @@ const getGoogleGeocode = async (
   }
 
   try {
-    const geocodeResponse: GeocodeResponse = await googleMapsClient.geocode(
+    const geocodeResponse: GoogleApisGeocodeResponse = await axios.get(
+      GOOGLE_APIS_ENDPOINT,
       geocodingArguments
     )
 
@@ -164,8 +163,8 @@ const getGoogleGeocode = async (
       const firstStreetAddressOrIntersection =
         geocodeResponse.data.results.find(
           (result) =>
-            result.types.includes(AddressType.street_address) ||
-            result.types.includes(AddressType.intersection)
+            result.types.includes(GoogleApisAddressType.StreetAddress) ||
+            result.types.includes(GoogleApisAddressType.Intersection)
         )
 
       if (!firstStreetAddressOrIntersection?.address_components?.length) {
@@ -178,9 +177,9 @@ const getGoogleGeocode = async (
 
       const potentiallyNewYorkCity =
         firstStreetAddressOrIntersection.address_components.find(
-          (addressComponent: AddressComponent) =>
+          (addressComponent: GoogleApisAddressComponent) =>
             addressComponent.types.indexOf(
-              AddressType.administrative_area_level_1
+              GoogleApisAddressType.AdministrativeAreaLevel1
             ) !== -1
         )
 
@@ -195,8 +194,10 @@ const getGoogleGeocode = async (
 
       const potentialBorough =
         firstStreetAddressOrIntersection.address_components.find(
-          (addressComponent: AddressComponent) =>
-            addressComponent.types.indexOf(AddressType.sublocality) !== -1
+          (addressComponent: GoogleApisAddressComponent) =>
+            addressComponent.types.indexOf(
+              GoogleApisAddressType.Sublocality
+            ) !== -1
         )
 
       if (!potentialBorough?.long_name) {
@@ -218,17 +219,18 @@ const getGoogleGeocode = async (
 
       if (
         firstStreetAddressOrIntersection.types.includes(
-          AddressType.street_address
+          GoogleApisAddressType.StreetAddress
         )
       ) {
         // If street address, piece together from number and street name
         const streetNumber =
           firstStreetAddressOrIntersection.address_components.find(
-            (component) => component.types.includes(AddressType.street_number)
+            (component) =>
+              component.types.includes(GoogleApisAddressType.StreetNumber)
           )
         const streetName =
           firstStreetAddressOrIntersection.address_components.find(
-            (component) => component.types.includes(AddressType.route)
+            (component) => component.types.includes(GoogleApisAddressType.Route)
           )
 
         if (streetName && streetNumber) {
@@ -237,13 +239,14 @@ const getGoogleGeocode = async (
         }
       } else if (
         firstStreetAddressOrIntersection.types.includes(
-          AddressType.intersection
+          GoogleApisAddressType.Intersection
         )
       ) {
         // If intersection, take straight from component
         const intersection =
           firstStreetAddressOrIntersection.address_components.find(
-            (component) => component.types.includes(AddressType.intersection)
+            (component) =>
+              component.types.includes(GoogleApisAddressType.Intersection)
           )
 
         if (intersection) {

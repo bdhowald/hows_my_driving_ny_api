@@ -28,6 +28,8 @@ const TEST_ENVIRONMENT = 'test'
 const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 10
 const CONCURRENCY_LIMIT = pLimit(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
+const GOOGLE_APIS_ENDPOINT = 'https://googleapis.com'
+
 const NYC_OPEN_DATA_PORTAL_HOST = "https://data.cityofnewyork.us"
 const NYC_OPEN_DATA_PORTAL_METADATA_PREFIX = `${NYC_OPEN_DATA_PORTAL_HOST}/api/views/metadata/v1/`
 
@@ -1770,7 +1772,8 @@ const getGoogleGeocode = async (streetAddress) => {
   }
 
   try {
-    const geocodeResponse = await googleMapsClient.geocode(
+    const geocodeResponse = await axios.get(
+      GOOGLE_APIS_ENDPOINT,
       geocodingArguments
     )
 
