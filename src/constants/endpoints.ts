@@ -31,7 +31,9 @@ const parkingViolationsFiscalYear2020Path = 'p7t3-5i9s'
 const parkingViolationsFiscalYear2021Path = 'kvfd-bves'
 const parkingViolationsFiscalYear2022Path = '7mxj-7a6y'
 const parkingViolationsFiscalYear2023Path = '869v-vr48'
-const parkingViolationsFiscalYear2024Path = 'pvqr-7yc4'
+const parkingViolationsFiscalYear2024Path = '8zf9-spf8'
+const parkingViolationsFiscalYear2025Path = 'm5vz-tzqv'
+const parkingViolationsFiscalYear2026Path = 'pvqr-7yc4'
 
 const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2014Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2014Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
 const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2015Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2015Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
@@ -44,6 +46,8 @@ const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2021Path = `${NYC_OPEN_
 const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2022Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2022Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
 const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2023Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2023Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
 const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2024Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2024Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
+const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2025Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2025Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
+const nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2026Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_PREFIX}${parkingViolationsFiscalYear2026Path}${NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_SUFFIX}`
 
 export const NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS = [
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2014Path}`,
@@ -57,6 +61,8 @@ export const NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS = [
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2022Path}`,
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2023Path}`,
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2024Path}`,
+  `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2025Path}`,
+  `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2026Path}`,
 ]
 
 const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2014Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2014Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
@@ -70,6 +76,8 @@ const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2021Path = `${NYC_OPEN_
 const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2022Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2022Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
 const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2023Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2023Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
 const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2024Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2024Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
+const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2025Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2025Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
+const nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2026Path = `${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_PREFIX}${parkingViolationsFiscalYear2026Path}${NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_SUFFIX}`
 
 export const NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS = [
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2014Path}`,
@@ -83,6 +91,8 @@ export const NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS = [
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2022Path}`,
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2023Path}`,
   `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2024Path}`,
+  `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2025Path}`,
+  `${NYC_OPEN_DATA_PORTAL_HOST}${nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2026Path}`,
 ]
 
 export const NYC_OPEN_DATA_VIOLATION_DATABASE_METADATA_ENDPOINTS = [
@@ -111,6 +121,8 @@ export type ViolationDatabasePathname =
   | '/resource/kvfd-bves.json'
   | '/resource/7mxj-7a6y.json'
   | '/resource/869v-vr48.json'
+  | '/resource/8zf9-spf8.json'
+  | '/resource/m5vz-tzqv.json'
   | '/resource/pvqr-7yc4.json'
   | '/resource/nc67-uf89.json'
   | '/api/v3/views/jt7v-77mi/query.json'
@@ -123,6 +135,8 @@ export type ViolationDatabasePathname =
   | '/api/v3/views/kvfd-bves/query.json'
   | '/api/v3/views/7mxj-7a6y/query.json'
   | '/api/v3/views/869v-vr48/query.json'
+  | '/api/v3/views/8zf9-spf8/query.json'
+  | '/api/v3/views/m5vz-tzqv/query.json'
   | '/api/v3/views/pvqr-7yc4/query.json'
   | '/api/v3/views/nc67-uf89/query.json'
 
@@ -138,6 +152,8 @@ type ViolationDatabaseName =
   | 'Parking Violations Issued - Fiscal Year 2022'
   | 'Parking Violations Issued - Fiscal Year 2023'
   | 'Parking Violations Issued - Fiscal Year 2024'
+  | 'Parking Violations Issued - Fiscal Year 2025'
+  | 'Parking Violations Issued - Fiscal Year 2026'
   | 'Open Parking and Camera Violations'
 
 export const API_PATHNAMES_TO_DATABASE_NAMES_MAP: Record<
@@ -166,6 +182,10 @@ export const API_PATHNAMES_TO_DATABASE_NAMES_MAP: Record<
     'Parking Violations Issued - Fiscal Year 2023',
   [nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2024Path]:
     'Parking Violations Issued - Fiscal Year 2024',
+  [nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2025Path]:
+    'Parking Violations Issued - Fiscal Year 2025',
+  [nycOpenDataSocrataSodaV2ParkingViolationsFiscalYear2026Path]:
+    'Parking Violations Issued - Fiscal Year 2026',
   [nycOpenDataSocrataSodaV2OpenParkingAndCameraViolationsPath]:
     'Open Parking and Camera Violations',
   [nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2014Path]:
@@ -190,6 +210,10 @@ export const API_PATHNAMES_TO_DATABASE_NAMES_MAP: Record<
     'Parking Violations Issued - Fiscal Year 2023',
   [nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2024Path]:
     'Parking Violations Issued - Fiscal Year 2024',
+  [nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2025Path]:
+    'Parking Violations Issued - Fiscal Year 2025',
+  [nycOpenDataSocrataSodaV3ParkingViolationsFiscalYear2026Path]:
+    'Parking Violations Issued - Fiscal Year 2026',
   [nycOpenDataSocrataSodaV3OpenParkingAndCameraViolationsPath]:
     'Open Parking and Camera Violations',
 } as Record<ViolationDatabasePathname, ViolationDatabaseName>
