@@ -107,6 +107,8 @@ export const NYC_OPEN_DATA_VIOLATION_DATABASE_METADATA_ENDPOINTS = [
   `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${parkingViolationsFiscalYear2022Path}.json`,
   `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${parkingViolationsFiscalYear2023Path}.json`,
   `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${parkingViolationsFiscalYear2024Path}.json`,
+  `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${parkingViolationsFiscalYear2025Path}.json`,
+  `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${parkingViolationsFiscalYear2026Path}.json`,
   `${NYC_OPEN_DATA_PORTAL_METADATA_PREFIX}${openParkingAndCameraViolationsPath}.json`,
 ]
 
