@@ -2605,7 +2605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
+"@types/node@npm:*, @types/node@npm:26.6.5":
   version: 26.6.5
   resolution: "@types/node@npm:26.6.5"
   dependencies:
