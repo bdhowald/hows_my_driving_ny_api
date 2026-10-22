@@ -5129,6 +5129,7 @@ __metadata:
     fishery: "npm:^2.2.2"
     humps: "npm:^2.0.1"
     jest: "npm:^29.7.0"
+    js-yaml: "npm:4.3.2"
     lru-cache: "npm:^11.1.0"
     luxon: "npm:3.3.0"
     mixpanel: "npm:^0.18.1"
@@ -5137,6 +5138,7 @@ __metadata:
     p-limit: "npm:^3.1.0"
     pm2: "npm:6.0.5"
     prettier: "npm:2.8.8"
+    semver: "npm:7.5.2"
     supports-color: "npm:^11.0.0"
     ts-node: "npm:^8.6.2"
     tsx: "npm:^4.23.15"
@@ -7467,6 +7469,17 @@ __metadata:
   version: 1.2.4
   resolution: "sax@npm:1.2.4"
   checksum: 10c0/6e9b05ff443ee5e5096ce92d31c0740a20d33002fad714ebcb8fc7a664d9ee159103ebe8f7aef0a1f7c5ecacdd01f177f510dff95611c589399baf76437d3fe3
+  languageName: node
+  linkType: hard
+
+"semver@npm:7.5.2":
+  version: 7.5.2
+  resolution: "semver@npm:7.5.2"
+  dependencies:
+    lru-cache: "npm:^6.0.0"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/d151207ab762a8067f6302076edc04e5b8da2362eb9e3f21c2567ceadfd415064936d215b4aae7791da118c230649d29089be979ffa49c5b56a6bcf82147efdd
   languageName: node
   linkType: hard
 
