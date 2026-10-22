@@ -1,4 +1,5 @@
 build
 node_modules
+.yarn/install-state.gz
 yarn-error.log
 *.sql
