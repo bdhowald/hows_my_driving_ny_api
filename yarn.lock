@@ -5052,6 +5052,7 @@ __metadata:
     "@babel/node": "npm:^7.8.4"
     "@babel/plugin-proposal-class-properties": "npm:^7.8.3"
     "@babel/plugin-proposal-object-rest-spread": "npm:^7.8.3"
+    "@babel/plugin-transform-modules-systemjs": "npm:7.29.4"
     "@babel/preset-env": "npm:^7.8.4"
     "@babel/preset-typescript": "npm:^7.8.3"
     "@babel/runtime": "npm:^7.28.4"
