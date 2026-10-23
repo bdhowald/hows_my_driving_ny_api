@@ -62,7 +62,12 @@
     "supports-color": "^11.0.0"
   },
   "resolutions": {
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.2",
+    "ws@8.20.0": "8.21.0"
+  },
+  "overrides": {
+    "js-yaml": "4.3.2",
+    "ws@8.20.0": "8.21.0"
   },
   "packageManager": "yarn@4.18.1"
 }
