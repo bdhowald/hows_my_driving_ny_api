@@ -2,6 +2,9 @@
   "name": "hows-my-driving-ny-api",
   "type": "module",
   "version": "0.1.0",
+  "engines": {
+    "node": "^22.23.4"
+  },
   "private": true,
   "lockfileVersion": 1,
   "requires": true,
