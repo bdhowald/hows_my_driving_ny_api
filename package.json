@@ -29,7 +29,6 @@
     "nodemon": "^2.0.2",
     "p-limit": "^3.1.0",
     "pm2": "7.1.1",
-    "semver": "7.5.2",
     "ts-node": "^8.6.2",
     "tsx": "^4.23.15",
     "typescript": "4.8.4"
@@ -63,10 +62,12 @@
   },
   "resolutions": {
     "js-yaml": "4.3.2",
+    "semver": "^7.5.2",
     "ws@8.20.0": "8.21.0"
   },
   "overrides": {
     "js-yaml": "4.3.2",
+    "semver": "^7.5.2",
     "ws@8.20.0": "8.21.0"
   },
   "packageManager": "yarn@4.18.1"
