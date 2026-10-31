@@ -6,7 +6,10 @@ import humps from 'humps'
 const camelize = humps.camelize
 const camelizeKeys = humps.camelizeKeys
 const decamelize = humps.decamelize
-const decamelizeKeys = humps.decamelizeKeys
+
+const decamelizeKeys = <T extends object>(obj: T): SnakeCaseKeys<T> => {
+  return humps.decamelizeKeys(obj) as unknown as SnakeCaseKeys<T>
+}
 
 const decamelizeKeysOneLevel = (originalObject: any) => {
   if (
@@ -25,6 +28,22 @@ const decamelizeKeysOneLevel = (originalObject: any) => {
 
   return returnObject
 }
+
+type Decamelize<T extends string> = T extends `${infer First}${infer Rest}`
+  ? Rest extends Uncapitalize<Rest> // Check if the next character is uppercase-ish / transition point
+    ? `${Lowercase<First>}${Decamelize<Rest>}`
+    : `${Lowercase<First>}_${Decamelize<Rest>}`
+  : T
+
+export type SnakeCaseKeys<T> = T extends Array<infer U>
+  ? Array<SnakeCaseKeys<U>>
+  : T extends object
+  ? {
+      [K in keyof T as K extends string ? Decamelize<K> : K]: SnakeCaseKeys<
+        T[K]
+      >
+    }
+  : T
 
 export {
   camelize,

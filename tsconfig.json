@@ -1,33 +1,27 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    // "allowSyntheticDefaultImports": true,
     "baseUrl": "src",
-    // "composite": true,
-    // "declaration": true,
-    // "declarationMap": true,
     "esModuleInterop": true,
-    // "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "lib": [
       "dom",
       "es2017"
     ],
     "moduleResolution": "Node",
-    // "noEmit": true,
-    // "noUnusedLocals": false,
-    // "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
     "outDir": "build",
     "rootDir": "src",
-    // "sourceMap": true,
+    "sourceMap": true,
     "strict": true,
     "target": "es6",
+    "types": ["node", "jest"],
     "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
-  "target": "es5",
   "include": [
     "src/**/*",
-    // "jest.config.unit.js"
   ],
 }

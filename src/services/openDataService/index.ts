@@ -565,9 +565,9 @@ const makeRequestWithRetries = async ({
   maxRetries = 5,
   baseDelay = BASE_DELAY,
   jitter = true,
-  onRetry = (args: any) => {},
+  onRetry = () => {},
   priority = 0,
-  shouldRetry = (args: any) => true,
+  shouldRetry = () => true,
 }: RetryOptions): Promise<AxiosResponse> => {
   let attempt = 0
 

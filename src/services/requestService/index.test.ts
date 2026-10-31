@@ -35,15 +35,19 @@ describe('requestService', () => {
   const openDateLastUpdatedTime = new Date('2025-04-01')
 
   hosts.forEach((host) => {
-    const hostIsLocal = host === 'localhost:8080'
-      ? 'when host is local'
-      : 'when host is not local'
+    const hostIsLocal =
+      host === 'localhost:8080'
+        ? 'when host is local'
+        : 'when host is not local'
 
     describe(`handleApiLookup ${hostIsLocal}`, () => {
       it('should return a response for a vehicle with violations', async () => {
         jest.useFakeTimers()
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
@@ -233,7 +237,8 @@ describe('requestService', () => {
                 ],
                 fromHoursInEffect: 'ALL',
                 houseNumber: undefined,
-                humanizedDescription: HumanizedDescription.BlockingPedestrianRamp,
+                humanizedDescription:
+                  HumanizedDescription.BlockingPedestrianRamp,
                 interestAmount: undefined,
                 intersectingStreet: 'GUERLAIN',
                 issueDate: '2019-10-07T00:00:00.000',
@@ -352,7 +357,8 @@ describe('requestService', () => {
                 ],
                 fromHoursInEffect: 'ALL',
                 houseNumber: undefined,
-                humanizedDescription: HumanizedDescription.BlockingPedestrianRamp,
+                humanizedDescription:
+                  HumanizedDescription.BlockingPedestrianRamp,
                 interestAmount: undefined,
                 intersectingStreet: 'GUERLAIN',
                 issueDate: '2022-02-03T00:00:00.000',
@@ -411,9 +417,7 @@ describe('requestService', () => {
         const statistics = apiQueryResponse.vehicle?.statistics
         const statisticsBarelyDecamelized = decamelizeKeysOneLevel(statistics)
 
-        const decamelizedResponse = decamelizeKeys(
-          apiQueryResponse
-        ) as VehicleResponse
+        const decamelizedResponse = decamelizeKeys(apiQueryResponse)
         // @ts-expect-error  Figure out how to decamelize only the top-level betters.
         decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
 
@@ -444,7 +448,10 @@ describe('requestService', () => {
       it('should return a response for a vehicle with no violations', async () => {
         jest.useFakeTimers()
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
@@ -528,8 +535,7 @@ describe('requestService', () => {
         const plateQueryParam = 'ABC1234:'
 
         const apiQueryResponse: VehicleResponse = {
-          error:
-          `Sorry, a plate and state could not be inferred from ${plateQueryParam}`,
+          error: `Sorry, a plate and state could not be inferred from ${plateQueryParam}`,
           statusCode: 400,
           successfulLookup: false,
         }
@@ -611,18 +617,14 @@ describe('requestService', () => {
         }
 
         const unsuccessfulApiQueryResponse: VehicleResponse = {
-          error:
-          `Sorry, a plate and state could not be inferred from ${invalidPlateQueryParam}`,
+          error: `Sorry, a plate and state could not be inferred from ${invalidPlateQueryParam}`,
           statusCode: 400,
           successfulLookup: false,
         }
 
         const expected = decamelizeKeys({
           body: {
-            data: [
-              unsuccessfulApiQueryResponse,
-              successfulApiQueryResponse,
-            ],
+            data: [unsuccessfulApiQueryResponse, successfulApiQueryResponse],
           },
           statusCode: HttpStatusCode.MultiStatus,
         })
@@ -632,11 +634,9 @@ describe('requestService', () => {
           url: `/api/v1?plate=${invalidPlateQueryParam}&plate=${validPlateQueryParam}`,
         } as http.IncomingMessage
 
-        ;(getAndProcessApiLookup as jest.Mock).mockResolvedValueOnce(
-          unsuccessfulApiQueryResponse
-        ).mockResolvedValueOnce(
-          successfulApiQueryResponse
-        )
+        ;(getAndProcessApiLookup as jest.Mock)
+          .mockResolvedValueOnce(unsuccessfulApiQueryResponse)
+          .mockResolvedValueOnce(successfulApiQueryResponse)
 
         const result = await handleApiLookup(incomingRequest)
 
@@ -670,13 +670,19 @@ describe('requestService', () => {
           statusCode: 304,
         })
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `"lookup-ABC1234:NY-${openDateLastUpdatedTime.getTime()}"` },
+          headers: {
+            host,
+            'if-none-match': `"lookup-ABC1234:NY-${openDateLastUpdatedTime.getTime()}"`,
+          },
           url: '/api/v1?plate=ABC1234:NY',
         } as http.IncomingMessage
 
@@ -690,13 +696,19 @@ describe('requestService', () => {
           statusCode: 304,
         })
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `"lookup-ABC1234:NY:PAS-${openDateLastUpdatedTime.getTime()}"` },
+          headers: {
+            host,
+            'if-none-match': `"lookup-ABC1234:NY:PAS-${openDateLastUpdatedTime.getTime()}"`,
+          },
           url: '/api/v1?plate=ABC1234:NY:PAS',
         } as http.IncomingMessage
 
@@ -920,7 +932,8 @@ describe('requestService', () => {
                 ],
                 fromHoursInEffect: 'ALL',
                 houseNumber: undefined,
-                humanizedDescription: HumanizedDescription.BlockingPedestrianRamp,
+                humanizedDescription:
+                  HumanizedDescription.BlockingPedestrianRamp,
                 interestAmount: undefined,
                 intersectingStreet: 'GUERLAIN',
                 issueDate: '2019-10-07T00:00:00.000',
@@ -1003,9 +1016,7 @@ describe('requestService', () => {
         const statistics = apiQueryResponse.vehicle?.statistics
         const statisticsBarelyDecamelized = decamelizeKeysOneLevel(statistics)
 
-        const decamelizedResponse = decamelizeKeys(
-          apiQueryResponse
-        ) as VehicleResponse
+        const decamelizedResponse = decamelizeKeys(apiQueryResponse)
         // @ts-expect-error  Figure out how to decamelize only the top-level betters.
         decamelizedResponse.vehicle.statistics = statisticsBarelyDecamelized
 
@@ -1024,7 +1035,10 @@ describe('requestService', () => {
           apiQueryResponse
         )
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
@@ -1066,13 +1080,19 @@ describe('requestService', () => {
           statusCode: 304,
         })
 
-        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(OpenDataService, 'determineOpenDataLastUpdatedTime')
+        const determineOpenDataLastUpdatedTimeSpy = jest.spyOn(
+          OpenDataService,
+          'determineOpenDataLastUpdatedTime'
+        )
         determineOpenDataLastUpdatedTimeSpy.mockResolvedValueOnce(
           openDateLastUpdatedTime
         )
 
         const incomingRequest = {
-          headers: { host, 'if-none-match': `"lookup-a1b2c3d4-${openDateLastUpdatedTime.getTime()}"` },
+          headers: {
+            host,
+            'if-none-match': `"lookup-a1b2c3d4-${openDateLastUpdatedTime.getTime()}"`,
+          },
           url: '/api/v1/lookup/a1b2c3d4',
         } as http.IncomingMessage
 
@@ -1144,7 +1164,7 @@ describe('requestService', () => {
 
     describe(`handleTwitterWebhookEvent ${hostIsLocal}`, () => {
       beforeEach(() => {
-        (handleTwitterAccountActivityApiEvents as jest.Mock).mockReset()
+        ;(handleTwitterAccountActivityApiEvents as jest.Mock).mockReset()
       })
 
       it('should check the SHA of a webhook event and then call another function', () => {
@@ -1191,7 +1211,8 @@ describe('requestService', () => {
           method: 'POST',
           headers: {
             host: 'api.howsmydrivingny.nyc',
-            'x-twitter-webhooks-signature': TWEET_CREATE_EVENT_EXPECTED_SHA + '!!!',
+            'x-twitter-webhooks-signature':
+              TWEET_CREATE_EVENT_EXPECTED_SHA + '!!!',
           },
           url: '/webhook/twitter',
         } as unknown as http.IncomingMessage
@@ -1217,7 +1238,8 @@ describe('requestService', () => {
           method: 'POST',
           headers: {
             host: 'api.howsmydrivingny.nyc',
-            'x-twitter-webhooks-signature': TWEET_CREATE_EVENT_EXPECTED_SHA + '!!!',
+            'x-twitter-webhooks-signature':
+              TWEET_CREATE_EVENT_EXPECTED_SHA + '!!!',
           },
           url: '/webhook/twitter',
         } as unknown as http.IncomingMessage

@@ -242,9 +242,9 @@ describe('OpenDataService', () => {
             licensePlate: string,
             selectedPlateTypes?: string[]
           ) => [
-            getV3MedallionQueryAndHeaders(plate),
+            getV3MedallionQueryAndHeaders(licensePlate),
             ...Array(v3FiscalYearEndpoints.length).fill(
-              getV3FiscalYearQueryAndHeaders(plate, selectedPlateTypes)
+              getV3FiscalYearQueryAndHeaders(licensePlate, selectedPlateTypes)
             ),
             getV3OpenParkingAndCameraViolationsQueryAndHeaders(
               plate,

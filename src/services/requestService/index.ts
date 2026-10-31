@@ -130,9 +130,7 @@ export const handleApiLookup = async (
   let anySuccessfulQueries = false
 
   const decamelized = vehicleResponses.map((vehicleResponse) => {
-    const decamelizedVehicleResponse = decamelizeKeys(
-      vehicleResponse
-    ) as VehicleResponse
+    const decamelizedVehicleResponse = decamelizeKeys(vehicleResponse)
 
     if (
       vehicleResponse.vehicle?.statistics &&
@@ -152,7 +150,7 @@ export const handleApiLookup = async (
     }
 
     return decamelizedVehicleResponse
-  }) as VehicleResponse[]
+  })
 
   const statusCode = anyFailedQueries
     ? anySuccessfulQueries
@@ -212,7 +210,9 @@ export const handleExistingLookup = async (
 
   if (eTagRequestHeader === currentETag) {
     // If the supplied eTag matches the current one, return a 304 (Not Modified)
-    console.log(`ETag matches (${currentETag}) for existing lookup, returning 304`)
+    console.log(
+      `ETag matches (${currentETag}) for existing lookup, returning 304`
+    )
     return decamelizeKeys({
       statusCode: HttpStatusCode.NotModified,
     }) as ExistingLookupResponse
@@ -255,9 +255,7 @@ export const handleExistingLookup = async (
   const vehicleResponses = await Promise.all(vehicleResponsePromises)
 
   const decamelized = vehicleResponses.map((vehicleResponse) => {
-    const decamelizedVehicleResponse = decamelizeKeys(
-      vehicleResponse
-    ) as VehicleResponse
+    const decamelizedVehicleResponse = decamelizeKeys(vehicleResponse)
 
     if (
       vehicleResponse.vehicle?.statistics &&
@@ -271,7 +269,7 @@ export const handleExistingLookup = async (
     }
 
     return decamelizedVehicleResponse
-  }) as VehicleResponse[]
+  })
 
   return decamelizeKeysOneLevel({
     body: { data: decamelized },
