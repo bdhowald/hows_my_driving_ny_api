@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import axios from 'axios'
-import { createHmac } from 'crypto'
+import { createHmac } from 'node:crypto'
 import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'

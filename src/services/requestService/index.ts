@@ -1,5 +1,5 @@
 import { HttpStatusCode } from 'axios'
-import { createHmac } from 'crypto'
+import { createHmac } from 'node:crypto'
 import http from 'http'
 
 import {
