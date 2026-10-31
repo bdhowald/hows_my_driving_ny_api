@@ -2563,15 +2563,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/supports-color@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@types/supports-color@npm:10.0.0"
-  dependencies:
-    supports-color: "npm:*"
-  checksum: 10c0/760b0cb02d92330efcb304cdae54aaa2b07640d55efd7cd52738e5d815c171341f1221d3c6c9a3949b9486eb8836d489521fe9551be420d4e3467b202a1d575c
-  languageName: node
-  linkType: hard
-
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -4712,7 +4703,6 @@ __metadata:
     "@types/jest": "npm:^29.5.11"
     "@types/luxon": "npm:^3.3.7"
     "@types/node": "npm:26.6.5"
-    "@types/supports-color": "npm:^10.0.0"
     axios: "npm:^1.20.0"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^10.13.0"
@@ -4732,7 +4722,6 @@ __metadata:
     p-limit: "npm:^3.1.0"
     pm2: "npm:7.1.1"
     prettier: "npm:^3.4.2"
-    supports-color: "npm:^11.0.0"
     tsx: "npm:^4.23.15"
     typescript: "npm:5.6.3"
     typescript-eslint: "npm:^8.72.1"
@@ -6887,13 +6876,6 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
-  languageName: node
-  linkType: hard
-
-"supports-color@npm:*, supports-color@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "supports-color@npm:11.0.0"
-  checksum: 10c0/f89d815d18d5508da54db73d762fa6d6418bced383694a4e05a56331075069010d9f501e6755b14617a00317553a498f07281933be72428eff136dbfe6a80128
   languageName: node
   linkType: hard
 
