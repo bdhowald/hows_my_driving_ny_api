@@ -3450,7 +3450,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4.4.3, debug@npm:^4.4.3":
+"debug@npm:4.4.3, debug@npm:^4, debug@npm:^4.4.3":
   version: 4.4.3
   resolution: "debug@npm:4.4.3"
   dependencies:
@@ -3459,15 +3459,6 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/d79136ec6c83ecbefd0f6a5593da6a9c91ec4d7ddc4b54c883d6e71ec9accb5f67a1a5e96d00a328196b5b5c86d365e98d8a3a70856aaf16b4e7b1985e67f5a6
-  languageName: node
-  linkType: hard
-
-"debug@npm:^3.2.7":
-  version: 3.2.7
-  resolution: "debug@npm:3.2.7"
-  dependencies:
-    ms: "npm:^2.1.1"
-  checksum: 10c0/37d96ae42cbc71c14844d2ae3ba55adf462ec89fd3a999459dec3833944cd999af6007ff29c780f1c61153bcaaf2c842d1e4ce1ec621e4fc4923244942e4a02a
   languageName: node
   linkType: hard
 
@@ -4699,7 +4690,7 @@ __metadata:
     luxon: "npm:3.3.0"
     mixpanel: "npm:^0.18.1"
     mysql2: "npm:^3.23.1"
-    nodemon: "npm:^2.0.22"
+    nodemon: "npm:^3.1.14"
     p-limit: "npm:^3.1.0"
     pm2: "npm:7.1.1"
     prettier: "npm:^3.4.2"
@@ -5871,7 +5862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^10.2.2, minimatch@npm:^10.2.4, minimatch@npm:^10.2.6":
+"minimatch@npm:^10.2.1, minimatch@npm:^10.2.2, minimatch@npm:^10.2.4, minimatch@npm:^10.2.6":
   version: 10.2.6
   resolution: "minimatch@npm:10.2.6"
   dependencies:
@@ -5880,7 +5871,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^3.0.4, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
+"minimatch@npm:^3.0.4, minimatch@npm:^3.1.1":
   version: 3.1.5
   resolution: "minimatch@npm:3.1.5"
   dependencies:
@@ -5914,7 +5905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:2.1.2, ms@npm:^2.1.1":
+"ms@npm:2.1.2":
   version: 2.1.2
   resolution: "ms@npm:2.1.2"
   checksum: 10c0/a437714e2f90dbf881b5191d35a6db792efbca5badf112f87b9e1c712aace4b4b9b742dd6537f3edf90fd6f684de897cec230abde57e87883766712ddda297cc
@@ -6013,23 +6004,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemon@npm:^2.0.22":
-  version: 2.0.22
-  resolution: "nodemon@npm:2.0.22"
+"nodemon@npm:^3.1.14":
+  version: 3.1.14
+  resolution: "nodemon@npm:3.1.14"
   dependencies:
     chokidar: "npm:^3.5.2"
-    debug: "npm:^3.2.7"
+    debug: "npm:^4"
     ignore-by-default: "npm:^1.0.1"
-    minimatch: "npm:^3.1.2"
+    minimatch: "npm:^10.2.1"
     pstree.remy: "npm:^1.1.8"
-    semver: "npm:^5.7.1"
-    simple-update-notifier: "npm:^1.0.7"
+    semver: "npm:^7.5.3"
+    simple-update-notifier: "npm:^2.0.0"
     supports-color: "npm:^5.5.0"
     touch: "npm:^3.1.0"
     undefsafe: "npm:^2.0.5"
   bin:
     nodemon: bin/nodemon.js
-  checksum: 10c0/37e960b995b66e6d9e3b0e435ecc07a45200c4c566c4820a4deb6e7cc234b305e076a8ff0b4dc9c01ee690c663ae82a217d60c591dcbbcd4af1e3a7d0ad2b2c6
+  checksum: 10c0/074f2056051a148ad11cda0d6c3f905bdef93a878792385f16e1dff0c63dcf07f23ebe1ab3763dca7314d0266e12129f066070545d817a205ee050a22eff50b0
   languageName: node
   linkType: hard
 
@@ -6751,12 +6742,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-update-notifier@npm:^1.0.7":
-  version: 1.1.0
-  resolution: "simple-update-notifier@npm:1.1.0"
+"simple-update-notifier@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "simple-update-notifier@npm:2.0.0"
   dependencies:
-    semver: "npm:~7.0.0"
-  checksum: 10c0/3cbbbc71a5d9a2924f0e3f42fbf3cbe1854bfe142203456b00d5233bdbbdeb5091b8067cd34fb00f81dbfbc29fc30dbb6e026b3d58ea0551e3f26c0e64082092
+    semver: "npm:^7.5.3"
+  checksum: 10c0/2a00bd03bfbcbf8a737c47ab230d7920f8bfb92d1159d421bdd194479f6d01ebc995d13fbe13d45dace23066a78a3dc6642999b4e3b38b847e6664191575b20c
   languageName: node
   linkType: hard
 
