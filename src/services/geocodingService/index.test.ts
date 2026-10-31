@@ -1,16 +1,20 @@
-import { Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
+import axios from 'axios'
+
 import { getBoroughFromDatabaseGeocode } from 'utils/databaseQueries'
 
 import getBoroughService from '.'
 
-jest.mock('@googlemaps/google-maps-services-js')
+jest.mock('axios', () => ({
+  ...jest.requireActual('axios'),
+  get: jest.fn(),
+}))
 jest.mock('services/databaseService')
 jest.mock('utils/databaseQueries')
 
 describe('getBoroughService', () => {
   beforeEach(() => {
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockReset()
-    ;(GoogleMapsClient as jest.Mock).mockReset()
+    ;(axios.get as jest.Mock).mockReset()
   })
 
   const address = '123 Fake Street'
@@ -96,11 +100,7 @@ describe('getBoroughService', () => {
         },
       }
 
-      const googleMapsClient = {
-        geocode: jest.fn(() => googleMapsGeocodeResponse),
-      }
-
-      ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+      ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
       ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
       expect(await getBoroughService(address, loggingKey)).toBe('Staten Island')
@@ -112,8 +112,20 @@ describe('getBoroughService', () => {
         address
       )
 
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+      expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+      expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+        'https://googleapis.com',
+        {
+          'params': {
+            'address': '123 Fake Street New York NY',
+            'components': {
+              'country': 'U.S.',
+              'locality': 'New York'
+            },
+            'key': '',
+          }
+        }
+      )
     })
 
     it('should handle street address locations', async () => {
@@ -176,11 +188,7 @@ describe('getBoroughService', () => {
         },
       }
 
-      const googleMapsClient = {
-        geocode: jest.fn(() => googleMapsGeocodeResponse),
-      }
-
-      ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+      ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
       ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
       expect(await getBoroughService(address, loggingKey)).toBe('Brooklyn')
@@ -192,8 +200,20 @@ describe('getBoroughService', () => {
         address
       )
 
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+      expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+      expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+        'https://googleapis.com',
+        {
+          'params': {
+            'address': '123 Fake Street New York NY',
+            'components': {
+              'country': 'U.S.',
+              'locality': 'New York'
+            },
+            'key': '',
+          }
+        }
+      )
     })
 
     it('should not return a borough from a location that is not a street address or intersection', async () => {
@@ -250,11 +270,7 @@ describe('getBoroughService', () => {
         },
       }
 
-      const googleMapsClient = {
-        geocode: jest.fn(() => googleMapsGeocodeResponse),
-      }
-
-      ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+      ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
       ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
       expect(await getBoroughService(address, loggingKey)).toBe(
@@ -268,8 +284,20 @@ describe('getBoroughService', () => {
         address
       )
 
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-      expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+      expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+      expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+        'https://googleapis.com',
+        {
+          'params': {
+            'address': '123 Fake Street New York NY',
+            'components': {
+              'country': 'U.S.',
+              'locality': 'New York'
+            },
+            'key': '',
+          }
+        }
+      )
     })
   })
 
@@ -335,11 +363,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock)
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ borough: 'Brooklyn' }])
@@ -353,8 +377,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it('should query Google for the borough if no database geocode and return one if it finds one', async () => {
@@ -418,11 +454,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
@@ -432,8 +464,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it('should return the first borough queried from Google as long as New York as the city is detected', async () => {
@@ -548,11 +592,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(brooklyn)
@@ -562,8 +602,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'Staten Island' if the retrieved geocode from the database is for Staten Island", async () => {
@@ -604,11 +656,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -620,8 +668,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'No Borough Available' if no Google result has borough-level data", async () => {
@@ -641,11 +701,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -657,8 +713,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'No Borough Available' if no Google result is a borough", async () => {
@@ -678,11 +746,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -694,8 +758,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'No Borough Available' if the Google result has no address data", async () => {
@@ -709,11 +785,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -725,8 +797,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'No Borough Available' if no borough is found by Google", async () => {
@@ -736,11 +820,7 @@ describe('getBoroughService', () => {
       },
     }
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => googleMapsGeocodeResponse),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockReturnValueOnce(googleMapsGeocodeResponse)
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -752,8 +832,20 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 
   it("should return 'No Borough Available' if the Google request errors", async () => {
@@ -761,13 +853,9 @@ describe('getBoroughService', () => {
 
     const errorMessage = new Error('something broke')
 
-    const googleMapsClient = {
-      geocode: jest.fn(() => {
-        throw errorMessage
-      }),
-    }
-
-    ;(GoogleMapsClient as jest.Mock).mockReturnValueOnce(googleMapsClient)
+    ;(axios.get as jest.Mock).mockImplementationOnce(() => {
+      throw errorMessage
+    })
     ;(getBoroughFromDatabaseGeocode as jest.Mock).mockResolvedValueOnce([])
 
     expect(await getBoroughService(address, loggingKey)).toBe(
@@ -781,7 +869,19 @@ describe('getBoroughService', () => {
       address
     )
 
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(GoogleMapsClient as jest.Mock).toHaveBeenCalledWith({})
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      'https://googleapis.com',
+      {
+        'params': {
+          'address': '123 Fake Street New York NY',
+          'components': {
+            'country': 'U.S.',
+            'locality': 'New York'
+          },
+          'key': '',
+        }
+      }
+    )
   })
 })

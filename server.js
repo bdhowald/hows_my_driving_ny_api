@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import axios from 'axios'
 import { createHmac } from 'node:crypto'
-import { AddressType, Client as GoogleMapsClient } from '@googlemaps/google-maps-services-js'
 import { DateTime } from 'luxon'
 import * as http from 'http'
 import { LRUCache } from 'lru-cache'
@@ -1758,8 +1757,6 @@ const getGeocodeFromDatabase = async (
  * @param {string} streetAddress - the address whose borough we are trying to find
  */
 const getGoogleGeocode = async (streetAddress) => {
-  const googleMapsClient = instantiateGoogleMapsClient()
-
   const geocodingArguments = {
     params: {
       key: process.env.GOOGLE_PLACES_API_KEY ?? '',
@@ -1787,7 +1784,7 @@ const getGoogleGeocode = async (streetAddress) => {
 
       const potentiallyNewYorkCity = bestResponse.address_components.find(
         (addressComponent) =>
-          addressComponent.types.indexOf(AddressType.administrative_area_level_1) !== -1
+          addressComponent.types.indexOf('administrative_area_level_1') !== -1
       )
 
       if (potentiallyNewYorkCity?.long_name !== NEW_YORK) {
@@ -1800,7 +1797,7 @@ const getGoogleGeocode = async (streetAddress) => {
 
       const potentialBorough = bestResponse.address_components.find(
         (addressComponent) =>
-          addressComponent.types.indexOf(AddressType.sublocality) !== -1
+          addressComponent.types.indexOf('sublocality') !== -1
       )
 
       if (!potentialBorough?.long_name) {
@@ -3251,7 +3248,6 @@ const instantiateConnection = async () =>
     multipleStatements: true,
   })
 
-const instantiateGoogleMapsClient = () => new GoogleMapsClient({})
 
 /**
  * Request the metadata for all the violation databases

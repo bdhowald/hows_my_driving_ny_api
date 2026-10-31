@@ -144,6 +144,8 @@ describe('OpenDataService', () => {
             'kvfd-bves',
             '7mxj-7a6y',
             '869v-vr48',
+            '8zf9-spf8',
+            'm5vz-tzqv',
             'pvqr-7yc4',
           ]
 
@@ -348,6 +350,22 @@ describe('OpenDataService', () => {
               },
               data: [],
             }
+            const fiscalYear2025EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/8zf9-spf8/query.json`
+                  : `${openDataHost}/resource/8zf9-spf8.json?${fiscalYearDatabaseQueryParams.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2026EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/m5vz-tzqv/query.json`
+                  : `${openDataHost}/resource/m5vz-tzqv.json?${fiscalYearDatabaseQueryParams.toString()}`,
+              },
+              data: [],
+            }
             const fiscalYear2024EndpointResponse = {
               config: {
                 url: useSocrataSodaV3Api
@@ -378,6 +396,8 @@ describe('OpenDataService', () => {
               .mockResolvedValueOnce(fiscalYear2022EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2023EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2025EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2026EndpointResponse)
               .mockResolvedValueOnce(
                 openParkingAndCameraViolationsEndpointResponse
               )
@@ -401,6 +421,8 @@ describe('OpenDataService', () => {
                 fiscalYear2022EndpointResponse,
                 fiscalYear2023EndpointResponse,
                 fiscalYear2024EndpointResponse,
+                fiscalYear2025EndpointResponse,
+                fiscalYear2026EndpointResponse,
                 openParkingAndCameraViolationsEndpointResponse,
               ]
             )
@@ -424,7 +446,7 @@ describe('OpenDataService', () => {
             }
           })
 
-          it('return a response when violations are foundX', async () => {
+          it('return a response when violations are found', async () => {
             const rawOpenParkingAndCameraViolation =
               rawOpenParkingAndCameraViolationFactory.build()
 
@@ -521,6 +543,22 @@ describe('OpenDataService', () => {
               },
               data: [],
             }
+            const fiscalYear2025EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/8zf9-spf8/query.json`
+                  : `${openDataHost}/resource/8zf9-spf8.json?${fiscalYearDatabaseQueryParams.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2026EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/m5vz-tzqv/query.json`
+                  : `${openDataHost}/resource/m5vz-tzqv.json?${fiscalYearDatabaseQueryParams.toString()}`,
+              },
+              data: [],
+            }
             const fiscalYear2024EndpointResponse = {
               config: {
                 url: useSocrataSodaV3Api
@@ -551,6 +589,8 @@ describe('OpenDataService', () => {
               .mockResolvedValueOnce(fiscalYear2022EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2023EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2025EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2026EndpointResponse)
               .mockResolvedValueOnce(
                 openParkingAndCameraViolationsEndpointResponse
               )
@@ -574,6 +614,8 @@ describe('OpenDataService', () => {
                 fiscalYear2022EndpointResponse,
                 fiscalYear2023EndpointResponse,
                 fiscalYear2024EndpointResponse,
+                fiscalYear2025EndpointResponse,
+                fiscalYear2026EndpointResponse,
                 openParkingAndCameraViolationsEndpointResponse,
               ]
             )
@@ -732,6 +774,22 @@ describe('OpenDataService', () => {
             const fiscalYear2024EndpointResponse = {
               config: {
                 url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/8zf9-spf8.json/query.json`
+                  : `${openDataHost}/resource/8zf9-spf8.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2025EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/m5vz-tzqv.json/query.json`
+                  : `${openDataHost}/resource/m5vz-tzqv.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2026EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
                   ? `${openDataHost}/api/v3/views/pvqr-7yc4.json/query.json`
                   : `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithIdentifiedMedallionPlate.toString()}`,
               },
@@ -759,6 +817,8 @@ describe('OpenDataService', () => {
               .mockResolvedValueOnce(fiscalYear2022EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2023EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2025EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2026EndpointResponse)
               .mockResolvedValueOnce(
                 openParkingAndCameraViolationsEndpointResponse
               )
@@ -782,6 +842,8 @@ describe('OpenDataService', () => {
                 fiscalYear2022EndpointResponse,
                 fiscalYear2023EndpointResponse,
                 fiscalYear2024EndpointResponse,
+                fiscalYear2025EndpointResponse,
+                fiscalYear2026EndpointResponse,
                 openParkingAndCameraViolationsEndpointResponse,
               ]
             )
@@ -841,6 +903,8 @@ describe('OpenDataService', () => {
               `${openDataHost}/resource/kvfd-bves.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
               `${openDataHost}/resource/7mxj-7a6y.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
               `${openDataHost}/resource/869v-vr48.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+              `${openDataHost}/resource/8zf9-spf8.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+              `${openDataHost}/resource/m5vz-tzqv.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
               `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
               `${openDataHost}/resource/nc67-uf89.json?${openParkingAndCameraViolationsDatabaseQueryParamsWithPlateTypes.toString()}`,
             ]
@@ -936,6 +1000,22 @@ describe('OpenDataService', () => {
             const fiscalYear2024EndpointResponse = {
               config: {
                 url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/8zf9-spf8.json/query.json`
+                  : `${openDataHost}/resource/8zf9-spf8.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2025EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
+                  ? `${openDataHost}/api/v3/views/m5vz-tzqv.json/query.json`
+                  : `${openDataHost}/resource/m5vz-tzqv.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
+              },
+              data: [],
+            }
+            const fiscalYear2026EndpointResponse = {
+              config: {
+                url: useSocrataSodaV3Api
                   ? `${openDataHost}/api/v3/views/pvqr-7yc4.json/query.json`
                   : `${openDataHost}/resource/pvqr-7yc4.json?${fiscalYearDatabaseQueryParamsWithPlateTypes.toString()}`,
               },
@@ -963,6 +1043,8 @@ describe('OpenDataService', () => {
               .mockResolvedValueOnce(fiscalYear2022EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2023EndpointResponse)
               .mockResolvedValueOnce(fiscalYear2024EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2025EndpointResponse)
+              .mockResolvedValueOnce(fiscalYear2026EndpointResponse)
               .mockResolvedValueOnce(
                 openParkingAndCameraViolationsEndpointResponse
               )
@@ -987,6 +1069,8 @@ describe('OpenDataService', () => {
                 fiscalYear2022EndpointResponse,
                 fiscalYear2023EndpointResponse,
                 fiscalYear2024EndpointResponse,
+                fiscalYear2025EndpointResponse,
+                fiscalYear2026EndpointResponse,
                 openParkingAndCameraViolationsEndpointResponse,
               ]
             )
@@ -1167,6 +1251,8 @@ describe('OpenDataService', () => {
           violationTableMetadataResponseWithLatestUpdatedAtTimestamp
         ) // FY 2023
         .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2024
+        .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2025
+        .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2026
         .mockResolvedValueOnce(violationTableMetadataResponse) // OPACV
 
       await expect(
@@ -1247,11 +1333,13 @@ describe('OpenDataService', () => {
         .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2022
         .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2023
         .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2024
+        .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2025
+        .mockResolvedValueOnce(violationTableMetadataResponse) // FY 2026
         .mockResolvedValueOnce(violationTableMetadataResponse) // OPACV
 
       await expect(
         OpenDataService.makeOpenDataMetadataRequest()
-      ).resolves.toEqual(Array(12).fill(violationTableMetadataResponse))
+      ).resolves.toEqual(Array(14).fill(violationTableMetadataResponse))
     })
 
     it('should handle an open data error', async () => {
