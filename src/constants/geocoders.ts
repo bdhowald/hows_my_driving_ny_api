@@ -1,3 +1,3 @@
 export enum Geocoder {
-  Google = 1
+  Google = 1,
 }

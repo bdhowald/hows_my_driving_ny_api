@@ -1,5 +1,3 @@
-import { describe, expect, it } from '@jest/globals'
-
 import { rawFiscalYearDatabaseViolationFactory } from '__fixtures__/violations'
 import { RawViolation } from 'types/violations'
 
@@ -72,7 +70,9 @@ describe('addressUtils', () => {
 
       const fullAddress = getFullAddress(rawFiscalYearDatabaseViolation)
 
-      expect(fullAddress).toBe('157 Rockaway Beach Boulevard Jacob Riis Park East')
+      expect(fullAddress).toBe(
+        '157 Rockaway Beach Boulevard Jacob Riis Park East'
+      )
     })
 
     it('should when it has a houseNumber and streetName, but no intersectingStreet', () => {

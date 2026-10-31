@@ -11,7 +11,7 @@ const decamelizeKeys = <T extends object>(obj: T): SnakeCaseKeys<T> => {
   return humps.decamelizeKeys(obj) as unknown as SnakeCaseKeys<T>
 }
 
-const decamelizeKeysOneLevel = (originalObject: any) => {
+const decamelizeKeysOneLevel = (originalObject: Record<string, unknown>) => {
   if (
     typeof originalObject !== 'object' ||
     Array.isArray(originalObject) ||
@@ -21,7 +21,7 @@ const decamelizeKeysOneLevel = (originalObject: any) => {
   }
 
   const keysToDecamelize = Object.keys(originalObject)
-  const returnObject: Record<string | number, any> = {}
+  const returnObject: Record<string | number, unknown> = {}
   keysToDecamelize.forEach(
     (key) => (returnObject[decamelize(key)] = originalObject[key])
   )
@@ -29,21 +29,25 @@ const decamelizeKeysOneLevel = (originalObject: any) => {
   return returnObject
 }
 
-type Decamelize<T extends string> = T extends `${infer First}${infer Rest}`
-  ? Rest extends Uncapitalize<Rest> // Check if the next character is uppercase-ish / transition point
-    ? `${Lowercase<First>}${Decamelize<Rest>}`
-    : `${Lowercase<First>}_${Decamelize<Rest>}`
-  : T
+type Decamelize<
+  T extends string,
+  Acc extends string = '',
+> = T extends `${infer First}${infer Rest}`
+  ? Rest extends Uncapitalize<Rest>
+    ? Decamelize<Rest, `${Acc}${Lowercase<First>}`>
+    : Decamelize<Rest, `${Acc}${Lowercase<First>}_`> // Cleaned up typo here
+  : `${Acc}${T}`
 
-export type SnakeCaseKeys<T> = T extends Array<infer U>
-  ? Array<SnakeCaseKeys<U>>
-  : T extends object
-  ? {
-      [K in keyof T as K extends string ? Decamelize<K> : K]: SnakeCaseKeys<
-        T[K]
-      >
-    }
-  : T
+export type SnakeCaseKeys<T> =
+  T extends Array<infer U>
+    ? Array<SnakeCaseKeys<U>>
+    : T extends object
+      ? {
+          [K in keyof T as K extends string ? Decamelize<K> : K]: SnakeCaseKeys<
+            T[K]
+          >
+        }
+      : T
 
 export {
   camelize,

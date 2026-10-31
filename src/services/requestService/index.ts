@@ -16,13 +16,23 @@ import {
   VehicleResponse,
 } from 'types/request'
 import { PotentialVehicle } from 'types/vehicles'
-import { decamelizeKeys, decamelizeKeysOneLevel } from 'utils/camelize'
+import {
+  decamelizeKeys,
+  decamelizeKeysOneLevel,
+  SnakeCaseKeys,
+} from 'utils/camelize'
 import { getExistingLookupResult } from 'utils/databaseQueries'
 import detectVehicles from 'utils/detectVehicles'
 import getAndProcessApiLookup from 'utils/getAndProcessApiLookup'
 import { handleTwitterAccountActivityApiEvents } from 'utils/twitter'
 
 // const externalLookupPath = '/api/v1/external-lookup'
+
+type VehicleResponseStatistics = NonNullable<
+  VehicleResponse['vehicle']
+>['statistics']
+type DecamelizedVehicleResponseStatistics =
+  SnakeCaseKeys<VehicleResponseStatistics>
 
 /**
  * Respond to an API lookup
@@ -140,7 +150,8 @@ export const handleApiLookup = async (
         vehicleResponse.vehicle.statistics
       )
 
-      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
+      decamelizedVehicleResponse.vehicle.statistics =
+        decamelizedStatistics as DecamelizedVehicleResponseStatistics
     }
 
     if ('error' in vehicleResponse) {
@@ -265,7 +276,8 @@ export const handleExistingLookup = async (
         vehicleResponse.vehicle.statistics
       )
 
-      decamelizedVehicleResponse.vehicle.statistics = decamelizedStatistics
+      decamelizedVehicleResponse.vehicle.statistics =
+        decamelizedStatistics as DecamelizedVehicleResponseStatistics
     }
 
     return decamelizedVehicleResponse
@@ -319,7 +331,7 @@ export const handleTwitterRequestChallenge = (
  * @param request
  */
 export const handleTwitterWebhookEvent = (request: http.IncomingMessage) => {
-  const body: any[] = []
+  const body: Buffer[] = []
 
   const consumerSecret = process.env.TWITTER_CONSUMER_SECRET
 
@@ -329,7 +341,7 @@ export const handleTwitterWebhookEvent = (request: http.IncomingMessage) => {
   }
 
   request
-    .on('data', (chunk: any) => {
+    .on('data', (chunk: Buffer) => {
       body.push(chunk)
     })
     .on('end', () => {

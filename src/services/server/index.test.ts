@@ -50,8 +50,9 @@ describe('createServer', () => {
   })
 
   it('should handle an unsuccessful query for a vehicle', async () => {
-    const errorMessage =  "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
-     "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'"
+    const errorMessage =
+      "To query multiple vehicles, use 'plate=<PLATE>:<STATE>', " +
+      "ex: 'api.howsmydrivingny.nyc/api/v1?plate=abc1234:ny&plate=1234abc:nj'"
 
     const unsuccessfulResponse = decamelizeKeys({
       body: {
@@ -68,7 +69,7 @@ describe('createServer', () => {
 
     try {
       await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
-    } catch(error: unknown) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         expect(error.response?.data).toEqual(expected)
       } else {
@@ -95,7 +96,8 @@ describe('createServer', () => {
   })
 
   it('should handle an unsuccessful request for an existing lookup', async () => {
-    const errorMessage = "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'"
+    const errorMessage =
+      "You must supply the identifier of a lookup, e.g. 'a1b2c3d4'"
 
     const unsuccessfulResponse = decamelizeKeys({
       body: {
@@ -108,11 +110,13 @@ describe('createServer', () => {
       errorMessage,
     })
 
-    ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce(unsuccessfulResponse)
+    ;(handleExistingLookup as jest.Mock).mockResolvedValueOnce(
+      unsuccessfulResponse
+    )
 
     try {
       await axios.get(`${apiEndpoint}/lookup/a1b2c3d4`)
-    } catch(error: unknown) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         expect(error.response?.data).toEqual(expected)
       } else {
@@ -134,13 +138,15 @@ describe('createServer', () => {
   })
 
   it('should handle an error when responding to a Twitter challenge request', async () => {
-    ;(handleTwitterRequestChallenge as jest.Mock).mockImplementationOnce(
-      () => { throw new Error('something went wrong')}
-    )
+    ;(handleTwitterRequestChallenge as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('something went wrong')
+    })
 
     const response = await axios.get(twitterWebhookEndpoint)
 
-    expect(response.data).toEqual({error: 'Error responding to challenge request'})
+    expect(response.data).toEqual({
+      error: 'Error responding to challenge request',
+    })
 
     expect(handleTwitterRequestChallenge as jest.Mock).toHaveBeenCalledTimes(1)
   })
@@ -158,7 +164,7 @@ describe('createServer', () => {
 
     const response = await axios.patch(twitterWebhookEndpoint)
 
-    expect(response.data).toEqual({error: 'Unknown request type'})
+    expect(response.data).toEqual({ error: 'Unknown request type' })
 
     expect(handleTwitterWebhookEvent as jest.Mock).not.toHaveBeenCalled()
   })
@@ -168,7 +174,7 @@ describe('createServer', () => {
 
     try {
       await axios.get(`http://localhost:${serverPort}/api/unknown`)
-    } catch(error: unknown) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         expect(error.response?.data).toEqual(expected)
       } else {

@@ -2,7 +2,7 @@ import LookupSource from 'constants/lookupSources'
 
 type PlateLookup = {
   bootEligibleUnderRdaaThreshold: boolean
-  bootEligibleUnderDvaaThreshold: boolean,
+  bootEligibleUnderDvaaThreshold: boolean
   busLaneCameraViolations: number
   countTowardsFrequency: boolean
   createdAt: Date

@@ -202,7 +202,8 @@ describe('detectVehicles', () => {
       const plate = 'abc1234'
       const state = 'ny'
       const cases = plateTypesRegex.source
-        .toLowerCase().split(/[\^\$\(\)\|]/)
+        .toLowerCase()
+        .split(/[\^$()|]/)
         .filter((stringPart) => !!stringPart)
 
       test.each(cases)(

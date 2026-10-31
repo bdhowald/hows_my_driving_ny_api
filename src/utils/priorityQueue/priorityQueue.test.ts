@@ -25,7 +25,7 @@ describe('PriorityQueue', () => {
     // The purpose of this task is simply to ensure none of the others
     // are dequeued before they can be sorted by priority.
     const blockingTask = async () => {
-      await new Promise(res => setTimeout(res, 1000))
+      await new Promise((res) => setTimeout(res, 1000))
     }
 
     const lowPriorityTask = async () => {

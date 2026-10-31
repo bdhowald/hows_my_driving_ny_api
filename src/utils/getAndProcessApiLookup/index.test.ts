@@ -17,14 +17,13 @@ import {
   createAndInsertNewLookup,
   getPreviousLookupAndLookupFrequencyForVehicle,
 } from 'utils/databaseQueries'
-import { PreviousLookupAndFrequency, PreviousLookupResult } from 'types/query'
+import { PreviousLookupAndFrequency } from 'types/query'
 import { ExternalData, VehicleResponse } from 'types/request'
 import { PotentialVehicle } from 'types/vehicles'
 
 import getAndProcessApiLookup from '.'
 
 jest.mock('utils/databaseQueries')
-
 
 describe('getAndProcessApiLookup', () => {
   const axiosHeaders = new AxiosHeaders()
@@ -1550,7 +1549,7 @@ describe('getAndProcessApiLookup', () => {
         'makeOpenDataMetadataRequest'
       )
       makeOpenDataMetadataRequestSpy.mockRejectedValueOnce(
-        erroredOpenDataTableMetadataResponse
+        openDataTableMetadataResponsesWithError
       )
 
       const makeOpenDataVehicleRequestSpy = jest.spyOn(
@@ -1658,7 +1657,6 @@ describe('getAndProcessApiLookup', () => {
           '$0.00         | In Judgment\n',
         `View more details at https://howsmydrivingny.nyc/${uniqueIdentifier}.`,
       ]
-
 
       const v3FiscalYearDatabaseResponses = [
         {

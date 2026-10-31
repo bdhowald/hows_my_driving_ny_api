@@ -105,7 +105,7 @@ export enum HumanizedDescription {
   SellingOrOfferingMerchandiseFromMeteredParking = 'Selling or Offering Merchandise From Metered Parking',
   StreetStorageOfCommercialVehicleOverThreeHours = 'Street Storage of Commercial Vehicle Over 3 Hours',
   UnauthorizedPassengerPickUp = 'Unauthorized Passenger Pick-Up',
-  WeighInMotionViolation = 'Weigh in Motion Violation'
+  WeighInMotionViolation = 'Weigh in Motion Violation',
 }
 
 // humanized names for fiscal year database violations
@@ -375,7 +375,8 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   '50-Crosswalk': HumanizedDescription.BlockingCrosswalk,
   '51-Sidewalk': HumanizedDescription.ParkedOnSidewalk,
   '52-Intersection': HumanizedDescription.NoStoppingIntersection,
-  '54-FHV Pickup/Discharge Pass': HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
+  '54-FHV Pickup/Discharge Pass':
+    HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
   '53-Safety Zone': HumanizedDescription.NoStandingSafetyZone,
   '55-Tunnel/Elevated Roadway':
     HumanizedDescription.NoStoppingInTunnelOrOnElevatedHighway,
@@ -444,7 +445,8 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
     HumanizedDescription.StreetStorageOfCommercialVehicleOverThreeHours,
   '86-Midtown PKG or STD-3 hr lim':
     HumanizedDescription.MidtownStandingOrParkingThreeHourLimit,
-  '87-Fraudulent Permit Use': HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
+  '87-Fraudulent Permit Use':
+    HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
   '89-No Stand Exc Com Plate':
     HumanizedDescription.NoStandingExceptTrucksInGarmentDistrict,
   '91-Veh for Sale (Dealer Only)':
@@ -460,7 +462,8 @@ export const humanizedDescriptionsForFiscalYearDatabaseViolations = {
   'Field Release Agreement': HumanizedDescription.FieldReleaseAgreement,
   'MOBILE BUS LANE VIOLATION': HumanizedDescription.MobileBusLaneViolation,
   'MTA CAMERA BUS STOP': HumanizedDescription.MobileMtaBusStopViolation,
-  'MTA CAMERA DOUBLE PARKING': HumanizedDescription.MobileMtaDoubleParkingViolation,
+  'MTA CAMERA DOUBLE PARKING':
+    HumanizedDescription.MobileMtaDoubleParkingViolation,
   'PHTO SCHOOL ZN SPEED VIOLATION':
     HumanizedDescription.SchoolZoneSpeedCameraViolation,
   '': HumanizedDescription.NoViolationDescriptionAvailable,
@@ -510,7 +513,8 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   'FAILURE TO STOP AT RED LIGHT': HumanizedDescription.FailureToStopAtRedLight,
   'FEEDING METER': HumanizedDescription.FeedingMeter,
   'FIRE HYDRANT': HumanizedDescription.FireHydrant,
-  'FRAUDULENT USE PARKING PERMIT': HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
+  'FRAUDULENT USE PARKING PERMIT':
+    HumanizedDescription.FraudulentUseOfAgencyParkingPermit,
   'FRONT OR BACK PLATE MISSING': HumanizedDescription.FrontOrBackPlateMissing,
   IDLING: HumanizedDescription.Idling,
   'IMPROPER REGISTRATION': HumanizedDescription.ImproperRegistration,
@@ -527,8 +531,10 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
   'MISSING EQUIPMENT': HumanizedDescription.MissingRequiredEquipment,
   'MISUSE PARKING PERMIT': HumanizedDescription.MisuseOfParkingPermit,
   'MOBILE BUS LANE VIOLATION': HumanizedDescription.MobileBusLaneViolation,
-  'MTA CAMERA VIOLATION - DOUBLE PARKING': HumanizedDescription.MobileMtaDoubleParkingViolation,
-  'MTA CAMERA VIOLATION - PARKING IN A BUS STOP': HumanizedDescription.MobileMtaBusStopViolation,
+  'MTA CAMERA VIOLATION - DOUBLE PARKING':
+    HumanizedDescription.MobileMtaDoubleParkingViolation,
+  'MTA CAMERA VIOLATION - PARKING IN A BUS STOP':
+    HumanizedDescription.MobileMtaBusStopViolation,
   'NGHT PKG ON RESID STR-COMM VEH':
     HumanizedDescription.NighttimeParkingOnResidentialStreetCommercialVehicle,
   'NIGHTTIME STD/ PKG IN A PARK':
@@ -547,7 +553,8 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.NoParkingExceptHotelLoading,
   'NO PARKING-STREET CLEANING': HumanizedDescription.NoParkingStreetCleaning,
   'NO PARKING-TAXI STAND': HumanizedDescription.NoParkingTaxiStand,
-  'NO STAND TAXI/FHV RELIEF STAND':HumanizedDescription.NoStandingTaxiOrForHireVehicleStand,
+  'NO STAND TAXI/FHV RELIEF STAND':
+    HumanizedDescription.NoStandingTaxiOrForHireVehicleStand,
   'NO STANDING EXCP D/S': HumanizedDescription.NoStandingExceptDiplomat,
   'NO STANDING EXCP DP': HumanizedDescription.NoStandingExceptDiplomat,
   'NO STANDING-BUS LANE': HumanizedDescription.NoStandingBusLane,
@@ -589,7 +596,8 @@ export const humanizedDescriptionsForOpenParkingAndCameraViolations: Record<
     HumanizedDescription.OvertimeParkingTimeLimitPosted,
   'OVERTIME STANDING DP': HumanizedDescription.OvertimeStandingDiplomat,
   'OVERTIME STDG D/S': HumanizedDescription.OvertimeStandingDiplomat,
-  'PCKP DSCHRGE IN PRHBTD ZONE': HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
+  'PCKP DSCHRGE IN PRHBTD ZONE':
+    HumanizedDescription.PickupOrDischargePassengersInProhibitedZone,
   'PARKED BUS-EXC. DESIG. AREA':
     HumanizedDescription.BusParkingOutsideOfDesignatedArea,
   'PEDESTRIAN RAMP': HumanizedDescription.BlockingPedestrianRamp,

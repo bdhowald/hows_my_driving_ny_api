@@ -48,7 +48,7 @@ type GeocoderLocationTypeQueryResult = {
 
 type LookupQueryResults = [
   [FrequencyResult],
-  [{ created_at: Date; num_violations: number }] | []
+  [{ created_at: Date; num_violations: number }] | [],
 ]
 
 type PreviousLookupAndFrequencyQueryArguments = {
@@ -286,7 +286,7 @@ export const getPreviousLookupAndLookupFrequencyForVehicle = async (
 
     const countTowardsFrequency =
       !LOOKUP_SOURCES_THAT_SHOULD_NOT_INCREMENT_FREQUENCY.includes(lookupSource)
-    let frequency = countTowardsFrequency ? 1 : 0
+    const frequency = countTowardsFrequency ? 1 : 0
 
     const frequencyResult = rows?.[0]?.[0]
     const previousLookupResult = rows?.[1]?.[0]
@@ -580,8 +580,8 @@ const obtainUniqueIdentifier = async (): Promise<string> => {
  * @param {BigInt} userId                        - id of the user who liked the status
  */
 export const updateNonFollowerReplies = async (
-  userId: BigInt,
-  favoritedStatusId?: BigInt
+  userId: bigint,
+  favoritedStatusId?: bigint
 ) => {
   const databaseConnection = await instantiateConnection()
 
@@ -608,7 +608,7 @@ export const updateNonFollowerReplies = async (
       selectQueryArgs
     )
 
-    const rows = result[0] as { in_reply_to_message_id: BigInt }[]
+    const rows = result[0] as { in_reply_to_message_id: bigint }[]
 
     rows.forEach(async (updatedEvent) => {
       const inReplyToMessageId = updatedEvent.in_reply_to_message_id

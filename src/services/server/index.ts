@@ -17,14 +17,14 @@ import { ExistingLookupResponse } from 'types/request'
 
 type ReturnResponseProps = {
   etag?: string
-  httpStatusCode: number,
-  receivedAtDate: Date,
+  httpStatusCode: number
+  receivedAtDate: Date
   responseBody?: {
     data?: unknown[]
     error?: string
     response_token?: string
-  },
-  responseObject: http.ServerResponse,
+  }
+  responseObject: http.ServerResponse
   useGZip: boolean
 }
 
@@ -48,7 +48,10 @@ const returnResponse = ({
 
   if (httpStatusCode === HttpStatusCode.Ok && etag) {
     responseObject.setHeader('ETag', etag)
-    responseObject.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=600')
+    responseObject.setHeader(
+      'Cache-Control',
+      'public, max-age=3600, stale-while-revalidate=600'
+    )
   }
 
   const stringifiedBody = JSON.stringify(responseBody, (_, value) => {
@@ -64,7 +67,9 @@ const returnResponse = ({
     gzip.end(stringifiedBody)
 
     const now = new Date()
-    console.log(`[queried_plates=${etag}] Returning gzipped response (200) - request took ${(now.getTime() - receivedAtDate.getTime()) / 1000} seconds`)
+    console.log(
+      `[queried_plates=${etag}] Returning gzipped response (200) - request took ${(now.getTime() - receivedAtDate.getTime()) / 1000} seconds`
+    )
     return
   }
 
@@ -121,7 +126,7 @@ const createServer = () =>
             },
             receivedAtDate,
             responseObject: response,
-            useGZip
+            useGZip,
           })
         } else if (request.method == 'GET') {
           console.log('Getting a challenge request.')
@@ -165,26 +170,34 @@ const createServer = () =>
           })
         }
       } else if (request.url?.match(EXISTING_LOOKUP_PATH)) {
-        const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleExistingLookup(request)
+        const {
+          body,
+          etag,
+          status_code: statusCode,
+        }: ExistingLookupResponse = await handleExistingLookup(request)
 
         returnResponse({
           httpStatusCode: statusCode,
           receivedAtDate,
           responseObject: response,
           useGZip,
-          ...(body ? { responseBody: body } : undefined ),
-          ...(etag ? { etag } : undefined ),
+          ...(body ? { responseBody: body } : undefined),
+          ...(etag ? { etag } : undefined),
         })
       } else if (request.url?.match(API_LOOKUP_PATH)) {
-        const { body, etag, status_code: statusCode }: ExistingLookupResponse = await handleApiLookup(request)
+        const {
+          body,
+          etag,
+          status_code: statusCode,
+        }: ExistingLookupResponse = await handleApiLookup(request)
 
         returnResponse({
           httpStatusCode: statusCode,
           receivedAtDate,
           responseObject: response,
           useGZip,
-          ...(body ? { responseBody: body } : undefined ),
-          ...(etag ? { etag } : undefined ),
+          ...(body ? { responseBody: body } : undefined),
+          ...(etag ? { etag } : undefined),
         })
       } else {
         console.log('Unknown request path')

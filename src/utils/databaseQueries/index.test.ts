@@ -2,7 +2,6 @@ import * as mysql from 'mysql2/promise'
 
 import LookupSource from 'constants/lookupSources'
 import PlateLookup from 'constants/plateLookup'
-import { DatabaseGeocode } from 'types/geocoding'
 import { TwitterDatabaseEvent, TwitterMediaObject } from 'types/twitter'
 import {
   getConnectionPool,
@@ -488,9 +487,8 @@ describe('databaseQueries', () => {
         },
       }
 
-      const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
-        vehicleQueryProps
-      )
+      const queryResult =
+        await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
       expect(queryResult).toEqual(expected)
 
@@ -537,9 +535,8 @@ describe('databaseQueries', () => {
         previousLookup: undefined,
       }
 
-      const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
-        vehicleQueryProps
-      )
+      const queryResult =
+        await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
       expect(queryResult).toEqual(expected)
 
@@ -592,9 +589,8 @@ describe('databaseQueries', () => {
         },
       }
 
-      const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
-        vehicleQueryProps
-      )
+      const queryResult =
+        await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
       expect(queryResult).toEqual(expected)
 
@@ -647,9 +643,8 @@ describe('databaseQueries', () => {
         },
       }
 
-      const queryResult = await getPreviousLookupAndLookupFrequencyForVehicle(
-        vehicleQueryProps
-      )
+      const queryResult =
+        await getPreviousLookupAndLookupFrequencyForVehicle(vehicleQueryProps)
 
       expect(queryResult).toEqual(expected)
 
@@ -736,15 +731,6 @@ describe('databaseQueries', () => {
     })
 
     it('should return no existing lookup when one does not exist', async () => {
-      const date = new Date()
-
-      const expected = {
-        createdAt: date,
-        plate,
-        plateTypes: nonEmptyPlateTypes,
-        state,
-      }
-
       const databaseConnection = {
         query: jest.fn(),
         release: jest.fn(),
@@ -767,15 +753,6 @@ describe('databaseQueries', () => {
     })
 
     it('should log an error if the existing lookup request fails', async () => {
-      const date = new Date()
-
-      const expected = {
-        createdAt: date,
-        plate,
-        plateTypes: nonEmptyPlateTypes,
-        state,
-      }
-
       const databaseConnection = {
         query: jest.fn(),
         release: jest.fn(),
@@ -825,8 +802,6 @@ describe('databaseQueries', () => {
 
     it('should log an error if the geocode request fails', async () => {
       const address = '99 Schermerhorn Street New York NY'
-
-      const borough = { borough: 'Brooklyn' }
 
       const databaseConnection = {
         query: jest.fn(),
@@ -993,9 +968,8 @@ describe('databaseQueries', () => {
 
       databaseConnection.query.mockResolvedValueOnce([{ insertId: 123 }])
 
-      const result = await insertNewTwitterEventAndMediaObjects(
-        twitterDatabaseEvent
-      )
+      const result =
+        await insertNewTwitterEventAndMediaObjects(twitterDatabaseEvent)
 
       expect(result).toBe(true)
 

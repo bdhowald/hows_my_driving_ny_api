@@ -46,7 +46,7 @@ const filterOutViolationsAfterSearchDate = (
 const getAndProcessApiLookup = async (
   vehicle: PotentialVehicle,
   // TODO: Implement filtering by selected fields
-  _: any,
+  _: unknown,
   externalData: ExternalData
 ): Promise<VehicleResponse> => {
   const plate = vehicle.plate
@@ -89,10 +89,10 @@ const getAndProcessApiLookup = async (
     fingerprintId,
     mixpanelId,
     ...(existingIdentifier ? { existingIdentifier } : undefined),
-    ...(plate ? { plate } : undefined ),
-    ...(plateTypes ? { plateTypes } : undefined ),
-    ...(rectifiedPlate ? { rectifiedPlate } : undefined ),
-    ...(state ? { state } : undefined ),
+    ...(plate ? { plate } : undefined),
+    ...(plateTypes ? { plateTypes } : undefined),
+    ...(rectifiedPlate ? { rectifiedPlate } : undefined),
+    ...(state ? { state } : undefined),
   }
 
   try {
@@ -103,13 +103,13 @@ const getAndProcessApiLookup = async (
         plateTypes,
         lookupType,
       }),
-      OpenDataService.makeOpenDataMetadataRequest(lookupType)
+      OpenDataService.makeOpenDataMetadataRequest(lookupType),
     ])
   } catch (error: unknown) {
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_query_error', {
       ...mixpanelPartialPayload,
-      ...getMixpanelErrorPayload(error)
+      ...getMixpanelErrorPayload(error),
     })
 
     return {
@@ -123,16 +123,24 @@ const getAndProcessApiLookup = async (
   const [vehicleDataResponses, metadataResponses] = allOpenDataResponses
 
   try {
-    const metadataUpdatedAtValues = metadataResponses.reduce((reducedObject, response) => {
-      if (!response.config.url) {
-        throw Error('Missing response url')
-      }
-      const { dataUpdatedAt, dataUri }: { dataUpdatedAt: string, dataUri: string } = response.data
-      const databasePathname = `${dataUri}.json` as ViolationDatabasePathname
-      reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, { zone: 'UTC' }).toISO() as string
+    const metadataUpdatedAtValues = metadataResponses.reduce(
+      (reducedObject, response) => {
+        if (!response.config.url) {
+          throw Error('Missing response url')
+        }
+        const {
+          dataUpdatedAt,
+          dataUri,
+        }: { dataUpdatedAt: string; dataUri: string } = response.data
+        const databasePathname = `${dataUri}.json` as ViolationDatabasePathname
+        reducedObject[databasePathname] = DateTime.fromISO(dataUpdatedAt, {
+          zone: 'UTC',
+        }).toISO() as string
 
-      return reducedObject
-    }, {} as Record<ViolationDatabasePathname, string>)
+        return reducedObject
+      },
+      {} as Record<ViolationDatabasePathname, string>
+    )
 
     const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
       vehicleDataResponses.map(async (response) => {
@@ -142,22 +150,28 @@ const getAndProcessApiLookup = async (
         const requestUrlObject = new URL(response.config.url)
 
         // We need the v2 endpoints because the v3 endpoints require auth, which clients won't be able to offer automatically.
-        const v2DatabasePathname = OpenDataService.getV2EndpointForDatabaseFromV3Endpoint(requestUrlObject.pathname) as ViolationDatabasePathname
-        const v2DatabaseEndpoint = `${requestUrlObject.origin}${v2DatabasePathname}` as ViolationDatabasePathname
+        const v2DatabasePathname =
+          OpenDataService.getV2EndpointForDatabaseFromV3Endpoint(
+            requestUrlObject.pathname
+          ) as ViolationDatabasePathname
+        const v2DatabaseEndpoint =
+          `${requestUrlObject.origin}${v2DatabasePathname}` as ViolationDatabasePathname
 
         const dataUpdatedAt = metadataUpdatedAtValues[v2DatabaseEndpoint]
 
-        return normalizeViolations(response.data, v2DatabasePathname, dataUpdatedAt)
+        return normalizeViolations(
+          response.data,
+          v2DatabasePathname,
+          dataUpdatedAt
+        )
       })
 
-    normalizedResponses = await Promise.all(
-      normalizedResponsePromises
-    )
+    normalizedResponses = await Promise.all(normalizedResponsePromises)
   } catch (error: unknown) {
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_parsing_error', {
       ...mixpanelPartialPayload,
-      ...getMixpanelErrorPayload(error)
+      ...getMixpanelErrorPayload(error),
     })
 
     return {
@@ -170,9 +184,12 @@ const getAndProcessApiLookup = async (
 
   // Filter out falsy violations, caused by things like violations in the future
   const flattenedViolations = normalizedResponses.flat()
-  const filteredViolations = flattenedViolations.filter((violation): violation is Violation => !!violation)
+  const filteredViolations = flattenedViolations.filter(
+    (violation): violation is Violation => !!violation
+  )
 
-  let deduplicatedViolations: Violation[] = mergeDuplicateViolations(filteredViolations)
+  let deduplicatedViolations: Violation[] =
+    mergeDuplicateViolations(filteredViolations)
 
   if (existingLookupCreatedAt) {
     deduplicatedViolations = filterOutViolationsAfterSearchDate(
@@ -205,9 +222,9 @@ const getAndProcessApiLookup = async (
 
   const previousLookupDateInUtc = vehicleLookupAndFrequencyResult.previousLookup
     ? DateTime.fromJSDate(
-      vehicleLookupAndFrequencyResult.previousLookup?.createdAt,
-      { zone: UTC_TIME_ZONE },
-    )
+        vehicleLookupAndFrequencyResult.previousLookup?.createdAt,
+        { zone: UTC_TIME_ZONE }
+      )
     : undefined
 
   const previousLookupDateInEastern = previousLookupDateInUtc
@@ -222,10 +239,9 @@ const getAndProcessApiLookup = async (
     // In this case, existingIdentifier is definitely defined.
     uniqueIdentifier = existingIdentifier as string
 
-    lookupDateInUtc = DateTime.fromJSDate(
-      existingLookupCreatedAt as Date,
-      { zone: UTC_TIME_ZONE },
-    )
+    lookupDateInUtc = DateTime.fromJSDate(existingLookupCreatedAt as Date, {
+      zone: UTC_TIME_ZONE,
+    })
 
     returnStatusCode = HttpStatusCode.Ok
   } else {
@@ -241,18 +257,15 @@ const getAndProcessApiLookup = async (
       state,
     }
 
-    const newlyCreatedLookup = await createAndInsertNewLookup(
-      newLookupProps
-    )
+    const newlyCreatedLookup = await createAndInsertNewLookup(newLookupProps)
 
     // If we are doing a new lookup, update the identifier
     // to return to the client.
     uniqueIdentifier = newlyCreatedLookup.uniqueIdentifier
 
-    lookupDateInUtc = DateTime.fromJSDate(
-      newlyCreatedLookup.createdAt,
-      { zone: UTC_TIME_ZONE },
-    )
+    lookupDateInUtc = DateTime.fromJSDate(newlyCreatedLookup.createdAt, {
+      zone: UTC_TIME_ZONE,
+    })
 
     returnStatusCode = HttpStatusCode.Created
   }
@@ -270,13 +283,15 @@ const getAndProcessApiLookup = async (
     uniqueIdentifier,
   }
 
-  const lookupDateInEastern = (lookupDateInUtc as DateTime).setZone('America/New_York')
+  const lookupDateInEastern = (lookupDateInUtc as DateTime).setZone(
+    'America/New_York'
+  )
   const tweetParts = formPlateLookupTweets(plateLookupTweetArguments)
 
   const apiLookupResult: ApiLookupResult = {
     cameraStreakData: cameraData,
     fines: aggregateFineData,
-    lookupDate:  lookupDateInEastern.toISO(),
+    lookupDate: lookupDateInEastern.toISO(),
     lookupDateEastern: lookupDateInEastern.toISO(),
     lookupDateUtc: lookupDateInUtc.toISO(),
     plate,
@@ -305,13 +320,11 @@ const getAndProcessApiLookup = async (
   return result
 }
 
-const getMixpanelErrorPayload = (error: unknown): Record<string, any> => {
+const getMixpanelErrorPayload = (error: unknown): Record<string, unknown> => {
   const wrappedError =
     error instanceof Error
       ? error
-      : new Error(
-          typeof error === 'string' ? error : JSON.stringify(error),
-        )
+      : new Error(typeof error === 'string' ? error : JSON.stringify(error))
 
   return {
     message: wrappedError.message,

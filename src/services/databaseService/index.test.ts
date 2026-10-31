@@ -1,7 +1,6 @@
 import { getConnectionPool, instantiateConnection } from '.'
 
 describe('databaseService', () => {
-
   afterAll(() => {
     const connectionPool = getConnectionPool()
     connectionPool?.end()
@@ -20,7 +19,7 @@ describe('databaseService', () => {
 
   describe('getConnectionPool', () => {
     it('the connection pool should be defined', async () => {
-      const databaseConnection = await instantiateConnection()
+      await instantiateConnection()
 
       expect(getConnectionPool()).not.toBeUndefined()
     })

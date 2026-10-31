@@ -15,13 +15,14 @@ describe('app', () => {
   const serverPort = 1234
   const apiEndpoint = `http://localhost:${serverPort}/api/v1`
 
-  const instantiateConnection = () => mysql.createConnection({
-    host: '127.0.0.1',
-    user: process.env.MYSQL_DATABASE_USER ?? '',
-    password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
-    database: process.env.MYSQL_DATABASE_NAME ?? '',
-    multipleStatements: true,
-  })
+  const instantiateConnection = () =>
+    mysql.createConnection({
+      host: '127.0.0.1',
+      user: process.env.MYSQL_DATABASE_USER ?? '',
+      password: process.env.MYSQL_DATABASE_PASSWORD ?? '',
+      database: process.env.MYSQL_DATABASE_NAME ?? '',
+      multipleStatements: true,
+    })
 
   const openDataTableMetadataResponses = [
     {
@@ -29,138 +30,140 @@ describe('app', () => {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/jt7v-77mi.json',
       },
       data: {
-        "dataUpdatedAt": "2017-11-15T17:04:39+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/jt7v-77mi",
-        "id": "jt7v-77mi",
-      }
+        dataUpdatedAt: '2017-11-15T17:04:39+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/jt7v-77mi',
+        id: 'jt7v-77mi',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/c284-tqph.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:47:45+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/c284-tqph",
-        "id": "c284-tqph",
-      }
+        dataUpdatedAt: '2017-09-14T17:47:45+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/c284-tqph',
+        id: 'c284-tqph',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kiv2-tbus.json',
       },
       data: {
-        "dataUpdatedAt": "2017-09-14T17:49:20+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/kiv2-tbus",
-        "id": "kiv2-tbus",
-      }
+        dataUpdatedAt: '2017-09-14T17:49:20+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/kiv2-tbus',
+        id: 'kiv2-tbus',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/2bnn-yakx.json',
       },
       data: {
-        "dataUpdatedAt": "2017-08-10T01:43:31+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/2bnn-yakx",
-        "id": "2bnn-yakx",
-      }
+        dataUpdatedAt: '2017-08-10T01:43:31+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/2bnn-yakx',
+        id: '2bnn-yakx',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/a5td-mswe.json',
       },
       data: {
-        "dataUpdatedAt": "2018-07-31T18:38:30+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/a5td-mswe",
-        "id": "a5td-mswe",
-      }
+        dataUpdatedAt: '2018-07-31T18:38:30+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/a5td-mswe',
+        id: 'a5td-mswe',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/faiq-9dfq.json',
       },
       data: {
-        "dataUpdatedAt": "2019-07-17T15:21:47+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/faiq-9dfq",
-        "id": "faiq-9dfq",
-      }
+        dataUpdatedAt: '2019-07-17T15:21:47+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/faiq-9dfq',
+        id: 'faiq-9dfq',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/p7t3-5i9s.json',
       },
       data: {
-        "dataUpdatedAt": "2020-08-06T13:30:36+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/p7t3-5i9s",
-        "id": "p7t3-5i9s",
-      }
+        dataUpdatedAt: '2020-08-06T13:30:36+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/p7t3-5i9s',
+        id: 'p7t3-5i9s',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/kvfd-bves.json',
       },
       data: {
-        "dataUpdatedAt": "2021-08-04T19:29:37+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/kvfd-bves",
-        "id": "kvfd-bves",
-      }
+        dataUpdatedAt: '2021-08-04T19:29:37+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/kvfd-bves',
+        id: 'kvfd-bves',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/7mxj-7a6y.json',
       },
       data: {
-        "dataUpdatedAt": "2022-08-09T18:44:55+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/7mxj-7a6y",
-        "id": "7mxj-7a6y",
-      }
+        dataUpdatedAt: '2022-08-09T18:44:55+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/7mxj-7a6y',
+        id: '7mxj-7a6y',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/869v-vr48.json',
       },
       data: {
-        "dataUpdatedAt": "2023-11-14T17:54:58+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/869v-vr48",
-        "id": "869v-vr48",
-      }
+        dataUpdatedAt: '2023-11-14T17:54:58+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/869v-vr48',
+        id: '869v-vr48',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/pvqr-7yc4.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-16T19:36:56+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/pvqr-7yc4",
-        "id": "pvqr-7yc4",
-      }
+        dataUpdatedAt: '2025-03-16T19:36:56+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/pvqr-7yc4',
+        id: 'pvqr-7yc4',
+      },
     },
     {
       config: {
         url: 'https://data.cityofnewyork.us/api/views/metadata/v1/nc67-uf89.json',
       },
       data: {
-        "dataUpdatedAt": "2025-03-29T09:21:18+0000",
-        "dataUri": "https://data.cityofnewyork.us/resource/nc67-uf89",
-        "id": "nc67-uf89",
-      }
-    }
-  ] as AxiosResponse<any, any>[]
+        dataUpdatedAt: '2025-03-29T09:21:18+0000',
+        dataUri: 'https://data.cityofnewyork.us/resource/nc67-uf89',
+        id: 'nc67-uf89',
+      },
+    },
+  ] as AxiosResponse<unknown, unknown>[]
 
   const queryForPlate = async (
-    plate: string, state: string, plateTypes: string
+    plate: string,
+    state: string,
+    plateTypes: string
   ): Promise<mysql.QueryResult> => {
     const databaseConnection = await instantiateConnection()
 
     try {
       const [rows, _] = await databaseConnection.query(
         'select * from plate_lookups where plate = ? and state = ? and plate_types = ?',
-        [plate, state, plateTypes],
+        [plate, state, plateTypes]
       )
 
       databaseConnection.end()
 
       return rows
-    } catch(error) {
+    } catch (error) {
       console.log(error)
       return []
     }
@@ -178,7 +181,7 @@ describe('app', () => {
     try {
       databaseConnection.query('truncate table plate_lookups')
       databaseConnection.end()
-    } catch(error) {
+    } catch (error) {
       console.log(error)
       return []
     }
@@ -388,17 +391,18 @@ describe('app', () => {
           }),
         ],
       },
-    ] as AxiosResponse<any, any>[]
+    ] as AxiosResponse<unknown, unknown>[]
 
     it('should return the expected fields', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
-        new Date('2025-03-29T09:21:18.000Z')
-      )
-      ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
-        .mockResolvedValueOnce(openDataResponses)
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValue(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock
+      ).mockResolvedValue(new Date('2025-03-29T09:21:18.000Z'))
+      ;(
+        OpenDataService.makeOpenDataVehicleRequest as jest.Mock
+      ).mockResolvedValueOnce(openDataResponses)
 
       const response = await axios.get(`${apiEndpoint}?plate=ABC1234:NY:PAS`)
       const { data } = response.data
@@ -466,12 +470,12 @@ describe('app', () => {
     })
 
     it('should create a record in the database', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
-        new Date('2025-03-29T09:21:18.000Z')
-      )
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValue(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock
+      ).mockResolvedValue(new Date('2025-03-29T09:21:18.000Z'))
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
         .mockResolvedValueOnce(openDataResponses)
@@ -482,7 +486,11 @@ describe('app', () => {
 
       const lookupSource = LookupSource.WebClient
 
-      const queryBeforeLookupResults = await queryForPlate(plate, state, plateTypes)
+      const queryBeforeLookupResults = await queryForPlate(
+        plate,
+        state,
+        plateTypes
+      )
 
       expect(queryBeforeLookupResults).toEqual([])
 
@@ -493,9 +501,11 @@ describe('app', () => {
       // Wait for new record to be inserted into database
       await new Promise((r) => setTimeout(r, 1000))
 
-      const queryAfterLookupResults = await queryForPlate(
-        plate, state, plateTypes
-      ) as Record<string, any>[]
+      const queryAfterLookupResults = (await queryForPlate(
+        plate,
+        state,
+        plateTypes
+      )) as Record<string, unknown>[]
 
       expect(queryAfterLookupResults[0].plate).toEqual(plate)
       expect(queryAfterLookupResults[0].state).toEqual(state)
@@ -504,12 +514,12 @@ describe('app', () => {
     })
 
     it('should return a previous lookup result as part of a lookup result when one exists', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
-        new Date('2025-03-29T09:21:18.000Z')
-      )
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValue(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock
+      ).mockResolvedValue(new Date('2025-03-29T09:21:18.000Z'))
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
         .mockResolvedValueOnce(openDataResponses)
@@ -552,12 +562,12 @@ describe('app', () => {
     }, 10000)
 
     it('should return an existing lookup', async () => {
-      ;(OpenDataService.makeOpenDataMetadataRequest as jest.Mock).mockResolvedValue(
-        openDataTableMetadataResponses
-      )
-      ;(OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock).mockResolvedValue(
-        new Date('2025-03-29T09:21:18.000Z')
-      )
+      ;(
+        OpenDataService.makeOpenDataMetadataRequest as jest.Mock
+      ).mockResolvedValue(openDataTableMetadataResponses)
+      ;(
+        OpenDataService.determineOpenDataLastUpdatedTime as jest.Mock
+      ).mockResolvedValue(new Date('2025-03-29T09:21:18.000Z'))
       ;(OpenDataService.makeOpenDataVehicleRequest as jest.Mock)
         .mockResolvedValueOnce(openDataResponses)
         .mockResolvedValueOnce(openDataResponses)
@@ -567,7 +577,9 @@ describe('app', () => {
       )
 
       const { data: plateResponseData } = plateLookupResponse.data
-      const { vehicle: { unique_identifier: uniqueIdentifier } } = plateResponseData[0]
+      const {
+        vehicle: { unique_identifier: uniqueIdentifier },
+      } = plateResponseData[0]
 
       // Wait for new record to be inserted into database
       await new Promise((r) => setTimeout(r, 1000))
@@ -592,19 +604,29 @@ describe('app', () => {
         violations_count: violationsCount,
       } = plateResponseData[0].vehicle
 
-      expect(existingLookupData[0].vehicle.camera_streak_data).toEqual(cameraStreakData)
+      expect(existingLookupData[0].vehicle.camera_streak_data).toEqual(
+        cameraStreakData
+      )
       expect(existingLookupData[0].vehicle.fines).toEqual(fines)
       expect(existingLookupData[0].vehicle.plate).toEqual(plate)
       expect(existingLookupData[0].vehicle.plate_types).toEqual(plateTypes)
-      expect(existingLookupData[0].vehicle.rectified_plate).toEqual(rectifiedPlate)
+      expect(existingLookupData[0].vehicle.rectified_plate).toEqual(
+        rectifiedPlate
+      )
       expect(existingLookupData[0].vehicle.statistics).toEqual(statistics)
       expect(existingLookupData[0].vehicle.state).toEqual(state)
       expect(existingLookupData[0].vehicle.times_queried).toEqual(timesQueried)
-      expect(existingLookupData[0].vehicle.unique_identifier).toEqual(uniqueIdentifier)
+      expect(existingLookupData[0].vehicle.unique_identifier).toEqual(
+        uniqueIdentifier
+      )
       expect(existingLookupData[0].vehicle.violations).toEqual(violations)
-      expect(existingLookupData[0].vehicle.violations_count).toEqual(violationsCount)
+      expect(existingLookupData[0].vehicle.violations_count).toEqual(
+        violationsCount
+      )
 
-      expect(existingLookupData[0].vehicle.tweet_parts.slice(1)).toEqual(tweetParts.slice(1))
+      expect(existingLookupData[0].vehicle.tweet_parts.slice(1)).toEqual(
+        tweetParts.slice(1)
+      )
       expect(existingLookupData[0].vehicle.tweet_parts[0]).toMatch(
         /^As of \d{2}:\d{2}:\d{2} [A|P]M E[D|S]T on (.*) \d{2}, \d{4}: #NY_ABC1234 \(types: PAS\) has been queried 1 time./
       )

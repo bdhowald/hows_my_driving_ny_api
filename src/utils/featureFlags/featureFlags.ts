@@ -5,7 +5,8 @@ const TOTAL_FEATURE_FLAG_PERCENTAGE = 100
 const getFeatureFlagValue = (featureFlag: FeatureFlagConfig) => {
   const variations = featureFlag.variations as FeatureFlagVariation[]
   const totalPercentage = variations.reduce(
-    (accum: number, variation: FeatureFlagVariation) => accum + variation.percentage,
+    (accum: number, variation: FeatureFlagVariation) =>
+      accum + variation.percentage,
     0
   )
   if (totalPercentage !== TOTAL_FEATURE_FLAG_PERCENTAGE) {
@@ -15,12 +16,14 @@ const getFeatureFlagValue = (featureFlag: FeatureFlagConfig) => {
   const randomIntegerValue = Math.floor(Math.random() * 100)
 
   let cumulative = 0
-  const selectedVariation = variations.find((variation: FeatureFlagVariation) => {
-    cumulative += variation.percentage
-    if (randomIntegerValue < cumulative) {
-      return true
+  const selectedVariation = variations.find(
+    (variation: FeatureFlagVariation) => {
+      cumulative += variation.percentage
+      if (randomIntegerValue < cumulative) {
+        return true
+      }
     }
-  }) as FeatureFlagVariation
+  ) as FeatureFlagVariation
 
   return selectedVariation.value
 }

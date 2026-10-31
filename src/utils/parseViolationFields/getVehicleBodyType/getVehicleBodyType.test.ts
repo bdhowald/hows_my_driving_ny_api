@@ -441,6 +441,6 @@ describe('getVehicleBodyType', () => {
       const make = getVehicleBodyType(bodyTypeish)
 
       expect(make).toBe(outputBodyType)
-    },
+    }
   )
 })

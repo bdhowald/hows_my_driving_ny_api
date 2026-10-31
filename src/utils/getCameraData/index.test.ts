@@ -1,5 +1,3 @@
-import { DateTime } from 'luxon'
-
 import { HumanizedDescription } from 'constants/violationDescriptions'
 import { violationFactory } from '__fixtures__/violations'
 import CameraData from 'types/cameraData'

@@ -47,7 +47,11 @@ describe('QueryParser', () => {
       )
       const queryParser = new QueryParser(searchParams)
 
-      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+      const expected = {
+        times_queried: {},
+        unique_identifier: {},
+        violations: { violation_code: {} },
+      }
 
       const result = queryParser.findFilterFields()
 
@@ -60,7 +64,11 @@ describe('QueryParser', () => {
       )
       const queryParser = new QueryParser(searchParams)
 
-      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+      const expected = {
+        times_queried: {},
+        unique_identifier: {},
+        violations: { violation_code: {} },
+      }
 
       const result = queryParser.findFilterFields()
 
@@ -73,14 +81,18 @@ describe('QueryParser', () => {
       )
       const queryParser = new QueryParser(searchParams)
 
-      const expected = { times_queried: {}, unique_identifier: {}, violations: { violation_code: {} } }
+      const expected = {
+        times_queried: {},
+        unique_identifier: {},
+        violations: { violation_code: {} },
+      }
 
       const result = queryParser.findFilterFields()
 
       expect(result).toEqual(expected)
     })
 
-    it("should ignore individual filter fields when field cannot be understood", () => {
+    it('should ignore individual filter fields when field cannot be understood', () => {
       const searchParams = new URLSearchParams(
         'plate=ABC1234:NY&fields=violations(.*.),times_queried,unique_identifier'
       )

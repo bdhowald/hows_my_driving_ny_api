@@ -1,4 +1,4 @@
-export function isNumber(possibleNumber: any): possibleNumber is number {
+export function isNumber(possibleNumber: unknown): possibleNumber is number {
   // Number(false) evaluates to 0 and Number(true) evaluates to 1
   return !!possibleNumber !== possibleNumber && !isNaN(Number(possibleNumber))
 }

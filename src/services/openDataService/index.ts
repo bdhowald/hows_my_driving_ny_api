@@ -56,9 +56,9 @@ type RetryOptions = {
   baseDelay?: number
   jitter?: boolean
   maxRetries?: number
-  onRetry?: (attempt: number, error: any, delay: number) => void
+  onRetry?: (attempt: number, error: unknown, delay: number) => void
   priority?: number
-  shouldRetry?: (error: any) => boolean
+  shouldRetry?: (error: unknown) => boolean
 }
 
 let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
@@ -66,13 +66,13 @@ let lruCache: LRUCache<string, Promise<AxiosResponse>> | null = null
 /**
  * Construct the promises for the requests to the fiscal year databases.
  */
-const constructFiscalYearPromises = ({
+const constructFiscalYearPromises = <T = unknown, D = unknown>({
   plate,
   state,
   plateTypes,
   lookupType,
   useV3Api,
-}: OpenDataVehicleRequestProps): Promise<AxiosResponse<any, any>>[] => {
+}: OpenDataVehicleRequestProps): Promise<AxiosResponse<T, D>>[] => {
   const fiscalYearEndpoints = useV3Api
     ? NYC_OPEN_DATA_SOCRATA_SODA_V3_DATABASE_FISCAL_YEAR_ENDPOINTS
     : NYC_OPEN_DATA_SOCRATA_SODA_V2_DATABASE_FISCAL_YEAR_ENDPOINTS
@@ -80,7 +80,9 @@ const constructFiscalYearPromises = ({
   // Fiscal Year Databases
   return fiscalYearEndpoints.map(
     async (endpoint: string): Promise<AxiosResponse> => {
-      let asyncFunction: () => Promise<AxiosResponse<any, any>>
+      let asyncFunction: <T = unknown, D = unknown>() => Promise<
+        AxiosResponse<T, D>
+      >
 
       if (useV3Api) {
         asyncFunction = () => {
@@ -141,18 +143,23 @@ const constructFiscalYearPromises = ({
 /**
  * Construct the promises for the requests to the fiscal year databases.
  */
-const constructOpenParkingAndCameraViolationsPromise = ({
+const constructOpenParkingAndCameraViolationsPromise = <
+  T = unknown,
+  D = unknown,
+>({
   plate,
   state,
   plateTypes,
   lookupType,
   useV3Api,
-}: OpenDataVehicleRequestProps): Promise<AxiosResponse<any, any>> => {
+}: OpenDataVehicleRequestProps): Promise<AxiosResponse<T, D>> => {
   const openParkingAndCameraViolationsEndpoint = useV3Api
     ? NYC_OPEN_DATA_SOCRATA_SODA_V3_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT
     : NYC_OPEN_DATA_SOCRATA_SODA_V2_OPEN_PARKING_AND_CAMERA_VIOLATIONS_ENDPOINT
 
-  let asyncFunction: () => Promise<AxiosResponse<any, any>>
+  let asyncFunction: <T = unknown, D = unknown>() => Promise<
+    AxiosResponse<T, D>
+  >
 
   if (useV3Api) {
     asyncFunction = () => {
@@ -323,7 +330,7 @@ const determineOpenDataLastUpdatedTime = async (
     )
     return latestDatabaseUpdatedTime
   } catch (error) {
-    console.error
+    console.error(error)
   }
 
   return new Date()
@@ -405,7 +412,7 @@ const handleAxiosErrors = (error: AxiosError): Error => {
 /**
  * Request the metadata for all the violation databases
  */
-const makeOpenDataMetadataRequest = async (
+const makeOpenDataMetadataRequest = async <T = unknown, D = unknown>(
   lookupType?: LookupType | undefined
 ): Promise<AxiosResponse[]> => {
   const promises = NYC_OPEN_DATA_VIOLATION_DATABASE_METADATA_ENDPOINTS.map(
@@ -454,7 +461,7 @@ const makeOpenDataMetadataRequest = async (
   }
 
   return settledPromises.map(
-    (result) => (result as PromiseFulfilledResult<any>).value
+    (result) => (result as PromiseFulfilledResult<AxiosResponse<T, D>>).value
   )
 }
 
@@ -637,7 +644,9 @@ const retrievePossibleMedallionVehiclePlate = async (
     ? NYC_OPEN_DATA_SOCRATA_SODA_V3_MEDALLION_DATABASE_ENDPOINT
     : NYC_OPEN_DATA_SOCRATA_SODA_V2_MEDALLION_DATABASE_ENDPOINT
 
-  let asyncFunction: () => Promise<AxiosResponse<any, any>>
+  let asyncFunction: <T = unknown, D = unknown>() => Promise<
+    AxiosResponse<T, D>
+  >
 
   if (useV3Api) {
     asyncFunction = () => {

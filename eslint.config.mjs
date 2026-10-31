@@ -1,49 +1,68 @@
-import js from '@eslint/js';
-import path from "path";
-import { fileURLToPath } from "url";
-import globals from "globals";
-import { defineConfig, globalIgnores } from "@eslint/config-helpers";
-import { FlatCompat } from "@eslint/eslintrc";
-import js from '@eslint/js';
-import { fixupConfigRules } from "@eslint/compat";
+import { defineConfig } from 'eslint/config'
+import eslintJs from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+import eslintConfigPrettier from 'eslint-config-prettier'
+import nodePlugin from 'eslint-plugin-n'
+import promisePlugin from 'eslint-plugin-promise'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-  const compatWithRecommended = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-  });
-export default defineConfig([
-  globalIgnores(["build","node_modules",".yarn/install-state.gz","yarn-error.log","*.sql"]),
+export default defineConfig(
   {
-    extends: fixupConfigRules(compatWithRecommended.extends(
-      js.configs.recommended,
-      "plugin:@typescript-eslint/recommended",
-      "prettier"
-    )),
+    ignores: [
+      '.yarn',
+      'build/',
+      'coverage',
+      'eslint.config.*',
+      'jest.config.*',
+      'node_modules/',
+      'server.js',
+      'webpack.config.js',
+      'yarn-error.log',
+      '*.sql'
+    ],
+  },
+
+  eslintJs.configs.recommended,
+  ...tseslint.configs.recommended,
+  nodePlugin.configs['flat/recommended'],
+
+  {
+    plugins: {
+      n: nodePlugin,
+      promise: promisePlugin,
+    },
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es6
+        ...globals.es2021 // 'es6' is updated to modern name 'es2015'
       },
-      sourceType: "module",
+      sourceType: 'module',
       parserOptions: {
-        ecmaVersion: 2018,
-        project: "./tsconfig.json"
+        ecmaVersion: 2021,
+        // typescript-eslint manages parser/project config automatically behind the scenes
+        project: './tsconfig.json', 
       }
     },
     rules: {
-      "max-len": ["error", 120, 2],
-      "react/prop-types": 0,
-      "react/destructuring-assignment": 0,
-      "react/no-access-state-in-setstate": 0,
-      "react/jsx-one-expression-per-line": 0,
-      "no-constant-binary-expression": 'off',
-      "no-empty-static-block": 'off',
-      "no-new-native-nonconstructor": 'off',
-      "no-unused-private-class-members": 'off'
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+        },
+      ],
+      'max-len': ['error', 120, 2],
+      'n/no-missing-import': 'off', 
+      // Optional: Add rules for eslint-plugin-promise here if you want them
+      'promise/always-return': 'error',
     },
-  }
-]);
+  },
+
+  eslintConfigPrettier,
+)

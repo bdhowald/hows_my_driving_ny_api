@@ -2,17 +2,17 @@ import { DateTime } from 'luxon'
 
 import boroughs, { Borough, precinctsByBorough } from 'constants/boroughs'
 import {
-  HumanizedDescription,
-  humanizedDescriptionsForOpenParkingAndCameraViolations,
-  humanizedDescriptionsForFiscalYearDatabaseViolations,
-  violationsToCodes,
-} from 'constants/violationDescriptions'
-import {
   API_PATHNAMES_TO_DATABASE_NAMES_MAP,
   ViolationDatabasePathname,
   NYC_OPEN_DATA_PORTAL_HOST,
 } from 'constants/endpoints'
 import { NEW_YORK_TIME_ZONE } from 'constants/locale'
+import {
+  HumanizedDescription,
+  humanizedDescriptionsForOpenParkingAndCameraViolations,
+  humanizedDescriptionsForFiscalYearDatabaseViolations,
+  violationsToCodes,
+} from 'constants/violationDescriptions'
 import getBoroughService from 'services/geocodingService'
 import {
   FiscalYearDatabaseViolationName,
@@ -105,7 +105,7 @@ const getFineDataForViolation = (violation: RawViolation) => {
   const reductionAmount =
     'reductionAmount' in violation ? violation.reductionAmount : undefined
 
-  let fined = fineAmount ?? penaltyAmount ?? interestAmount ? 0 : undefined
+  let fined = (fineAmount ?? penaltyAmount ?? interestAmount) ? 0 : undefined
 
   if (isNumber(fined)) {
     if (isNumber(fineAmount)) {
@@ -166,8 +166,7 @@ const determineViolationFromViolationCodeAndDate = (
   // on the date on which that code was used.
 
   const violationCodeDefinition:
-    | HumanizedDescription
-    | Array<ViolationMultipleDescriptionCode> =
+    HumanizedDescription | Array<ViolationMultipleDescriptionCode> =
     humanizedDescriptionsForFiscalYearDatabaseViolations[
       violationCode as keyof typeof humanizedDescriptionsForFiscalYearDatabaseViolations
     ]
@@ -228,7 +227,7 @@ const getFormattedTimes = (
   if (violationTime) {
     // some edge cases are: '0.05A', '075.A', '05.3P'
     // No harm in just regexing all of them
-    let rectifiedViolationTime = violationTime.replace('.', '0')
+    const rectifiedViolationTime = violationTime.replace('.', '0')
 
     const isAM = rectifiedViolationTime.includes('A')
     const isPM = rectifiedViolationTime.includes('P')
@@ -240,8 +239,8 @@ const getFormattedTimes = (
       FOUR_DIGIT_WITH_COLON_TIME_FORMAT
     )
 
-    let hour: string | undefined = undefined
-    let minute: string | undefined = undefined
+    let hour: string | undefined
+    let minute: string | undefined
 
     if (fourDigitTimeMatch) {
       // e.g. value is '0521P'
@@ -295,18 +294,35 @@ const getFormattedTimes = (
   }
 }
 
+type Lookup<T, K extends string> = T extends unknown
+  ? K extends keyof T
+    ? T[K]
+    : undefined
+  : never
+
+function hasKey<T extends object, K extends string>(
+  obj: T,
+  key: K
+): obj is T & Record<K, unknown> {
+  return key in obj
+}
+
 /**
  *
  * @param violation - violation to parse
  * @param fieldName - fieldname to obtain from violation
  */
-const getFieldFromViolationIfPresent = (
+const getFieldFromViolationIfPresent = <K extends string>(
   violation: RawViolation,
-  fieldName: string
-): any => {
-  return fieldName in violation
-    ? violation[fieldName as keyof typeof violation]
-    : undefined
+  fieldName: K
+): Lookup<Violation, K> => {
+  if (hasKey(violation, fieldName)) {
+    return violation[fieldName as keyof typeof violation] as Lookup<
+      Violation,
+      K
+    >
+  }
+  return undefined as Lookup<Violation, K>
 }
 
 const getFiscalYearDescriptionKey = (
@@ -315,8 +331,8 @@ const getFiscalYearDescriptionKey = (
   'violationCode' in violation
     ? violation.violationCode
     : 'violationDescription' in violation
-    ? violation.violationDescription
-    : undefined
+      ? violation.violationDescription
+      : undefined
 
 const getHumanizedDescription = (
   violation: RawViolation
@@ -329,8 +345,7 @@ const getHumanizedDescription = (
     // databases are used to refer to different violation types depending
     // on the date on which that code was used.
     const violationCodeDefinition:
-      | HumanizedDescription
-      | Array<ViolationMultipleDescriptionCode> =
+      HumanizedDescription | Array<ViolationMultipleDescriptionCode> =
       humanizedDescriptionsForFiscalYearDatabaseViolations[
         fiscalYearDescriptionKey
       ]
@@ -582,8 +597,8 @@ const normalizeViolation = async (
     violationCode: violationCodeFromViolation
       ? violationCodeFromViolation.toString()
       : humanizedDescription && violationsToCodes[humanizedDescription]
-      ? violationsToCodes[humanizedDescription]
-      : undefined,
+        ? violationsToCodes[humanizedDescription]
+        : undefined,
     violationCounty: violationBorough,
     violationInFrontOfOrOpposite:
       'violationInFrontOfOrOpposite' in violation

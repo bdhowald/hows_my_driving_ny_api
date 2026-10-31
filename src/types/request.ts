@@ -4,7 +4,6 @@ import LookupSource from 'constants/lookupSources'
 import LookupType from 'constants/lookupTypes'
 import ApiLookupResult from 'types/apiLookup'
 
-
 export type ExternalData = {
   existingLookupCreatedAt?: Date
   fingerprintId?: string | undefined

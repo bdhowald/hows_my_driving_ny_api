@@ -63,9 +63,8 @@ const getBoroughService = async (
   const boroughValues: string[] = Object.values(Borough)
 
   try {
-    const result: GeocodeQueryResult[] = await getBoroughFromDatabaseGeocode(
-      streetAddress
-    )
+    const result: GeocodeQueryResult[] =
+      await getBoroughFromDatabaseGeocode(streetAddress)
 
     if (result.length) {
       console.log(

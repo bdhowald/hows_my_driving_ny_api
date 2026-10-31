@@ -19,7 +19,9 @@ const getAggregateFrequencyData = (violations: Violation[]): FrequencyData => {
     const borough: Borough = violation.violationCounty
 
     // Camelize and decamelize to replace spaces with underscores and to lowercase
-    const snakeCasedBorough = decamelize(camelize(borough)) as SnakeCasedBoroughValues
+    const snakeCasedBorough = decamelize(
+      camelize(borough)
+    ) as SnakeCasedBoroughValues
 
     if (boroughs[snakeCasedBorough]) {
       ;(boroughs[snakeCasedBorough] as number) += 1

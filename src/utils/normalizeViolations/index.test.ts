@@ -67,7 +67,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -83,7 +83,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -247,7 +247,12 @@ describe('normalizeViolations', () => {
     },
   ])(
     'should normalize Open Parking and Camera Violations database violation with archaic description $archaicDescription',
-    async ({ archaicDescription, humanizedDescription, issueDate, violationCode }) => {
+    async ({
+      archaicDescription,
+      humanizedDescription,
+      issueDate,
+      violationCode,
+    }) => {
       const databasePathname = '/resource/nc67-uf89.json'
       const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
 
@@ -264,7 +269,7 @@ describe('normalizeViolations', () => {
       const normalizedViolations = await normalizeViolations(
         [rawOpenParkingAndCameraViolation],
         databasePathname,
-        dataUpdatedAt,
+        dataUpdatedAt
       )
 
       const {
@@ -353,13 +358,13 @@ describe('normalizeViolations', () => {
     {
       humanizedDescription: 'No Standing - Snow Emergency',
       issueDate: '2019-12-05',
-      violationCode: '12' as '12',
+      violationCode: '12' as const,
     },
     // on or after 2019-12-06
     {
       humanizedDescription: 'Mobile Bus Lane Violation',
       issueDate: '2019-12-06',
-      violationCode: '12' as '12',
+      violationCode: '12' as const,
     },
 
     // violation code 15
@@ -367,13 +372,13 @@ describe('normalizeViolations', () => {
     {
       humanizedDescription: 'No Standing - Off-Street Lot',
       issueDate: '2024-08-18',
-      violationCode: '15' as '15',
+      violationCode: '15' as const,
     },
     // on or after 2024-08-19
     {
       humanizedDescription: 'Mobile MTA Double Parking Violation',
       issueDate: '2024-08-19',
-      violationCode: '15' as '15',
+      violationCode: '15' as const,
     },
 
     // violation code 22
@@ -382,14 +387,14 @@ describe('normalizeViolations', () => {
       archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
       humanizedDescription: 'No Parking - Except Hotel Loading',
       issueDate: '2018-07-31',
-      violationCode: '22' as '22',
+      violationCode: '22' as const,
     },
     // on or after 2018-08-01
     {
       archaicDescription: 'NO PARKING-EXC. HOTEL LOADING',
       humanizedDescription: 'No Standing - Taxi/For-Hire Vehicle Relief Stand',
       issueDate: '2018-08-01',
-      violationCode: '22' as '22',
+      violationCode: '22' as const,
     },
 
     // violation code 33
@@ -398,14 +403,14 @@ describe('normalizeViolations', () => {
       archaicDescription: 'FEEDING METER',
       humanizedDescription: 'Feeding Meter',
       issueDate: '2019-06-10',
-      violationCode: '33' as '33',
+      violationCode: '33' as const,
     },
     // on or after 2019-06-11
     {
       archaicDescription: 'FEEDING METER',
       humanizedDescription: 'Misuse of Parking Permit',
       issueDate: '2019-06-11',
-      violationCode: '33' as '33',
+      violationCode: '33' as const,
     },
 
     // violation code 57
@@ -414,17 +419,16 @@ describe('normalizeViolations', () => {
       archaicDescription: 'BLUE ZONE',
       humanizedDescription: 'Weigh in Motion Violation',
       issueDate: '2023-10-01',
-      violationCode: '57' as '57',
+      violationCode: '57' as const,
     },
     // on or after 2023-10-01
     {
       archaicDescription: 'BLUE ZONE',
       humanizedDescription: 'No Parking - Blue Zone',
       issueDate: '2023-09-30',
-      violationCode: '57' as '57',
+      violationCode: '57' as const,
     },
-  ])
-  (
+  ])(
     'should normalize a fiscal year database violation with violation code $violationCode issued on $issueDate',
     async ({ humanizedDescription, issueDate, violationCode }) => {
       const databasePathname = '/resource/869v-vr48.json'
@@ -485,7 +489,7 @@ describe('normalizeViolations', () => {
       const normalizedViolations = await normalizeViolations(
         [rawFiscalYearDatabaseViolation],
         databasePathname,
-        dataUpdatedAt,
+        dataUpdatedAt
       )
 
       expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -498,7 +502,7 @@ describe('normalizeViolations', () => {
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
-        violationCode: '12'
+        violationCode: '12',
       })
 
     const expectedViolation = {
@@ -544,7 +548,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -609,7 +613,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -674,7 +678,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -685,14 +689,15 @@ describe('normalizeViolations', () => {
     const dataUpdatedAt = '2025-03-29T09:21:18.000Z'
     const humanizedDescription = 'Failure to Display Meter Receipt'
 
-    const rawOpenParkingAndCameraViolation = rawOpenParkingAndCameraViolationFactory.build({
-      violation: 'FAIL TO DSPLY MUNI METER RECPT',
-    })
+    const rawOpenParkingAndCameraViolation =
+      rawOpenParkingAndCameraViolationFactory.build({
+        violation: 'FAIL TO DSPLY MUNI METER RECPT',
+      })
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -794,7 +799,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -890,9 +895,11 @@ describe('normalizeViolations', () => {
       normalizeViolations(
         [rawOpenParkingAndCameraViolation],
         databasePathname,
-        dataUpdatedAt,
+        dataUpdatedAt
       )
-    ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
+    ).rejects.toThrow(
+      'Unrecognized time period for fiscal year violation description'
+    )
   })
 
   it('should throw an error for a fiscal year variable violation code whose date is outside any valid range', async () => {
@@ -909,9 +916,11 @@ describe('normalizeViolations', () => {
       normalizeViolations(
         [rawFiscalYearDatabaseViolation],
         databasePathname,
-        dataUpdatedAt,
+        dataUpdatedAt
       )
-    ).rejects.toThrow('Unrecognized time period for fiscal year violation description')
+    ).rejects.toThrow(
+      'Unrecognized time period for fiscal year violation description'
+    )
   })
 
   it('should handle a violation with only partial fine data', async () => {
@@ -930,7 +939,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1110,7 +1119,7 @@ describe('normalizeViolations', () => {
     const normalizedViolation = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolation).toEqual([expectedOpenParkingAndCameraViolation])
@@ -1208,7 +1217,7 @@ describe('normalizeViolations', () => {
     const normalizedViolation = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolation).toEqual([expectedFiscalYearDatabaseViolation])
@@ -1232,7 +1241,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1331,7 +1340,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1416,7 +1425,6 @@ describe('normalizeViolations', () => {
   it('should obtain the borough from violationCounty if possible and needed', async () => {
     const databasePathname = '/resource/869v-vr48.json'
     const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
-    
 
     const rawFiscalYearDatabaseViolation: RawViolation = {
       issueDate: '2023-06-09T00:00:00.000',
@@ -1435,7 +1443,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1635,13 +1643,14 @@ describe('normalizeViolations', () => {
       violationTime: '09:11P',
     }
 
-    const loggingKey = `[summons_number=${rawFiscalYearDatabaseViolation.summonsNumber}]`
-      + `[vehicle=${rawFiscalYearDatabaseViolation.registrationState}:${rawFiscalYearDatabaseViolation.plateId}]`
+    const loggingKey =
+      `[summons_number=${rawFiscalYearDatabaseViolation.summonsNumber}]` +
+      `[vehicle=${rawFiscalYearDatabaseViolation.registrationState}:${rawFiscalYearDatabaseViolation.plateId}]`
 
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const expectedViolation = {
@@ -1715,7 +1724,7 @@ describe('normalizeViolations', () => {
 
     expect(getBoroughService).toHaveBeenCalledWith(
       `${houseNumber} ${streetName}`,
-      loggingKey,
+      loggingKey
     )
   })
 
@@ -1725,13 +1734,13 @@ describe('normalizeViolations', () => {
 
     const rawOpenParkingAndCameraViolation =
       rawOpenParkingAndCameraViolationFactory.build({
-        judgmentEntryDate: '01/02/2003'
+        judgmentEntryDate: '01/02/2003',
       })
 
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1821,7 +1830,7 @@ describe('normalizeViolations', () => {
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
-        issueDate: undefined
+        issueDate: undefined,
       })
 
     const expectedViolation = {
@@ -1866,7 +1875,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -1890,7 +1899,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawOpenParkingAndCameraViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     const {
@@ -1978,7 +1987,7 @@ describe('normalizeViolations', () => {
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
-        violationTime: undefined
+        violationTime: undefined,
       })
 
     const formattedMidnight = DateTime.fromISO('2023-06-09T00:00:00', {
@@ -2028,7 +2037,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -2038,7 +2047,9 @@ describe('normalizeViolations', () => {
     const databasePathname = '/resource/869v-vr48.json'
     const dataUpdatedAt = '2023-11-14T17:54:58.000Z'
 
-    const tomorrowUTC = DateTime.local({ zone: "America/New_York" }).plus({ days: 1}).toUTC()
+    const tomorrowUTC = DateTime.local({ zone: 'America/New_York' })
+      .plus({ days: 1 })
+      .toUTC()
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
@@ -2049,7 +2060,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(undefined)
@@ -2065,7 +2076,7 @@ describe('normalizeViolations', () => {
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
-        violationTime: '05.3P'
+        violationTime: '05.3P',
       })
 
     const expectedViolation = {
@@ -2111,7 +2122,7 @@ describe('normalizeViolations', () => {
     const normalizedViolations = await normalizeViolations(
       [rawFiscalYearDatabaseViolation],
       databasePathname,
-      dataUpdatedAt,
+      dataUpdatedAt
     )
 
     expect(normalizedViolations[0]).toEqual(expectedViolation)
@@ -2123,13 +2134,15 @@ describe('normalizeViolations', () => {
 
     const rawFiscalYearDatabaseViolation: RawViolation =
       rawFiscalYearDatabaseViolationFactory.build({
-        violationTime: '123A'
+        violationTime: '123A',
       })
 
-    expect(normalizeViolations(
-      [rawFiscalYearDatabaseViolation],
-      databasePathname,
-      dataUpdatedAt,
-    )).rejects.toThrow('Unexpected time format')
+    expect(
+      normalizeViolations(
+        [rawFiscalYearDatabaseViolation],
+        databasePathname,
+        dataUpdatedAt
+      )
+    ).rejects.toThrow('Unexpected time format')
   })
 })

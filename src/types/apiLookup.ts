@@ -1,5 +1,3 @@
-import { DateTime } from 'luxon'
-
 import AggregateFineData from 'models/aggregateFineData'
 import CameraData from 'types/cameraData'
 import FrequencyData from 'types/frequencyData'

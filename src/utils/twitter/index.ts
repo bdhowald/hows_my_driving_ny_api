@@ -113,7 +113,7 @@ const createRepeatLookupString = (
     // Determine when the last lookup was...
     const previousLookupDateTimeTimeZoneNaive = previousLookup.createdAt
     const previousLookupDateTimeInUtc = DateTime.fromJSDate(
-      previousLookupDateTimeTimeZoneNaive,
+      previousLookupDateTimeTimeZoneNaive
     )
     const nowInUTC = DateTime.utc()
 
@@ -121,9 +121,8 @@ const createRepeatLookupString = (
     if (nowInUTC.minus({ minutes: 5 }) > previousLookupDateTimeInUtc) {
       // Add the new ticket info and previous lookup time to the string.
 
-      const previousLookupDateTimeInEastern = previousLookupDateTimeInUtc.setZone(
-        NEW_YORK_TIME_ZONE
-      )
+      const previousLookupDateTimeInEastern =
+        previousLookupDateTimeInUtc.setZone(NEW_YORK_TIME_ZONE)
 
       const previousLookupTimeInEasternString =
         previousLookupDateTimeInEastern.toFormat('hh:mm:ss a ZZZZ')
@@ -193,9 +192,9 @@ const formPlateLookupTweets = (
   )
 
   const asOfDateTimeInEasternTime = existingLookupCreatedAt
-    ? DateTime.fromJSDate(existingLookupCreatedAt).setZone(
-        'America/New_York', { keepLocalTime: true }
-      )
+    ? DateTime.fromJSDate(existingLookupCreatedAt).setZone('America/New_York', {
+        keepLocalTime: true,
+      })
     : DateTime.now().setZone(NEW_YORK_TIME_ZONE)
 
   const asOfTime = asOfDateTimeInEasternTime.toFormat('hh:mm:ss a ZZZZ')
@@ -292,7 +291,7 @@ const formPlateLookupTweets = (
       const fineTypeSummary = `${paddedCurrencyString}| ${humanReadableFineType}\n`
 
       // determine current string length if necessary
-      const potentialResponseLength = (curString + fineTypeSummary).length
+      // const potentialResponseLength = (curString + fineTypeSummary).length
 
       // If violation string so far and new part are less or
       // equal than 280 characters, append to existing tweet string.
@@ -325,7 +324,7 @@ const formPlateLookupTweets = (
       | 'redLightCameraViolations'
       | 'schoolZoneSpeedCameraViolations'
     ),
-    number
+    number,
   ][]
   thresholds.forEach(([thresholdName, thresholdValue]) => {
     if (thresholdName === 'cameraViolations') {
@@ -339,7 +338,7 @@ const formPlateLookupTweets = (
       thresholdData.streakStart
     ) {
       let humanReadableCameraTypeName: string | undefined
-      
+
       if (thresholdName === 'redLightCameraViolations') {
         humanReadableCameraTypeName = 'red light'
       } else {
@@ -429,7 +428,6 @@ const handleDirectMessageEvent = async (
       mediaUrl = messageData.attachment.media.mediaUrlHttps
     }
 
-
     if (
       sender &&
       directMessageEvent.messageCreate.target.recipientId ===
@@ -446,14 +444,15 @@ const handleDirectMessageEvent = async (
         userId: BigInt(sender.id),
       }
 
-      const mediaObjects: TwitterMediaObject[] | undefined = mediaType && mediaUrl
-        ? [
-            {
-              type: mediaType,
-              url: mediaUrl,
-            },
-          ]
-        : undefined
+      const mediaObjects: TwitterMediaObject[] | undefined =
+        mediaType && mediaUrl
+          ? [
+              {
+                type: mediaType,
+                url: mediaUrl,
+              },
+            ]
+          : undefined
 
       insertNewTwitterEventAndMediaObjects(twitterDatabaseEvent, mediaObjects)
     }
@@ -492,11 +491,8 @@ const handleFollowEvent = (followEvent: FollowEvent) => {
 const handleResponsePartFormation = (
   assembleResponseTypeArguments: AssembleResponseTypeArguments
 ): string[] => {
-  const {
-    continuedFormatString,
-    prefixFormatString,
-    summaryDataSubset,
-  } = assembleResponseTypeArguments
+  const { continuedFormatString, prefixFormatString, summaryDataSubset } =
+    assembleResponseTypeArguments
   // collect the responses
   const responseContainer: string[] = []
 
@@ -524,12 +520,13 @@ const handleResponsePartFormation = (
   objectEntries.forEach(([key, violationCountForKey]) => {
     // Titleize for readability.
     const isKeySnakeCased = key.indexOf('_') !== -1
-    const keyToUse = isKeySnakeCased ? decamelize(camelize(key)).replace(/_/g, ' ') : key
+    const keyToUse = isKeySnakeCased
+      ? decamelize(camelize(key)).replace(/_/g, ' ')
+      : key
 
-    const description = keyToUse
-      .replace(/\b[a-z]/g, (firstLetterOfWord) =>
-        firstLetterOfWord.toUpperCase()
-      )
+    const description = keyToUse.replace(/\b[a-z]/g, (firstLetterOfWord) =>
+      firstLetterOfWord.toUpperCase()
+    )
 
     const countLength = violationCountForKey.toString().length
 
@@ -607,7 +604,8 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentions = userMentionData?.userMentions
 
       const extendedEntities = tweetCreateEvent.extendedEntities
-      mediaAttachments = parseExtendedEntitiesForMediaTypesAndUrls(extendedEntities)
+      mediaAttachments =
+        parseExtendedEntitiesForMediaTypesAndUrls(extendedEntities)
     }
 
     const twitterDatabaseEvent: TwitterDatabaseEvent = {
@@ -628,12 +626,11 @@ const handleTweetCreateEvent = (tweetCreateEvent: TweetCreateEvent) => {
       userMentionIds,
     }
 
-    const mediaObjects: TwitterMediaObject[] | undefined = mediaAttachments?.map(
-      (mediaAttachment) => ({
+    const mediaObjects: TwitterMediaObject[] | undefined =
+      mediaAttachments?.map((mediaAttachment) => ({
         type: mediaAttachment.type,
         url: mediaAttachment.mediaUrlHttps,
-      })
-    )
+      }))
 
     insertNewTwitterEventAndMediaObjects(twitterDatabaseEvent, mediaObjects)
   }
@@ -699,7 +696,9 @@ const parseEntitiesForUserMentionData = (
 ): { userMentionIds: string; userMentions: string } | undefined => {
   if (entities.userMentions?.length) {
     const userMentionIds = entities.userMentions
-      .map((mention: UserMention) =>  tweetText?.includes(mention.screenName) ? mention.idStr : '')
+      .map((mention: UserMention) =>
+        tweetText?.includes(mention.screenName) ? mention.idStr : ''
+      )
       .join(' ')
       .trim()
 
@@ -734,7 +733,6 @@ const parseExtendedEntitiesForMediaTypesAndUrls = (
         type: mediaObject.type,
       }))
       .filter(({ mediaUrlHttps }) => !!mediaUrlHttps)
-
 
     return typesAndUrls
   }

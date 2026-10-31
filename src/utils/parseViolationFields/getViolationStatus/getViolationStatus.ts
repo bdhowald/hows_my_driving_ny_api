@@ -1,6 +1,8 @@
 import ViolationStatus from 'constants/violationStatuses'
 
-const getViolationStatus = (violationStatusish: string | undefined): ViolationStatus | undefined => {
+const getViolationStatus = (
+  violationStatusish: string | undefined
+): ViolationStatus | undefined => {
   if (!violationStatusish) {
     return undefined
   }
@@ -8,7 +10,7 @@ const getViolationStatus = (violationStatusish: string | undefined): ViolationSt
   switch (violationStatusish) {
     case 'ADMIN CLAIM DENIED':
       return ViolationStatus.ADMINISTRATIVE_CLAIM_DENIED
-    
+
     case 'ADMIN CLAIM GRANTED':
       return ViolationStatus.ADMINISTRATIVE_CLAIM_GRANTED
 

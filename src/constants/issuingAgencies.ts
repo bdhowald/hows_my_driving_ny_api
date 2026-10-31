@@ -87,7 +87,7 @@ enum IssuingAgency {
 //   Y: IssuingAgency.NEW_YORK_CITY_HEALTH_AND_HOSPITALS_POLICE,
 //   Z: IssuingAgency.DEPARTMENT_OF_HOMELAND_SECURITY,
 // }
-// 
+//
 // export default issuingAgencies
 
 export default IssuingAgency

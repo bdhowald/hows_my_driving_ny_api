@@ -1,5 +1,3 @@
-import IssuingAgency from 'constants/issuingAgencies'
-
 import getIssuingAgency from './getIssuingAgency'
 
 describe('getIssuingAgency', () => {
@@ -18,7 +16,8 @@ describe('getIssuingAgency', () => {
     },
     {
       agencyish: '2',
-      outputIssuingAgency: 'New York State Office for People With Developmental Disabilities',
+      outputIssuingAgency:
+        'New York State Office for People With Developmental Disabilities',
     },
     {
       agencyish: '3',
@@ -178,7 +177,8 @@ describe('getIssuingAgency', () => {
     },
     {
       agencyish: 'O M R D D',
-      outputIssuingAgency: 'New York State Office for People With Developmental Disabilities',
+      outputIssuingAgency:
+        'New York State Office for People With Developmental Disabilities',
     },
     {
       agencyish: 'OTHER/UNKNOWN AGENCIES',
@@ -190,7 +190,8 @@ describe('getIssuingAgency', () => {
     },
     {
       agencyish: 'PARKING CONTROL UNIT',
-      outputIssuingAgency: 'Deparment of Transportation (NYC DOT) Parking Control Unit',
+      outputIssuingAgency:
+        'Deparment of Transportation (NYC DOT) Parking Control Unit',
     },
     {
       agencyish: 'PARKS DEPARTMENT',
@@ -286,6 +287,6 @@ describe('getIssuingAgency', () => {
       const issuingAgency = getIssuingAgency(agencyish)
 
       expect(issuingAgency).toBe(outputIssuingAgency)
-    },
+    }
   )
 })

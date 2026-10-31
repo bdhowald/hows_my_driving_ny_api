@@ -1,5 +1,3 @@
-import IssuingAgency from 'constants/issuingAgencies'
-
 import getViolationStatus from './getViolationStatus'
 
 describe('getViolationStatus', () => {
@@ -82,6 +80,6 @@ describe('getViolationStatus', () => {
       const issuingAgency = getViolationStatus(violationStatusish)
 
       expect(issuingAgency).toBe(outputViolationStatus)
-    },
+    }
   )
 })

@@ -1,5 +1,4 @@
 type ParsedQueryStringForApiLookup =
-  | { error: string }
-  | { potentialVehicles: string[] }
+  { error: string } | { potentialVehicles: string[] }
 
 export default ParsedQueryStringForApiLookup

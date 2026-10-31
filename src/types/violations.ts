@@ -5,7 +5,7 @@ import {
   OpenParkingAndCameraViolationName,
 } from 'types/humanizedDescriptions'
 
-type SummonsImageType = {
+export type SummonsImageType = {
   url: string
   description: 'View Summons'
 }
@@ -82,8 +82,7 @@ export type RawOpenParkingAndCameraViolation = {
 }
 
 export type RawViolation =
-  | RawFiscalYearDatabaseViolation
-  | RawOpenParkingAndCameraViolation
+  RawFiscalYearDatabaseViolation | RawOpenParkingAndCameraViolation
 
 export type Violation = {
   amountDue: number | undefined

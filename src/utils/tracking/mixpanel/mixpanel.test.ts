@@ -2,7 +2,7 @@ import getMixpanelInstance from './mixpanel'
 
 describe('mixpanel', () => {
   it('should return a mixpanel instance if process.env. is defined', () => {
-    const realProjectId = process.env.MIXPANEL_PROJECT_ID 
+    const realProjectId = process.env.MIXPANEL_PROJECT_ID
     process.env.MIXPANEL_PROJECT_ID = '123456' // temporarily set for test's sake
 
     const mixpanelInstance = getMixpanelInstance()
@@ -12,7 +12,7 @@ describe('mixpanel', () => {
   })
 
   it('should return a mixpanel instance if process.env. is defined', () => {
-    const realProjectId = process.env.MIXPANEL_PROJECT_ID 
+    const realProjectId = process.env.MIXPANEL_PROJECT_ID
     delete process.env.MIXPANEL_PROJECT_ID // temporarily remove for test's sake
 
     const mixpanelInstance = getMixpanelInstance()

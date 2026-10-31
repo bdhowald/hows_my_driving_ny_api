@@ -44,7 +44,8 @@ class QueryParser {
    * @param fieldsFromQuery - allows us to recurse into the nested structure
    */
   findFilterFields = (fieldsFromQuery?: string | string[] | undefined) => {
-    const possibleFilterFields = fieldsFromQuery ?? this.query['fields'] ?? this.query['fields[]']
+    const possibleFilterFields =
+      fieldsFromQuery ?? this.query['fields'] ?? this.query['fields[]']
 
     const returnFields: { [key: string]: object } = {}
 
@@ -61,7 +62,7 @@ class QueryParser {
 
     selectedFields.forEach((field: string) => {
       if (fields[fields.indexOf(field) + field.length] == '(') {
-        var re = new RegExp(field + '\\([\\w|,]*\\)', 'g')
+        const re = new RegExp(field + '\\([\\w|,]*\\)', 'g')
 
         const matches: RegExpMatchArray | null = fields.match(re)
         if (matches) {
@@ -73,7 +74,7 @@ class QueryParser {
 
           if (subFieldsWithoutParentheses) {
             returnFields[field] = this.findFilterFields(
-              subFieldsWithoutParentheses.replace(/[\(|\)]/g, '')
+              subFieldsWithoutParentheses.replace(/[(|)]/g, '')
             )
           } else {
             returnFields[field] = {}
@@ -96,8 +97,7 @@ class QueryParser {
 
       const fingerprintId = this.query['fingerprintId'] as string | undefined
       const lookupSourceAsString = this.query['lookupSource'] as
-        | string
-        | undefined
+        string | undefined
       const mixpanelId = this.query['mixpanelId'] as string | undefined
 
       if (
@@ -242,7 +242,7 @@ class QueryParser {
     }
     // We check for multiple plateIds earlier, so cannot be string[]
     const arr: string[] = (this.query.plateTypes as string).split(',')
-    return arr.map((item: any) => item.trim())
+    return arr.map((item: unknown) => item.trim())
   }
 
   private getStateWithLegacyFormat = (): string | undefined =>

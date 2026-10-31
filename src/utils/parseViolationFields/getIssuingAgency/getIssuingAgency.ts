@@ -1,6 +1,8 @@
 import IssuingAgency from 'constants/issuingAgencies'
 
-const getIssuingAgency = (agencyish: string | undefined): IssuingAgency | undefined => {
+const getIssuingAgency = (
+  agencyish: string | undefined
+): IssuingAgency | undefined => {
   if (!agencyish) {
     return undefined
   }
@@ -35,7 +37,7 @@ const getIssuingAgency = (agencyish: string | undefined): IssuingAgency | undefi
 
     case 'H':
     case 'HOUSING AUTHORITY':
-      return IssuingAgency.NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE 
+      return IssuingAgency.NEW_YORK_CITY_HOUSING_AUTHORITY_POLICE
 
     case 'F':
     case 'FIRE DEPARTMENT':

@@ -20,10 +20,15 @@ const findMaxCameraViolationsStreak = (
 
   const dateTimes = violationTimes
     .filter(isPresent)
-    .map((violationTime) => DateTime.fromISO(violationTime, { zone: NEW_YORK_TIME_ZONE }))
+    .map((violationTime) =>
+      DateTime.fromISO(violationTime, { zone: NEW_YORK_TIME_ZONE })
+    )
 
   dateTimes.forEach((dateTime) => {
-    const yearMinusOneDayLater = dateTime.set({ year: dateTime.year + 1, day: -1 })
+    const yearMinusOneDayLater = dateTime.set({
+      year: dateTime.year + 1,
+      day: -1,
+    })
 
     const yearLongTickets = dateTimes.filter(
       (otherDate) => otherDate >= dateTime && otherDate < yearMinusOneDayLater
@@ -49,10 +54,18 @@ const findMaxCameraViolationsStreak = (
   })
 
   // Typescript gets confused
-  const streakEndInEastern = streakEndDateTime ? (streakEndDateTime as DateTime).toISO() : null
-  const streakEndInUtc = streakEndDateTime ? (streakEndDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO() : null
-  const streakStartInEastern = streakStartDateTime ? (streakStartDateTime as DateTime).toISO() : null
-  const streakStartInUtc = streakStartDateTime ? (streakStartDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO() : null
+  const streakEndInEastern = streakEndDateTime
+    ? (streakEndDateTime as DateTime).toISO()
+    : null
+  const streakEndInUtc = streakEndDateTime
+    ? (streakEndDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO()
+    : null
+  const streakStartInEastern = streakStartDateTime
+    ? (streakStartDateTime as DateTime).toISO()
+    : null
+  const streakStartInUtc = streakStartDateTime
+    ? (streakStartDateTime as DateTime).setZone(UTC_TIME_ZONE).toISO()
+    : null
 
   return {
     maxStreak,

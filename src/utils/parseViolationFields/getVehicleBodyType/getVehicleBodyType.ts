@@ -1,6 +1,8 @@
 import BodyType from 'constants/bodyTypes'
 
-const getVehicleBodyType = (bodyTypeish: string | undefined): BodyType | undefined => {
+const getVehicleBodyType = (
+  bodyTypeish: string | undefined
+): BodyType | undefined => {
   if (!bodyTypeish) {
     return undefined
   }

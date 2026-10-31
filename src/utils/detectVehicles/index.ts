@@ -8,11 +8,14 @@ const detectPlateTypesIndex = (plateParts: string[]): number => {
   const plateTypesBools = plateParts.map((part) => detectPlateTypes(part))
 
   // More than one part could be plate types, gather those parts.
-  const possiblePlateTypesIndices = plateTypesBools.flatMap((value, index) => (value ? [index] : []))
+  const possiblePlateTypesIndices = plateTypesBools.flatMap((value, index) =>
+    value ? [index] : []
+  )
 
   if (possiblePlateTypesIndices.length > 1) {
-    const indexOfPartWithComma = possiblePlateTypesIndices.find((possiblePlateTypesIndex) =>
-      plateParts[possiblePlateTypesIndex].indexOf(',') !== -1
+    const indexOfPartWithComma = possiblePlateTypesIndices.find(
+      (possiblePlateTypesIndex) =>
+        plateParts[possiblePlateTypesIndex].indexOf(',') !== -1
     )
 
     if (indexOfPartWithComma) {
@@ -78,8 +81,7 @@ const detectVehicles = (potentialVehicles: string[]): PotentialVehicle[] => {
       }
 
       const haveValidPlate =
-        plateIndex !== undefined &&
-        (parts.length === 2 && stateIndex != -1) ||
+        (plateIndex !== undefined && parts.length === 2 && stateIndex != -1) ||
         (parts.length === 3 && ![plateTypesIndex, stateIndex].includes(-1))
 
       if (haveValidPlate) {

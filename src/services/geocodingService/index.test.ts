@@ -116,14 +116,14 @@ describe('getBoroughService', () => {
       expect(axios.get as jest.Mock).toHaveBeenCalledWith(
         'https://googleapis.com',
         {
-          'params': {
-            'address': '123 Fake Street New York NY',
-            'components': {
-              'country': 'U.S.',
-              'locality': 'New York'
+          params: {
+            address: '123 Fake Street New York NY',
+            components: {
+              country: 'U.S.',
+              locality: 'New York',
             },
-            'key': '',
-          }
+            key: '',
+          },
         }
       )
     })
@@ -204,14 +204,14 @@ describe('getBoroughService', () => {
       expect(axios.get as jest.Mock).toHaveBeenCalledWith(
         'https://googleapis.com',
         {
-          'params': {
-            'address': '123 Fake Street New York NY',
-            'components': {
-              'country': 'U.S.',
-              'locality': 'New York'
+          params: {
+            address: '123 Fake Street New York NY',
+            components: {
+              country: 'U.S.',
+              locality: 'New York',
             },
-            'key': '',
-          }
+            key: '',
+          },
         }
       )
     })
@@ -288,14 +288,14 @@ describe('getBoroughService', () => {
       expect(axios.get as jest.Mock).toHaveBeenCalledWith(
         'https://googleapis.com',
         {
-          'params': {
-            'address': '123 Fake Street New York NY',
-            'components': {
-              'country': 'U.S.',
-              'locality': 'New York'
+          params: {
+            address: '123 Fake Street New York NY',
+            components: {
+              country: 'U.S.',
+              locality: 'New York',
             },
-            'key': '',
-          }
+            key: '',
+          },
         }
       )
     })
@@ -381,14 +381,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -468,21 +468,20 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
 
   it('should return the first borough queried from Google as long as New York as the city is detected', async () => {
     const brooklyn = 'Brooklyn'
-    const bronx = 'The Bronx'
 
     const googleMapsGeocodeResponse = {
       data: {
@@ -606,14 +605,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -672,14 +671,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -717,14 +716,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -762,14 +761,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -801,14 +800,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -836,14 +835,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })
@@ -873,14 +872,14 @@ describe('getBoroughService', () => {
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       'https://googleapis.com',
       {
-        'params': {
-          'address': '123 Fake Street New York NY',
-          'components': {
-            'country': 'U.S.',
-            'locality': 'New York'
+        params: {
+          address: '123 Fake Street New York NY',
+          components: {
+            country: 'U.S.',
+            locality: 'New York',
           },
-          'key': '',
-        }
+          key: '',
+        },
       }
     )
   })

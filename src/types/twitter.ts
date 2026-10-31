@@ -155,7 +155,7 @@ type MediaSize = {
 }
 
 type Place = {
-  attributes: Object | null
+  attributes: object | null
   boundingBox: {
     coordinates: [[[number, number][]]]
     type: string
@@ -233,7 +233,7 @@ type Tweet = {
   retweeted: boolean
   retweetCount: number
   retweetedStatus?: Tweet
-  scopes?: { [key: string]: any }
+  scopes?: Record<string, unknown>
   source: string
   text: string
   truncated: boolean
@@ -253,16 +253,16 @@ export type TweetCreateEvent = Tweet & {
 }
 
 export type TwitterDatabaseEvent = {
-  createdAt: BigInt
+  createdAt: bigint
   eventType: 'direct_message' | 'status'
-  eventId: BigInt
+  eventId: bigint
   eventText: string
   id?: number
-  inReplyToMessageId?: BigInt | undefined
+  inReplyToMessageId?: bigint | undefined
   location: string | undefined
   respondedTo: boolean
   userHandle: string
-  userId: BigInt
+  userId: bigint
   userMentionIds?: string | undefined
   userMentions?: string | undefined
 }
@@ -300,7 +300,7 @@ type User = {
           expandedUrl: string
           indices: [number, number]
           url: string
-        }
+        },
       ]
     }
   }
