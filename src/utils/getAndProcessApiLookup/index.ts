@@ -49,6 +49,8 @@ const getAndProcessApiLookup = async (
   _: unknown,
   externalData: ExternalData
 ): Promise<VehicleResponse> => {
+  console.log('vehicle:', vehicle)
+
   const plate = vehicle.plate
   const state = vehicle.state
   const plateTypes = vehicle.types
@@ -94,6 +96,18 @@ const getAndProcessApiLookup = async (
     ...(rectifiedPlate ? { rectifiedPlate } : undefined),
     ...(state ? { state } : undefined),
   }
+
+  console.log('-----')
+  console.log('1. Before requests are made')
+
+  console.table(
+    Object.fromEntries(
+      Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+        key,
+        `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+      ])
+    )
+  )
 
   try {
     allOpenDataResponses = await Promise.all([
@@ -142,6 +156,17 @@ const getAndProcessApiLookup = async (
       {} as Record<ViolationDatabasePathname, string>
     )
 
+    console.log('2. Before requests are mapped:')
+
+    console.table(
+      Object.fromEntries(
+        Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+          key,
+          `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+        ])
+      )
+    )
+
     const normalizedResponsePromises: Promise<(Violation | undefined)[]>[] =
       vehicleDataResponses.map(async (response) => {
         if (!response.config.url) {
@@ -159,6 +184,18 @@ const getAndProcessApiLookup = async (
 
         const dataUpdatedAt = metadataUpdatedAtValues[v2DatabaseEndpoint]
 
+        console.log('3. Before each request is normalized:')
+        console.log('v2DatabasePathname:', v2DatabasePathname)
+
+        console.table(
+          Object.fromEntries(
+            Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+              key,
+              `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+            ])
+          )
+        )
+
         return normalizeViolations(
           response.data,
           v2DatabasePathname,
@@ -166,7 +203,31 @@ const getAndProcessApiLookup = async (
         )
       })
 
+
+    console.log('4. Before requests are awaited')
+
+    console.table(
+      Object.fromEntries(
+        Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+          key,
+          `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+        ])
+      )
+    )
+
     normalizedResponses = await Promise.all(normalizedResponsePromises)
+
+    console.log('5. After requests are awaited:')
+
+    console.table(
+      Object.fromEntries(
+        Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+          key,
+          `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+        ])
+      )
+    )
+
   } catch (error: unknown) {
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_parsing_error', {
@@ -181,6 +242,18 @@ const getAndProcessApiLookup = async (
         vehicle.originalString,
     }
   }
+
+  console.log('6. Before responses are flattened')
+  console.log('-----')
+
+  console.table(
+    Object.fromEntries(
+      Object.entries(process.memoryUsage()).map(([key, bytes]) => [
+        key,
+        `${(bytes / 1024 / 1024).toFixed(1)} MiB`,
+      ])
+    )
+  )
 
   // Filter out falsy violations, caused by things like violations in the future
   const flattenedViolations = normalizedResponses.flat()
