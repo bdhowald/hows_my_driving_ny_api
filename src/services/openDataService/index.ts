@@ -84,6 +84,8 @@ const constructFiscalYearPromises = <T = unknown, D = unknown>({
         AxiosResponse<T, D>
       >
 
+      console.log(`useV3Api: ${useV3Api}`)
+
       if (useV3Api) {
         asyncFunction = () => {
           // Construct POST body
@@ -110,6 +112,8 @@ const constructFiscalYearPromises = <T = unknown, D = unknown>({
           )
 
           const stringifiedUrl = fiscalYearUrl.toString()
+
+          console.log(`Request url: ${stringifiedUrl}`)
 
           return axios.get(stringifiedUrl)
         }
