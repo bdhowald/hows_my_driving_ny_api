@@ -110,6 +110,7 @@ const getAndProcessApiLookup = async (
   )
 
   try {
+    console.log('Requests about to be made.')
     allOpenDataResponses = await Promise.all([
       OpenDataService.makeOpenDataVehicleRequest({
         plate,
@@ -119,6 +120,7 @@ const getAndProcessApiLookup = async (
       }),
       OpenDataService.makeOpenDataMetadataRequest(lookupType),
     ])
+    console.log('Requests made.')
   } catch (error: unknown) {
     const mixpanelInstance = getMixpanelInstance()
     mixpanelInstance?.track('open_data_query_error', {

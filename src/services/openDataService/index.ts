@@ -514,6 +514,8 @@ const makeOpenDataVehicleRequest = async ({
 
   openDataPromises.push(openParkingAndCameraViolationsPromise)
 
+  console.log('Constructed open data promises')
+
   return await Promise.all(openDataPromises)
 }
 
