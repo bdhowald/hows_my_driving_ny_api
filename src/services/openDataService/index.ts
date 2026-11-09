@@ -614,6 +614,7 @@ const makeRequestWithRetries = async ({
         console.log(
           `Requests failed after ${maxRetries + 1} attempts, throwing error`
         )
+        console.log('error is:', error)
         throw error
       }
 
