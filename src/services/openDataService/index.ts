@@ -96,8 +96,13 @@ const constructFiscalYearPromises = <T = unknown, D = unknown>({
             isFiscalYearRequest: true,
           })
 
+          const v3Headers = constructSodaV3Headers()
+
+          console.log('v3 api body:', queryBody)
+          console.log('v3Headers:', v3Headers)
+
           return axios.post(endpoint, queryBody, {
-            headers: constructSodaV3Headers(),
+            headers: v3Headers,
           })
         }
       } else {
