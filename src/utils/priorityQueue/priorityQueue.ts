@@ -54,19 +54,26 @@ class PriorityQueue {
    * Dequeue requests from the queue and execute them until empty
    */
   private async _dequeue() {
+    console.log('active tasks:', this.active)
     if (this.active >= this.concurrency || this.queue.length === 0) {
+      console.log('active tasks meet or exceed concurrency limit')
       return
     }
+
+    console.log('active tasks below concurrency limit')
 
     const dequeuedTask = this.queue.shift() as QueueTask
     this.active += 1
 
     try {
       const result = await this.limit(() => dequeuedTask.asyncFunction())
+      console.log('task complete')
       dequeuedTask.resolve(result)
     } catch (error) {
+      console.log('task errored')
       dequeuedTask.reject(error)
     } finally {
+      console.log('returning concurrency lock')
       this.active -= 1
       this._dequeue()
     }
