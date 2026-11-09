@@ -57,7 +57,11 @@ class PriorityQueue {
   private async _dequeue() {
     console.log('active tasks:', this.active)
     if (this.active >= this.concurrency || this.queue.length === 0) {
-      console.log('active tasks meet or exceed concurrency limit')
+      if (this.active >= this.concurrency) {
+        console.log('active tasks meet or exceed concurrency limit')
+      } else if (this.queue.length === 0) {
+        console.log('queue is empty')
+      }
       return
     }
 
