@@ -16,7 +16,7 @@ class PriorityQueue {
   private readonly limit: pLimit.Limit
   private readonly queue: QueueTask<unknown>[]
 
-  constructor(concurrency = 2) {
+  constructor(concurrency = 5) {
     this.active = 0
     this.concurrency = concurrency
     this.limit = pLimit(concurrency)
