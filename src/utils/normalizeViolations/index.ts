@@ -55,7 +55,10 @@ const getBorough = async (
     return boroughs[violation.violationCounty]
   }
   if ('county' in violation && violation.county) {
-    return boroughs[violation.county]
+    const borough = boroughs[violation.county]
+    if (borough) {
+      return borough
+    }
   }
 
   if (
