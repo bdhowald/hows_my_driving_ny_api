@@ -17,6 +17,7 @@ class PriorityQueue {
   private readonly queue: QueueTask<unknown>[]
 
   constructor(concurrency = 5) {
+    console.log('requested concurrency:', concurrency)
     this.active = 0
     this.concurrency = concurrency
     this.limit = pLimit(concurrency)
