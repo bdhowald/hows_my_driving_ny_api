@@ -28,7 +28,7 @@ import FeatureFlags from 'utils/featureFlags/featureFlags'
 import PriorityQueue from 'utils/priorityQueue/priorityQueue'
 import getMixpanelInstance from 'utils/tracking/mixpanel/mixpanel'
 
-const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 75
+const MAX_CONCURRENT_OPEN_DATA_REQUESTS = 150
 const TEST_ENVIRONMENT = 'test'
 const priorityQueue = new PriorityQueue(MAX_CONCURRENT_OPEN_DATA_REQUESTS)
 
