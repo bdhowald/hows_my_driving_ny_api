@@ -28,6 +28,22 @@ const getFeatureFlagValue = (featureFlag: FeatureFlagConfig) => {
   return selectedVariation.value
 }
 
+const useMixpanelLogging = {
+  name: 'enableMixpanelLogging',
+  variations: [
+    {
+      name: 'on',
+      percentage: 0,
+      value: true,
+    },
+    {
+      name: 'of',
+      percentage: 100,
+      value: false,
+    },
+  ],
+}
+
 const useSocrataSodaV3Api = {
   name: 'useSocrataSodaV3Api',
   variations: [
@@ -62,6 +78,7 @@ const trackOpenDataRequestTime = {
 
 const featureFlags = {
   trackOpenDataRequestTime,
+  useMixpanelLogging,
   useSocrataSodaV3Api,
 }
 
